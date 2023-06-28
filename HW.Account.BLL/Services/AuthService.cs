@@ -2,6 +2,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Policy;
 using System.Text;
+using System.Web;
 using HW.Account.DAL.Data;
 using HW.Account.DAL.Data.Entities;
 using HW.Common.DataTransferObjects;
@@ -9,6 +10,7 @@ using HW.Common.Exceptions;
 using HW.Common.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -75,12 +77,15 @@ public class AuthService : IAuthService {
         var result = await _userManager.CreateAsync(user, accountRegisterDto.Password);
 
         if (result.Succeeded) {
+           var newUser = await _userManager.FindByIdAsync(user.Id.ToString());
+            var code = await _userManager.GenerateEmailConfirmationTokenAsync(newUser);
             
-            var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+            var encode = HttpUtility.UrlEncode(code);
+            //var result1 = await _userManager.ConfirmEmailAsync(newUser,code);
 
             await _emailService.SendEmailAsync(user.Email, "Confirm your account",
-                $"Подтвердите регистрацию, перейдя по ссылке: <a href='http://localhost:5224/swagger/index.html'>link</a>");
-            
+                $"Подтвердите регистрацию, перейдя по ссылке: <a href='https://localhost:7234/Home/ConfirmEmail?userId={user.Id}&code={encode}'>link</a>");
+          
             _logger.LogInformation("Successful register");
             return await LoginAsync(new AccountLoginDto()
                 { Email = accountRegisterDto.Email, Password = accountRegisterDto.Password }, httpContext);
