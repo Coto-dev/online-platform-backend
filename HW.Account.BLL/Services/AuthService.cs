@@ -1,5 +1,6 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Security.Policy;
 using System.Text;
 using HW.Account.DAL.Data;
 using HW.Account.DAL.Data.Entities;
@@ -24,6 +25,7 @@ public class AuthService : IAuthService {
     private readonly SignInManager<User> _signInManager;
     private readonly AccountDbContext _accountDbContext;
     private readonly IConfiguration _configuration;
+    private IEmailService _emailService;
 
     /// <summary>
     /// Constructor
@@ -33,14 +35,15 @@ public class AuthService : IAuthService {
     /// <param name="signInManager"></param>
     /// <param name="accountDbContext"></param>
     /// <param name="configuration"></param>
-
+    /// <param name="emailService"></param>
     public AuthService(ILogger<AuthService> logger, UserManager<User> userManager, SignInManager<User> signInManager,
-        AccountDbContext accountDbContext,IConfiguration configuration) {
+        AccountDbContext accountDbContext,IConfiguration configuration, IEmailService emailService) {
         _logger = logger;
         _userManager = userManager;
         _signInManager = signInManager;
         _accountDbContext = accountDbContext;
         _configuration = configuration;
+        _emailService = emailService;
     }
 
     /// <summary>
@@ -72,6 +75,12 @@ public class AuthService : IAuthService {
         var result = await _userManager.CreateAsync(user, accountRegisterDto.Password);
 
         if (result.Succeeded) {
+            
+            var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+
+            await _emailService.SendEmailAsync(user.Email, "Confirm your account",
+                $"Подтвердите регистрацию, перейдя по ссылке: <a href='http://localhost:5224/swagger/index.html'>link</a>");
+            
             _logger.LogInformation("Successful register");
             return await LoginAsync(new AccountLoginDto()
                 { Email = accountRegisterDto.Email, Password = accountRegisterDto.Password }, httpContext);

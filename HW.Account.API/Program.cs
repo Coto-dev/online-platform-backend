@@ -2,6 +2,7 @@ using System.Reflection;
 using System.Text.Json.Serialization;
 using HW.Account.BLL.Extensions;
 using HW.Common.Extennsions;
+using HW.Common.Middlewares;
 using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -56,7 +57,7 @@ await app.ConfigureIdentity();
 // Configure the HTTP request pipeline.
 app.UseSwagger();
 app.UseSwaggerUI();
-
+app.UseErrorHandleMiddleware();
 
 app.UseHttpsRedirection();
 

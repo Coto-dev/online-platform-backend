@@ -20,7 +20,8 @@ public static class ServiceDependencyExtension {
     public static IServiceCollection AddAccountBlServiceDependencies(this IServiceCollection services, IConfiguration configuration) {
         services.AddDbContext<AccountDbContext>(options => 
             options.UseNpgsql(configuration.GetConnectionString("AccountDatabase")));
-
+        
+        services.AddScoped<IEmailService, EmailService>();
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<IAccountService, AccountService>();
         return services;
