@@ -81,10 +81,9 @@ public class AuthService : IAuthService {
             var code = await _userManager.GenerateEmailConfirmationTokenAsync(newUser);
             
             var encode = HttpUtility.UrlEncode(code);
-            //var result1 = await _userManager.ConfirmEmailAsync(newUser,code);
-
+            var config = _configuration.GetSection("ConfirmMVCUrl");
             await _emailService.SendEmailAsync(user.Email, "Confirm your account",
-                $"Подтвердите регистрацию, перейдя по ссылке: <a href='https://localhost:7234/Home/ConfirmEmail?userId={user.Id}&code={encode}'>link</a>");
+                $"Подтвердите регистрацию, перейдя по ссылке: <a href='{config.GetValue<string>("Url")}?userId={user.Id}&code={encode}'>link</a>");
           
             _logger.LogInformation("Successful register");
             return await LoginAsync(new AccountLoginDto()
@@ -316,6 +315,18 @@ public class AuthService : IAuthService {
 
         var result =
             await _userManager.ChangePasswordAsync(user, changePasswordDto.OldPassword, changePasswordDto.NewPassword);
+        if (!result.Succeeded) {
+            throw new BadRequestException(string.Join(", ", result.Errors.Select(x => x.Description)));
+        }
+    }
+
+    public async Task ConfirmEmail(Guid userId, string code) {
+        var user = await _userManager.FindByIdAsync(userId.ToString());
+        if (user == null) {
+            throw new NotFoundException("User not found");
+        }
+        var result =
+            await _userManager.ConfirmEmailAsync(user, code);
         if (!result.Succeeded) {
             throw new BadRequestException(string.Join(", ", result.Errors.Select(x => x.Description)));
         }

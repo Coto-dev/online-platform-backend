@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Net;
 using System.Text;
 using System.Web;
 using HW.Account.DAL.Data.Entities;
@@ -12,11 +13,10 @@ namespace HW.EmailReciever.MVC.Controllers;
 
 public class HomeController : Controller {
     private readonly ILogger<HomeController> _logger;
-    private readonly UserManager<User> _userManager;
-
-    public HomeController(ILogger<HomeController> logger, UserManager<User> userManager) {
+    private readonly IConfiguration _configuration;
+    public HomeController(ILogger<HomeController> logger, IConfiguration configuration) {
         _logger = logger;
-        _userManager = userManager;
+        _configuration = configuration;
     }
 
     public IActionResult Index() {
@@ -30,18 +30,15 @@ public class HomeController : Controller {
     [AllowAnonymous]
     public async Task<IActionResult> ConfirmEmail(string userId, string code)
     {
-        if (userId == null || code == null)
-        {
-            return View("Error");
-        }
-        var user = await _userManager.FindByIdAsync(userId);
-        if (user == null)
-        {
+        if (userId == null || code == null) {
             return View("Error");
         }
 
-        var result = await _userManager.ConfirmEmailAsync(user, code);
-        if(result.Succeeded)
+        var client = new HttpClient();
+        var encode = HttpUtility.UrlEncode(code);
+        var config = _configuration.GetSection("ConfirmUrl");
+        var result = await client.GetAsync(config.GetValue<string>("Url")+$"?code={encode}&userId={userId}");
+        if(result.StatusCode == HttpStatusCode.OK)
             return RedirectToAction("Privacy", "Home");
         else
             return View("Error");

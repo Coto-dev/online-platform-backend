@@ -1,3 +1,4 @@
+using System.Web;
 using HW.Common.DataTransferObjects;
 using HW.Common.Exceptions;
 using HW.Common.Interfaces;
@@ -136,6 +137,14 @@ public class AuthController : ControllerBase {
         }
 
         await _authService.DeleteDeviceAsync(userId, deviceId);
+        return Ok();
+    }
+    [HttpGet]
+    [Route("confirm")]
+    public async Task<ActionResult> ConfirmToken([FromQuery] string code, [FromQuery] Guid userId) {
+        
+        var encode = HttpUtility.UrlDecode(code);
+        await _authService.ConfirmEmail(userId, code);
         return Ok();
     }
 }
