@@ -18,14 +18,7 @@ public class HomeController : Controller {
         _logger = logger;
         _configuration = configuration;
     }
-
-    public IActionResult Index() {
-        return View();
-    }
-
-    public IActionResult Privacy() {
-        return View();
-    }
+    
     [HttpGet]
     [AllowAnonymous]
     public async Task<IActionResult> ConfirmEmail(string userId, string code)
@@ -38,14 +31,15 @@ public class HomeController : Controller {
         var encode = HttpUtility.UrlEncode(code);
         var config = _configuration.GetSection("ConfirmUrl");
         var result = await client.GetAsync(config.GetValue<string>("Url")+$"?code={encode}&userId={userId}");
-        if(result.StatusCode == HttpStatusCode.OK)
-            return RedirectToAction("Privacy", "Home");
+        if (result.StatusCode == HttpStatusCode.OK)
+            return View();
         else
             return View("Error");
     }
     
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
     public IActionResult Error() {
-        return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+        _logger.LogError(Activity.Current?.Id ?? HttpContext.TraceIdentifier);
+        return View();
     }
 }
