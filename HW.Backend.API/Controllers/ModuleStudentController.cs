@@ -8,16 +8,16 @@ namespace HW.Backend.API.Controllers;
 /// </summary>
 [ApiController]
 [Route("api/module")]
-public class ModuleController : ControllerBase {
+public class ModuleStudentController : ControllerBase {
    
 
-    private readonly ILogger<ModuleController> _logger;
+    private readonly ILogger<ModuleStudentController> _logger;
 
     /// <summary>
     /// Constructor
     /// </summary>
     /// <param name="logger"></param>
-    public ModuleController(ILogger<ModuleController> logger) {
+    public ModuleStudentController(ILogger<ModuleStudentController> logger) {
         _logger = logger;
     }
 
