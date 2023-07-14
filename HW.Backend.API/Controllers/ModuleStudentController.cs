@@ -52,6 +52,18 @@ public class ModuleStudentController : ControllerBase {
     }
     
     /// <summary>
+    /// Get chapter content by chapterId
+    /// </summary>
+    ///<remarks>
+    /// return module with submodules and first chapter
+    /// </remarks>
+    [HttpGet]
+    [Route("chapter/{chapterId}")]
+    public async Task<ActionResult<ChapterFullDto>> GetChapterContent(Guid chapterId) {
+        throw new NotImplementedException();
+    }
+    
+    /// <summary>
     /// Get module details by moduleId
     /// </summary>
     [HttpGet]

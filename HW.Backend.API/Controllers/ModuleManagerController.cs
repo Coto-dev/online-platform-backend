@@ -77,20 +77,57 @@ public class ModuleManagerController : ControllerBase {
     }
     
     /// <summary>
-    /// Add sub module
+    /// Create sub module
     /// </summary>
     [HttpPost]
     [Route("{moduleId}/sub-module")]
     public async Task<ActionResult> AddSubModule(Guid moduleId, [FromBody] SubModuleCreateDto model) {
         throw new NotImplementedException();
     }
+    
+    /// <summary>
+    /// Edit sub module
+    /// </summary>
+    [HttpPut]
+    [Route("sub-module/{subModuleId}")]
+    public async Task<ActionResult> EditSubModule(Guid subModuleId, [FromBody] SubModuleEditDto model) {
+        throw new NotImplementedException();
+    }
+    
+    /// <summary>
+    /// Archive sub module
+    /// </summary>
+    [HttpDelete]
+    [Route("sub-module/{subModuleId}")]
+    public async Task<ActionResult> ArchiveSubModule(Guid subModuleId) {
+        throw new NotImplementedException();
+    }
+    
     //TODO: создание chapter, просмотр саб моулей и глав в режиме редактирования.
     /// <summary>
-    /// Add chapter to sub module
+    /// Create chapter in sub module
     /// </summary>
     [HttpPost]
-    [Route("sub-module/{subModuleId}")]
-    public async Task<ActionResult> AddChapter(Guid subModuleId) {
+    [Route("sub-module/{subModuleId}/chapter")]
+    public async Task<ActionResult> CreateChapter(Guid subModuleId, [FromBody] ChapterCreateDto model) {
+        throw new NotImplementedException();
+    }
+    
+    /// <summary>
+    /// Edit chapter(save changes)
+    /// </summary>
+    [HttpPut]
+    [Route("chapter/{chapterId}")]
+    public async Task<ActionResult> EditChapter(Guid chapterId, [FromBody] ChapterCreateDto model) {
+        throw new NotImplementedException();
+    }
+    
+    /// <summary>
+    /// Archive chapter
+    /// </summary>
+    [HttpDelete]
+    [Route("chapter/{chapterId}")]
+    public async Task<ActionResult> ArchiveChapter(Guid chapterId) {
         throw new NotImplementedException();
     }
     

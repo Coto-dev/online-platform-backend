@@ -7,4 +7,6 @@ public class ChapterFullDto {
     public List<Guid> FileIds { get; set; } = new();
     public List<ChapterCommentDto> Comments { get; set; } = new();
     public bool IsLearned { get; set; }
+    public bool IsTestChapter { get; set; }
+    public List<TestDto>? Tests { get; set; }
 }
