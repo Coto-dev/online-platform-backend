@@ -1,4 +1,6 @@
-﻿namespace HW.Backend.Dal.Data.Entities;
+﻿using HW.Backend.DAL.Data.Entities;
+
+namespace HW.Backend.Dal.Data.Entities;
 
 /// <summary>
 /// Entity for student

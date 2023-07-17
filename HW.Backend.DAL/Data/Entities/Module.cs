@@ -1,4 +1,5 @@
-﻿using HW.Common.Enums;
+﻿using HW.Backend.Dal.Data.Entities;
+using HW.Common.Enums;
 
 namespace HW.Backend.DAL.Data.Entities;
 
@@ -26,19 +27,19 @@ public class Module
     /// <summary>
     /// Date and time the module was created
     /// </summary>
-    public DataTime CreatedAt { get; set; } = DataTime.UtcNow;
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     /// <summary>
     /// Date and time the module was editted
     /// </summary>
-    public DataTime? EdittedAt { get; set; }
+    public DateTime? EditedAt { get; set; }
     /// <summary>
     /// Date and time the module was archived
     /// </summary>
-    public DataTime? ArchivedAt { get; set; }
+    public DateTime? ArchivedAt { get; set; }
     /// <summary>
     /// Module's type
     /// </summary>
-    public ModuleType ModuleType { get; set; }
+    public DateTime ModuleType { get; set; }
     /// <summary>
     /// Teacher-creator identifier
     /// </summary>
@@ -54,6 +55,6 @@ public class Module
     /// <summary>
     /// Module's visibility
     /// </summary>
-    public ModuleVisibility ModuleVisibility { get; set; }
+    public ModuleVisibilityType ModuleVisibility { get; set; }
 
 }

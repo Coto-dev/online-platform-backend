@@ -1,6 +1,6 @@
 ﻿namespace HW.Backend.DAL.Data.Entities;
 
-public class Userbackend
+public class UserBackend
 {
 	public Guid Id { get; set; }
 
