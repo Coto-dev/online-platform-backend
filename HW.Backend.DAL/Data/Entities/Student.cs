@@ -12,11 +12,20 @@ public class Student
     /// </summary>
     public UserBackend User { get; set; }
     /// <summary>
+    /// List of students's module
+    /// </summary>
+    public List<UserModule> Modules { get; set; }
+    /// <summary>
     /// List of student's learned chapters
     /// </summary>
     public List<Chapter> LearnedChapters { get; set; }
     /// <summary>
-    /// 
+    /// List of student's comennts to modules
     /// </summary>
+    public List<ModuleComment> ModuleComments { get; set; }
+    /// <summary>
+    /// ...
+    /// </summary>
+    public List<TestComments> TestComments { get; set; } //---------------------!
 
 }

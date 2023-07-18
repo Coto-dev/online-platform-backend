@@ -14,18 +14,20 @@ public class Chapter
     /// </summary>
     public string Name { get; set; }
     /// <summary>
+    /// Chapter's content
+    /// </summary>
+    public string Content { get; set; }
+    /// <summary>
+    /// Submodule in which the chapter
+    /// </summary>
+    public SubModule SubModule { get; set; }
+    /// <summary>
     /// Chapter's files
     /// </summary>
     public List<Guid> Files { get; set; }
 	/// <summary>
-	/// ... 
+	/// Chapter's tests
 	/// </summary>
-	//public List<Test> TestChapter { get; set; } --------------------------2
-	/// <summary>
-	/// ...
-	/// </summary>
-    public string Content { get; set; }
-
-
+	public List<Test> TestChapter { get; set; }
 
 }

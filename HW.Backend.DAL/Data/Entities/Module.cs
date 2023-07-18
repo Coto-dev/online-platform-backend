@@ -39,7 +39,7 @@ public class Module
     /// <summary>
     /// Module's type
     /// </summary>
-    public DateTime ModuleType { get; set; }
+    public DateTime ModuleType { get; set; } //---------------------------!
     /// <summary>
     /// Teacher-creator identifier
     /// </summary>
@@ -56,5 +56,9 @@ public class Module
     /// Module's visibility
     /// </summary>
     public ModuleVisibilityType ModuleVisibility { get; set; }
+    /// <summary>
+    /// List of teachers who teach this module
+    /// </summary>
+    public List<Teacher> Teachers { get; set; }
 
 }

@@ -1,12 +1,12 @@
 ﻿namespace HW.Backend.DAL.Data.Entities;
 
 /// <summary>
-/// Userback entity 
+/// Entity for DetailedAnswer
 /// </summary>
-public class UserBackend
+public class DetailedAnswer
 {
     /// <summary>
-    /// Userback identifier
+    /// DetailedAnswer identifier
     /// </summary>
     public Guid Id { get; set; }
 
