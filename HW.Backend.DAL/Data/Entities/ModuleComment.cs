@@ -12,26 +12,26 @@ public class ModuleComment
     /// <summary>
     /// DataTime when was created
     /// </summary>
-    public DataTime CreatedAt { get; set; }
+    public required DateTime CreatedAt { get; set; }
     /// <summary>
     /// DataTime when was editted
     /// </summary>
-    public DataTime? EdittedAt { get; set; }
+    public DateTime? EdittedAt { get; set; }
     /// <summary>
     /// Comment message
     /// </summary>
-    public string Message { get; set; }
+    public required string Message { get; set; }
     /// <summary>
     /// Module identifier
     /// </summary>
-    public Module Module { get; set; }
+    public required Module Module { get; set; }
     /// <summary>
     /// Userbackend identifier
     /// </summary>
-    public UserBackend User { get; set; }
+    public required UserBackend User { get; set; }
     /// <summary>
     /// Bool check is teacher comment
     /// </summary>
-    public bool IsTeacherComment { get; set; }
+    public required bool IsTeacherComment { get; set; }
 
 }

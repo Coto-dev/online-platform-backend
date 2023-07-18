@@ -27,6 +27,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\HW.Backend.BL\HW.Backend.BL.csproj" />
       <ProjectReference Include="..\HW.Common\HW.Common.csproj" />
     </ItemGroup>
 

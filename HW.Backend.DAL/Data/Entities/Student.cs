@@ -10,22 +10,22 @@ public class Student
     /// <summary>
     /// User identifier
     /// </summary>
-    public UserBackend User { get; set; }
+    public required UserBackend User { get; set; }
     /// <summary>
     /// List of students's module
     /// </summary>
-    public List<UserModule> Modules { get; set; }
+    public List<UserModule>? Modules { get; set; }
     /// <summary>
     /// List of student's learned chapters
     /// </summary>
-    public List<Chapter> LearnedChapters { get; set; }
+    public List<Chapter>? LearnedChapters { get; set; }
     /// <summary>
     /// List of student's comennts to modules
     /// </summary>
-    public List<ModuleComment> ModuleComments { get; set; }
+    public List<ModuleComment>? ModuleComments { get; set; }
     /// <summary>
     /// ...
     /// </summary>
-    public List<TestComments> TestComments { get; set; } //---------------------!
+    //public List<TestComme> TestComments { get; set; } //---------------------!
 
 }

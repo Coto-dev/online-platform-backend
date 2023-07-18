@@ -3,7 +3,7 @@ namespace HW.Backend.Dal.Data.Entities;
 /// <summary>
 /// Entity for UserActions
 /// </summary>
-public class ModuleInEducationalProgram
+public class UserAction
 {
     /// <summary>
     /// UserActions identifier
@@ -12,7 +12,7 @@ public class ModuleInEducationalProgram
     /// <summary>
     /// Student identifier
     /// </summary>
-    public Student Student { get; set; }
+    public required Student Student { get; set; }
     /// <summary>
     /// Count of user's actions
     /// </summary>

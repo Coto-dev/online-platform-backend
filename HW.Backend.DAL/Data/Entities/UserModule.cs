@@ -1,3 +1,6 @@
+using HW.Backend.DAL.Data.Entities;
+using HW.Common.Enums;
+
 namespace HW.Backend.Dal.Data.Entities;
 
 /// <summary>
@@ -12,10 +15,14 @@ public class UserModule
     /// <summary>
     /// Student identifier
     /// </summary>
-    public Student Stundet { get; set; }
+    public required Student Stundet { get; set; }
     /// <summary>
     /// List of stundent modules
     /// </summary>
-    public List<Module> Modules { get; set; }
+    public required Module Module { get; set; }
+    /// <summary>
+    /// Module status type
+    /// </summary>
+    public ModuleStatusType ModuleStatus { get; set; }
 
 }

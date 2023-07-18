@@ -1,3 +1,5 @@
+using HW.Backend.DAL.Data.Entities;
+
 namespace HW.Backend.Dal.Data.Entities;
 
 /// <summary>
@@ -8,7 +10,7 @@ public class StreamingModule : Module
 	/// <summary>
 	/// DataTime of module start
 	/// </summary>
-	public DataTime StartAt { get; set; }
+	public DateTime StartAt { get; set; }
 	/// <summary>
 	/// Number of maximum students in module
 	/// </summary>

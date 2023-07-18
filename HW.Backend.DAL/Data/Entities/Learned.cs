@@ -12,14 +12,14 @@ public class Learned
     /// <summary>
     /// User identifier
     /// </summary>
-    public UserBackend LearnedBy { get; set; }
+    public required UserBackend LearnedBy { get; set; }
     /// <summary>
     /// Chapter identifier
     /// </summary>
-    public Chapter Chapter { get; set; }
+    public required Chapter Chapter { get; set; }
     /// <summary>
     /// DataTime when was learned
     /// </summary>
-    public DataTime LearnDate { get; set; }
+    public DateTime LearnDate { get; set; }
 
 }

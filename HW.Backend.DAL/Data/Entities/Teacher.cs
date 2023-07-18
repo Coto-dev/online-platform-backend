@@ -14,6 +14,6 @@ public class Teacher
     /// <summary>
     /// List of teacher's contrelled modules
     /// </summary>
-    public List<Module> ControlledModules { get; set; }
+    public List<Module>? ControlledModules { get; set; }
 
 }

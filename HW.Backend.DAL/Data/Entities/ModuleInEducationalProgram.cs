@@ -1,3 +1,5 @@
+using HW.Backend.DAL.Data.Entities;
+
 namespace HW.Backend.Dal.Data.Entities;
 
 /// <summary>
@@ -12,14 +14,14 @@ public class ModuleInEducationalProgram
 	/// <summary>
 	/// List of modules
 	/// </summary>
-	public List<Module> Modules { get; set; }
+	public required Module Module { get; set; }
 	/// <summary>
 	/// EducationalProgram identifier
 	/// </summary>
-	public EducationalProgram EducationalProgram { get; set; }
+	public required EducationalProgram EducationalProgram { get; set; }
 	/// <summary>
 	/// List of required modules
 	/// </summary>
-	public List<Module> RequRequiredModules { get; set; }
+	public List<Module>? RequRequiredModules { get; set; }
 
 }

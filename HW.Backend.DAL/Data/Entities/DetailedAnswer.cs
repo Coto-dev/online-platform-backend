@@ -3,11 +3,15 @@
 /// <summary>
 /// Entity for DetailedAnswer
 /// </summary>
-public class DetailedAnswer
+public class DetailedAnswer : UserAnswer
 {
     /// <summary>
-    /// DetailedAnswer identifier
+    /// DetailedAnswer content 
     /// </summary>
-    public Guid Id { get; set; }
+    public required string AnswerContent { get; set; }
+    /// <summary>
+    /// Accuracy of answer
+    /// </summary>
+    public int Accuracy { get; set; }
 
 }

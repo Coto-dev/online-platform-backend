@@ -12,10 +12,10 @@ public class SubModule
     /// <summary>
     /// Submodule's name
     /// </summary>
-    public string Name { get; set; }
+    public required string Name { get; set; }
     /// <summary>
     /// List of chapters in submodule
     /// </summary>
-    public List<Chapter> Chapters { get; set; }
+    public required List<Chapter> Chapters { get; set; }
 
 }

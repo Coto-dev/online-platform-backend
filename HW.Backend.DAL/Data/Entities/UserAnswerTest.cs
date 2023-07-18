@@ -13,22 +13,22 @@ public class UserAnswerTest
     /// <summary>
     /// Test identifier
     /// </summary>
-    public Test Test { get; set; }
+    public required Test Test { get; set; }
     /// <summary>
     /// List of UserAnswer for test
     /// </summary>
-    public List<UserAnswer> UserAnswers { get; set; }
+    public required List<UserAnswer> UserAnswers { get; set; }
     /// <summary>
     /// Number of attempt for test
     /// </summary>
-    public int NumberOfAttempt { get; set; }
+    public required int NumberOfAttempt { get; set; }
     /// <summary>
     /// Bool check resolve
     /// </summary>
-    public bool IsAnswered { get; set; }
+    public required bool IsAnswered { get; set; }
     /// <summary>
     /// User identifier
     /// </summary>
-    public Student Student { get; set; }
+    public required Student Student { get; set; }
 
 }

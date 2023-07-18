@@ -11,11 +11,11 @@ public class Test
     /// <summary>
     /// Chapter identifier
     /// </summary>
-    public Chapter Chapter { get; set; }
+    public required Chapter Chapter { get; set; }
     /// <summary>
     /// Test's question
     /// </summary>
-    public string Question { get; set; }
+    public required string Question { get; set; }
     /// <summary>
     /// Test's files
     /// </summary>

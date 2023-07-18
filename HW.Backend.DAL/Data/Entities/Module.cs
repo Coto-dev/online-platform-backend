@@ -15,19 +15,19 @@ public class Module
     /// <summary>
     /// Module's name
     /// </summary>
-    public string Name { get; set; }
+    public required string Name { get; set; }
     /// <summary>
     /// Module's description
     /// </summary>
-    public string Description { get; set; }
+    public required string Description { get; set; }
     /// <summary>
     /// Module's price
     /// </summary>
-    public int Price { get; set; }
+    public required int Price { get; set; }
     /// <summary>
     /// Date and time the module was created
     /// </summary>
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public required DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     /// <summary>
     /// Date and time the module was editted
     /// </summary>
@@ -37,28 +37,24 @@ public class Module
     /// </summary>
     public DateTime? ArchivedAt { get; set; }
     /// <summary>
-    /// Module's type
-    /// </summary>
-    public DateTime ModuleType { get; set; } //---------------------------!
-    /// <summary>
     /// Teacher-creator identifier
     /// </summary>
-    public Teacher Creator { get; set; }
+    public required Teacher Creator { get; set; }
     /// <summary>
     /// List of students on module
     /// </summary>
-    public List<Student> Students { get; set; }
+    public List<Student>? Students { get; set; }
     /// <summary>
     /// List of submodules 
     /// </summary>
-    public List<SubModule> SubModules { get; set; }
+    public required List<SubModule> SubModules { get; set; }
     /// <summary>
     /// Module's visibility
     /// </summary>
-    public ModuleVisibilityType ModuleVisibility { get; set; }
+    public required ModuleVisibilityType ModuleVisibility { get; set; }
     /// <summary>
     /// List of teachers who teach this module
     /// </summary>
-    public List<Teacher> Teachers { get; set; }
+    public List<Teacher>? Teachers { get; set; }
 
 }

@@ -12,6 +12,6 @@ public class UserAnswer
     /// <summary>
     /// UserAnswerTest identifier
     /// </summary>
-    public UserAnswerTest UserAnswerTest { get; set; }
+    public required UserAnswerTest UserAnswerTest { get; set; }
 
 }

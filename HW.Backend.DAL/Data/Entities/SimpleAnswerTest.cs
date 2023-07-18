@@ -1,13 +1,15 @@
+using HW.Backend.DAL.Data.Entities;
+
 namespace HW.Backend.D.Data.Entities;
 
 /// <summary>
 /// Entity for SimpleAnswerTest
 /// </summary>
-public class SimpleAnswerTest
+public class SimpleAnswerTest : Test
 {
     /// <summary>
-    /// SimpleAnswerTest identifier
+    /// List of possible answers for simple test
     /// </summary>
-    public Guid Id { get; set; }
+    public required List<SimpleAnswer> PossibleAnswers { get; set; }
 
 }

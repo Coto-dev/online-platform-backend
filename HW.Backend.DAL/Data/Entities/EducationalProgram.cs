@@ -12,15 +12,15 @@ public class EducationalProgram
     /// <summary>
     /// EducationalProgram name
     /// </summary>
-    public string Name { get; set; }
+    public required string Name { get; set; }
     /// <summary>
     /// EducationalProgram Description
     /// </summary>
-    public string Description { get; set; }
+    public required string Description { get; set; }
     /// <summary>
     /// EducationalProgram Price
     /// </summary>
-    public int Price { get; set; }
+    public required int Price { get; set; }
     /// <summary>
     /// Date and time the EducationalProgram was created
     /// </summary>
@@ -36,10 +36,10 @@ public class EducationalProgram
     /// <summary>
     /// List of available modules in this EducationalProgram
     /// </summary>
-    public List<ModuleInEducationalProgram> AvailableModules { get; set; }
+    public List<ModuleInEducationalProgram>? AvailableModules { get; set; }
     /// <summary>
     /// List of students in this EducationalProgram
     /// </summary>
-    public List<Student> Students { get; set; }
+    public List<Student>? Students { get; set; }
 
 }

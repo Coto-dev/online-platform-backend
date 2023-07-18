@@ -12,22 +12,25 @@ public class Chapter
     /// <summary>
     /// Chapter's name
     /// </summary>
-    public string Name { get; set; }
+    public required string Name { get; set; }
     /// <summary>
     /// Chapter's content
     /// </summary>
-    public string Content { get; set; }
+    public required string Content { get; set; }
     /// <summary>
     /// Submodule in which the chapter
     /// </summary>
-    public SubModule SubModule { get; set; }
+    public required SubModule SubModule { get; set; }
     /// <summary>
     /// Chapter's files
     /// </summary>
-    public List<Guid> Files { get; set; }
+    public List<Guid>? Files { get; set; }
 	/// <summary>
 	/// Chapter's tests
 	/// </summary>
-	public List<Test> TestChapter { get; set; }
-
+	public List<Test>? TestChapter { get; set; }
+    /// <summary>
+    /// Chapter's tests
+    /// </summary>
+    // public chapter type ------!
 }
