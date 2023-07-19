@@ -14,9 +14,9 @@ public class ModuleComment
     /// </summary>
     public required DateTime CreatedAt { get; set; }
     /// <summary>
-    /// DataTime when was editted
+    /// DataTime when was edited
     /// </summary>
-    public DateTime? EdittedAt { get; set; }
+    public DateTime? EditedAt { get; set; }
     /// <summary>
     /// Comment message
     /// </summary>
@@ -26,7 +26,7 @@ public class ModuleComment
     /// </summary>
     public required Module Module { get; set; }
     /// <summary>
-    /// Userbackend identifier
+    /// UserBackend identifier
     /// </summary>
     public required UserBackend User { get; set; }
     /// <summary>

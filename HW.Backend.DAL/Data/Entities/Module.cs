@@ -1,5 +1,4 @@
-﻿using HW.Backend.Dal.Data.Entities;
-using HW.Common.Enums;
+﻿using HW.Common.Enums;
 
 namespace HW.Backend.DAL.Data.Entities;
 

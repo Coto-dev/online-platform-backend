@@ -1,12 +1,12 @@
 ﻿namespace HW.Backend.DAL.Data.Entities;
 
 /// <summary>
-/// Userback entity 
+/// UserBackend entity 
 /// </summary>
 public class UserBackend
 {
     /// <summary>
-    /// Userback identifier
+    /// UserBackend identifier
     /// </summary>
     public Guid Id { get; set; }
 

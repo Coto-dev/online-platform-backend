@@ -1,12 +1,13 @@
 using System.Reflection;
 using System.Text.Json.Serialization;
+using HW.Backend.BL.Extensions;
 using HW.Common.Extennsions;
 using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-
+builder.Services.AddBackendServices(builder.Configuration);
 builder.Services.AddControllers().AddJsonOptions(opts => {
     var enumConverter = new JsonStringEnumConverter();
     opts.JsonSerializerOptions.Converters.Add(enumConverter);

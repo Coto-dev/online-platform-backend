@@ -1,18 +1,12 @@
-﻿using HW.Backend.DAL.Data.Entities;
-
-namespace HW.Backend.Dal.Data.Entities;
+﻿namespace HW.Backend.DAL.Data.Entities;
 
 /// <summary>
 /// Entity for student
 /// </summary>
-public class Student
+public class Student : UserBackend
 {
     /// <summary>
-    /// User identifier
-    /// </summary>
-    public required UserBackend User { get; set; }
-    /// <summary>
-    /// List of students's module
+    /// List of student's module
     /// </summary>
     public List<UserModule>? Modules { get; set; }
     /// <summary>
@@ -20,7 +14,7 @@ public class Student
     /// </summary>
     public List<Chapter>? LearnedChapters { get; set; }
     /// <summary>
-    /// List of student's comennts to modules
+    /// List of student's comments to modules
     /// </summary>
     public List<ModuleComment>? ModuleComments { get; set; }
     /// <summary>

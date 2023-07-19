@@ -1,18 +1,12 @@
-﻿using HW.Backend.DAL.Data.Entities;
-
-namespace HW.Backend.Dal.Data.Entities;
+﻿namespace HW.Backend.DAL.Data.Entities;
 
 /// <summary>
 /// Entity for teacher
 /// </summary>
-public class Teacher
+public class Teacher : UserBackend
 {
     /// <summary>
-    /// Teacher identifier
-    /// </summary>
-    public Guid Id { get; set; }
-    /// <summary>
-    /// List of teacher's contrelled modules
+    /// List of teacher's controlled modules
     /// </summary>
     public List<Module>? ControlledModules { get; set; }
 

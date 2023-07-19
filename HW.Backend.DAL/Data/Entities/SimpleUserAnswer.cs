@@ -1,6 +1,4 @@
-using Microsoft.Extensions.Hosting;
-
-namespace HW.Backend.DAL.Data.Entities;
+    namespace HW.Backend.DAL.Data.Entities;
 
 /// <summary>
 /// Entity for SimpleAnswer
@@ -11,9 +9,7 @@ public class SimpleUserAnswer : UserAnswer
     /// SimpleAnswer identifier
     /// </summary>
     public required SimpleAnswer SimpleAnswer { get; set; }
-    /// <summary>
-    /// SimpleAnswer identifier
-    /// </summary>
-    public required string UserSimpleAnswer { get; set; } //---------------------!
+   
+   // public required string UserSimpleAnswer { get; set; } //---------------------!
 
 }

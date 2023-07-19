@@ -1,6 +1,4 @@
-﻿using HW.Backend.D.Data.Entities;
-
-namespace HW.Backend.DAL.Data.Entities;
+﻿namespace HW.Backend.DAL.Data.Entities;
 
 /// <summary>
 /// Entity for chapter
