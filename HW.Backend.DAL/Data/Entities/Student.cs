@@ -24,8 +24,8 @@ public class Student
     /// </summary>
     public List<ModuleComment>? ModuleComments { get; set; }
     /// <summary>
-    /// ...
+    /// User's chapter comments
     /// </summary>
-    //public List<TestComme> TestComments { get; set; } //---------------------!
+    public List<ChapterComment>? ChapterComments { get; set; }
 
 }
