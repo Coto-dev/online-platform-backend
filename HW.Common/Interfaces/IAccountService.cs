@@ -25,4 +25,14 @@ public interface IAccountService {
     /// <returns></returns>
     Task<ProfileShortDto> GetShortProfileAsync(Guid userId);
 
+    Task AddEducationInfo(EducationInfoCreateDto model, Guid userId);
+
+    Task EditEducationInfo(EducationInfoCreateDto model, Guid id, Guid userId);
+    Task DeleteEducationInfo(Guid id, Guid userId);
+
+    Task AddWorkExperience(WorkExperienceInfoCreateDto model, Guid userId);
+    Task EditWorkExperience(WorkExperienceInfoCreateDto model, Guid id, Guid userId);
+    Task DeleteWorkExperience(Guid id, Guid userId);
+
+
 }

@@ -64,14 +64,26 @@ public static class ConfigureIdentityRoles {
             nameof(config), "AdminEmail is not defined"));
         if (adminUser == null) {
             var userResult = await userManager.CreateAsync(new User {
-                FullName = config["AdminFullName"] ?? throw new ArgumentNullException(
-                    nameof(config), "AdminFullName is not defined"),
-                UserName = config["AdminUserName"] ?? throw new ArgumentNullException(
-                    nameof(config), "AdminUserName is not defined"),
-                Email = config["AdminEmail"] ?? throw new ArgumentNullException(
-                    nameof(config), "AdminEmail is not defined"),
+                FullName = config["AdminFullName"] ??
+                           throw new ArgumentNullException(
+                               nameof(config),
+                               "AdminFullName is not defined"),
+                UserName = config["AdminUserName"] ??
+                           throw new ArgumentNullException(
+                               nameof(config),
+                               "AdminUserName is not defined"),
+                Email = config["AdminEmail"] ??
+                        throw new ArgumentNullException(
+                            nameof(config),
+                            "AdminEmail is not defined"),
                 JoinedAt = DateTime.Now.ToUniversalTime(),
-                BirthDate = DateTime.Today.ToUniversalTime()
+                WorkExperience = new WorkExperience(),
+                Location = new Location(),
+                Education = new Education(),
+                BirthDate = new BirthDate() {
+                    Value = DateTime.UtcNow
+                },
+                PhotoId = new PhotoId(),
             }, config["AdminPassword"] ?? throw new ArgumentNullException(
                 nameof(config), "AdminPassword is not defined"));
             if (!userResult.Succeeded) {

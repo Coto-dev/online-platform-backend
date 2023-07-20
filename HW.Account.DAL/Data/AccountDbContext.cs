@@ -15,6 +15,14 @@ public class AccountDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid
     /// Users table
     /// </summary>
     public new DbSet<User> Users { get; set; } = null!; 
+    public DbSet<EducationInfo> EducationInfos { get; set; }
+    public DbSet<WorkExperienceInfo> WorkExperienceInfos { get; set; }
+    public DbSet<Location> Locations { get; set; }
+    public DbSet<PhotoId> PhotoIds { get; set; }
+    public DbSet<BirthDate> BirthDate { get; set; }
+
+
+
     
     /// <summary>
     /// Devices table

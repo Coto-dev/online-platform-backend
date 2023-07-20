@@ -36,7 +36,7 @@ public class EmailService : IEmailService {
                 await client.SendAsync(emailMessage);
             }
             catch (Exception e) {
-                throw new NotFoundException("User with this email does not found");
+                throw new NotFoundException("Enter correct email");
             }
 
             await client.DisconnectAsync(true);

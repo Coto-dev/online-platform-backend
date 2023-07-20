@@ -10,27 +10,31 @@ public class User : IdentityUser<Guid> {
     /// User`s full name
     /// </summary>
     public required string FullName { get; set; }
+
     /// <summary>
-    /// User;s work experience
+    /// User's work experience
     /// </summary>
-    public string? WorkExperience { get; set; }
+    public required WorkExperience WorkExperience { get; set; } = new WorkExperience();
+
     /// <summary>
     /// User's location(city)
     /// </summary>
-    public string? Location { get; set; }
+    public required Location Location { get; set; } = new Location();
+
     /// <summary>
     /// User's education grade
     /// </summary>
-    public string? Education { get; set; }
+    public required Education Education { get; set; } = new Education();
 
     /// <summary>
     /// User`s birth date
     /// </summary>
-    public DateTime BirthDate { get; set; }
+    public required BirthDate BirthDate { get; set; } = new BirthDate();
+
     /// <summary>
     /// Photo id
     /// </summary>
-    public Guid? PhotoId { get; set; }
+    public required PhotoId PhotoId { get; set; } = new PhotoId();
 
     /// <summary>
     /// Date when user joined the system

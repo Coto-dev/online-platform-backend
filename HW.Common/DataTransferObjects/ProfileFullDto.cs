@@ -22,22 +22,22 @@ public class ProfileFullDto {
     /// <summary>
     /// User's work experience
     /// </summary>
-    public string? WorkExperience { get; set; }
+    public WorkExperienceDto? WorkExperience { get; set; }
     
     /// <summary>
     /// User's location(city)
     /// </summary>
-    public string? Location { get; set; }
+    public LocationDto? Location { get; set; }
     
     /// <summary>
     /// User's education grade
     /// </summary>
-    public string? Education { get; set; }
+    public EducationDto? Education { get; set; }
 
     /// <summary>
     /// User`s birth date
     /// </summary>
-    public DateTime BirthDate { get; set; }
+    public BirthDateDto BirthDate { get; set; }
 
     /// <summary>
     /// Date when user joined the system
@@ -47,5 +47,9 @@ public class ProfileFullDto {
     /// <summary>
     /// Photo Identifier
     /// </summary>
-    public Guid? PhotoId { get; set; }
+    public PhotoIdDto? PhotoId { get; set; }
+    /// <summary>
+    /// User's roles
+    /// </summary>
+    public IList<string> Roles { get; set; }
 }

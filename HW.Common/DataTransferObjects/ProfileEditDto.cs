@@ -1,4 +1,6 @@
+using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
+using HW.Common.Enums;
 
 namespace HW.Common.DataTransferObjects; 
 
@@ -18,30 +20,31 @@ public class ProfileEditDto {
     /// User's avatar id 
     /// </summary>
     [Required]
-    public Guid PhotoId { get; set; }
+    public PhotoIdDto PhotoIdDto { get; set; }
     /// <summary>
-    /// User's work experience
+    /// User's work experience visibility
     /// </summary>
     [Required]
-    public string WorkExperience { get; set; }
+    [DefaultValue(ProfileVisibility.All)]
+    public ProfileVisibility WorkExperienceVisibility { get; set; } 
     
     /// <summary>
     /// User's location(city)
     /// </summary>
     [Required]
-    public string Location { get; set; }
+    public LocationDto LocationDto { get; set; }
     
     /// <summary>
-    /// User's education grade
+    /// User's education grade visibility
     /// </summary>
     [Required]
-    public string Education { get; set; }
+    [DefaultValue(ProfileVisibility.All)]
+    public ProfileVisibility EducationVisibility { get; set; }
 
     /// <summary>
     /// User`s birth date
     /// </summary>
     [Required]
-    [Range(typeof(DateTime), "01/01/1900", "01/01/2023")]
-    public required DateTime BirthDate { get; set; }
+    public required BirthDateDto BirthDate { get; set; }
 
 }

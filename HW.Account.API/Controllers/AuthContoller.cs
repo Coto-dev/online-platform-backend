@@ -24,7 +24,7 @@ public class AuthController : ControllerBase {
     }
 
     /// <summary>
-    /// Register new user as Customer
+    /// Register new user
     /// </summary>
     /// <returns></returns>
     [HttpPost]

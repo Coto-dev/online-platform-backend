@@ -6,6 +6,7 @@ using System.Web;
 using HW.Account.DAL.Data;
 using HW.Account.DAL.Data.Entities;
 using HW.Common.DataTransferObjects;
+using HW.Common.Enums;
 using HW.Common.Exceptions;
 using HW.Common.Interfaces;
 using Microsoft.AspNetCore.Http;
@@ -71,7 +72,14 @@ public class AuthService : IAuthService {
             Email = accountRegisterDto.Email,
             UserName = accountRegisterDto.Email,
             FullName = accountRegisterDto.FullName,
-            BirthDate = accountRegisterDto.BirthDate,
+            BirthDate = new BirthDate {
+                Value = accountRegisterDto.BirthDate,
+                Visibility = ProfileVisibility.All
+            },
+            Location = new Location(),
+            Education = new Education(),
+            PhotoId = new PhotoId(),
+            WorkExperience = new WorkExperience()
         };
 
         var result = await _userManager.CreateAsync(user, accountRegisterDto.Password);

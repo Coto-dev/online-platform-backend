@@ -22,6 +22,23 @@ namespace HW.Account.DAL.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("HW.Account.DAL.Data.Entities.BirthDate", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("Value")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("Visibility")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("BirthDate");
+                });
+
             modelBuilder.Entity("HW.Account.DAL.Data.Entities.Device", b =>
                 {
                     b.Property<Guid>("Id")
@@ -62,6 +79,82 @@ namespace HW.Account.DAL.Migrations
                     b.ToTable("Devices");
                 });
 
+            modelBuilder.Entity("HW.Account.DAL.Data.Entities.Education", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Visibility")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Education");
+                });
+
+            modelBuilder.Entity("HW.Account.DAL.Data.Entities.EducationInfo", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("EducationId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Faculty")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Specialization")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Status")
+                        .HasColumnType("text");
+
+                    b.Property<string>("University")
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EducationId");
+
+                    b.ToTable("EducationInfos");
+                });
+
+            modelBuilder.Entity("HW.Account.DAL.Data.Entities.Location", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Place")
+                        .HasColumnType("text");
+
+                    b.Property<int>("Visibility")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Locations");
+                });
+
+            modelBuilder.Entity("HW.Account.DAL.Data.Entities.PhotoId", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("PhotoName")
+                        .HasColumnType("text");
+
+                    b.Property<int>("Visibility")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("PhotoIds");
+                });
+
             modelBuilder.Entity("HW.Account.DAL.Data.Entities.User", b =>
                 {
                     b.Property<Guid>("Id")
@@ -71,15 +164,15 @@ namespace HW.Account.DAL.Migrations
                     b.Property<int>("AccessFailedCount")
                         .HasColumnType("integer");
 
-                    b.Property<DateTime>("BirthDate")
-                        .HasColumnType("timestamp with time zone");
+                    b.Property<Guid>("BirthDateId")
+                        .HasColumnType("uuid");
 
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
                         .HasColumnType("text");
 
-                    b.Property<string>("Education")
-                        .HasColumnType("text");
+                    b.Property<Guid>("EducationId")
+                        .HasColumnType("uuid");
 
                     b.Property<string>("Email")
                         .HasMaxLength(256)
@@ -95,8 +188,8 @@ namespace HW.Account.DAL.Migrations
                     b.Property<DateTime>("JoinedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("Location")
-                        .HasColumnType("text");
+                    b.Property<Guid>("LocationId")
+                        .HasColumnType("uuid");
 
                     b.Property<bool>("LockoutEnabled")
                         .HasColumnType("boolean");
@@ -121,7 +214,7 @@ namespace HW.Account.DAL.Migrations
                     b.Property<bool>("PhoneNumberConfirmed")
                         .HasColumnType("boolean");
 
-                    b.Property<Guid?>("PhotoId")
+                    b.Property<Guid>("PhotoIdId")
                         .HasColumnType("uuid");
 
                     b.Property<string>("SecurityStamp")
@@ -134,10 +227,16 @@ namespace HW.Account.DAL.Migrations
                         .HasMaxLength(256)
                         .HasColumnType("character varying(256)");
 
-                    b.Property<string>("WorkExperience")
-                        .HasColumnType("text");
+                    b.Property<Guid>("WorkExperienceId")
+                        .HasColumnType("uuid");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("BirthDateId");
+
+                    b.HasIndex("EducationId");
+
+                    b.HasIndex("LocationId");
 
                     b.HasIndex("NormalizedEmail")
                         .HasDatabaseName("EmailIndex");
@@ -146,7 +245,53 @@ namespace HW.Account.DAL.Migrations
                         .IsUnique()
                         .HasDatabaseName("UserNameIndex");
 
+                    b.HasIndex("PhotoIdId");
+
+                    b.HasIndex("WorkExperienceId");
+
                     b.ToTable("AspNetUsers", (string)null);
+                });
+
+            modelBuilder.Entity("HW.Account.DAL.Data.Entities.WorkExperience", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Visibility")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("WorkExperience");
+                });
+
+            modelBuilder.Entity("HW.Account.DAL.Data.Entities.WorkExperienceInfo", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("CompanyName")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("EndTime")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsContinueNowDays")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime?>("StartTime")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("WorkExperienceId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("WorkExperienceId");
+
+                    b.ToTable("WorkExperienceInfos");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole<System.Guid>", b =>
@@ -290,6 +435,71 @@ namespace HW.Account.DAL.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("HW.Account.DAL.Data.Entities.EducationInfo", b =>
+                {
+                    b.HasOne("HW.Account.DAL.Data.Entities.Education", "Education")
+                        .WithMany("EducationInfos")
+                        .HasForeignKey("EducationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Education");
+                });
+
+            modelBuilder.Entity("HW.Account.DAL.Data.Entities.User", b =>
+                {
+                    b.HasOne("HW.Account.DAL.Data.Entities.BirthDate", "BirthDate")
+                        .WithMany()
+                        .HasForeignKey("BirthDateId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("HW.Account.DAL.Data.Entities.Education", "Education")
+                        .WithMany()
+                        .HasForeignKey("EducationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("HW.Account.DAL.Data.Entities.Location", "Location")
+                        .WithMany()
+                        .HasForeignKey("LocationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("HW.Account.DAL.Data.Entities.PhotoId", "PhotoId")
+                        .WithMany()
+                        .HasForeignKey("PhotoIdId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("HW.Account.DAL.Data.Entities.WorkExperience", "WorkExperience")
+                        .WithMany()
+                        .HasForeignKey("WorkExperienceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("BirthDate");
+
+                    b.Navigation("Education");
+
+                    b.Navigation("Location");
+
+                    b.Navigation("PhotoId");
+
+                    b.Navigation("WorkExperience");
+                });
+
+            modelBuilder.Entity("HW.Account.DAL.Data.Entities.WorkExperienceInfo", b =>
+                {
+                    b.HasOne("HW.Account.DAL.Data.Entities.WorkExperience", "WorkExperience")
+                        .WithMany("WorkExperiencesInfos")
+                        .HasForeignKey("WorkExperienceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("WorkExperience");
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<System.Guid>", b =>
                 {
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole<System.Guid>", null)
@@ -341,9 +551,19 @@ namespace HW.Account.DAL.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("HW.Account.DAL.Data.Entities.Education", b =>
+                {
+                    b.Navigation("EducationInfos");
+                });
+
             modelBuilder.Entity("HW.Account.DAL.Data.Entities.User", b =>
                 {
                     b.Navigation("Devices");
+                });
+
+            modelBuilder.Entity("HW.Account.DAL.Data.Entities.WorkExperience", b =>
+                {
+                    b.Navigation("WorkExperiencesInfos");
                 });
 #pragma warning restore 612, 618
         }

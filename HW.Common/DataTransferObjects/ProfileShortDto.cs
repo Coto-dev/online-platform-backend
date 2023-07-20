@@ -12,7 +12,7 @@ public class ProfileShortDto {
     /// <summary>
     /// Photo Identifier
     /// </summary>
-    public Guid? PhotoId { get; set; }
+    public PhotoIdDto PhotoId { get; set; }
  
     /// <summary>
     /// User`s full name (surname, name, patronymic)

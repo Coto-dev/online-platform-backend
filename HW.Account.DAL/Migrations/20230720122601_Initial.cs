@@ -27,35 +27,66 @@ namespace HW.Account.DAL.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "AspNetUsers",
+                name: "BirthDate",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    FullName = table.Column<string>(type: "text", nullable: false),
-                    WorkExperience = table.Column<string>(type: "text", nullable: true),
-                    Location = table.Column<string>(type: "text", nullable: true),
-                    Education = table.Column<string>(type: "text", nullable: true),
-                    BirthDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    PhotoId = table.Column<Guid>(type: "uuid", nullable: true),
-                    JoinedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    UserName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
-                    NormalizedUserName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
-                    Email = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
-                    NormalizedEmail = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
-                    EmailConfirmed = table.Column<bool>(type: "boolean", nullable: false),
-                    PasswordHash = table.Column<string>(type: "text", nullable: true),
-                    SecurityStamp = table.Column<string>(type: "text", nullable: true),
-                    ConcurrencyStamp = table.Column<string>(type: "text", nullable: true),
-                    PhoneNumber = table.Column<string>(type: "text", nullable: true),
-                    PhoneNumberConfirmed = table.Column<bool>(type: "boolean", nullable: false),
-                    TwoFactorEnabled = table.Column<bool>(type: "boolean", nullable: false),
-                    LockoutEnd = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
-                    LockoutEnabled = table.Column<bool>(type: "boolean", nullable: false),
-                    AccessFailedCount = table.Column<int>(type: "integer", nullable: false)
+                    Value = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    Visibility = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_AspNetUsers", x => x.Id);
+                    table.PrimaryKey("PK_BirthDate", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Education",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    Visibility = table.Column<int>(type: "integer", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Education", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Locations",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    Place = table.Column<string>(type: "text", nullable: true),
+                    Visibility = table.Column<int>(type: "integer", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Locations", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "PhotoIds",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    PhotoName = table.Column<string>(type: "text", nullable: true),
+                    Visibility = table.Column<int>(type: "integer", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_PhotoIds", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "WorkExperience",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    Visibility = table.Column<int>(type: "integer", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_WorkExperience", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -75,6 +106,112 @@ namespace HW.Account.DAL.Migrations
                         name: "FK_AspNetRoleClaims_AspNetRoles_RoleId",
                         column: x => x.RoleId,
                         principalTable: "AspNetRoles",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "EducationInfos",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    EducationId = table.Column<Guid>(type: "uuid", nullable: false),
+                    University = table.Column<string>(type: "text", nullable: true),
+                    Faculty = table.Column<string>(type: "text", nullable: true),
+                    Specialization = table.Column<string>(type: "text", nullable: true),
+                    Status = table.Column<string>(type: "text", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_EducationInfos", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_EducationInfos_Education_EducationId",
+                        column: x => x.EducationId,
+                        principalTable: "Education",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "AspNetUsers",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    FullName = table.Column<string>(type: "text", nullable: false),
+                    WorkExperienceId = table.Column<Guid>(type: "uuid", nullable: false),
+                    LocationId = table.Column<Guid>(type: "uuid", nullable: false),
+                    EducationId = table.Column<Guid>(type: "uuid", nullable: false),
+                    BirthDateId = table.Column<Guid>(type: "uuid", nullable: false),
+                    PhotoIdId = table.Column<Guid>(type: "uuid", nullable: false),
+                    JoinedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    UserName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
+                    NormalizedUserName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
+                    Email = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
+                    NormalizedEmail = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
+                    EmailConfirmed = table.Column<bool>(type: "boolean", nullable: false),
+                    PasswordHash = table.Column<string>(type: "text", nullable: true),
+                    SecurityStamp = table.Column<string>(type: "text", nullable: true),
+                    ConcurrencyStamp = table.Column<string>(type: "text", nullable: true),
+                    PhoneNumber = table.Column<string>(type: "text", nullable: true),
+                    PhoneNumberConfirmed = table.Column<bool>(type: "boolean", nullable: false),
+                    TwoFactorEnabled = table.Column<bool>(type: "boolean", nullable: false),
+                    LockoutEnd = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
+                    LockoutEnabled = table.Column<bool>(type: "boolean", nullable: false),
+                    AccessFailedCount = table.Column<int>(type: "integer", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AspNetUsers", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_AspNetUsers_BirthDate_BirthDateId",
+                        column: x => x.BirthDateId,
+                        principalTable: "BirthDate",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_AspNetUsers_Education_EducationId",
+                        column: x => x.EducationId,
+                        principalTable: "Education",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_AspNetUsers_Locations_LocationId",
+                        column: x => x.LocationId,
+                        principalTable: "Locations",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_AspNetUsers_PhotoIds_PhotoIdId",
+                        column: x => x.PhotoIdId,
+                        principalTable: "PhotoIds",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_AspNetUsers_WorkExperience_WorkExperienceId",
+                        column: x => x.WorkExperienceId,
+                        principalTable: "WorkExperience",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "WorkExperienceInfos",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    WorkExperienceId = table.Column<Guid>(type: "uuid", nullable: false),
+                    CompanyName = table.Column<string>(type: "text", nullable: true),
+                    StartTime = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    EndTime = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    IsContinueNowDays = table.Column<bool>(type: "boolean", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_WorkExperienceInfos", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_WorkExperienceInfos_WorkExperience_WorkExperienceId",
+                        column: x => x.WorkExperienceId,
+                        principalTable: "WorkExperience",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -221,6 +358,31 @@ namespace HW.Account.DAL.Migrations
                 column: "NormalizedEmail");
 
             migrationBuilder.CreateIndex(
+                name: "IX_AspNetUsers_BirthDateId",
+                table: "AspNetUsers",
+                column: "BirthDateId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_AspNetUsers_EducationId",
+                table: "AspNetUsers",
+                column: "EducationId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_AspNetUsers_LocationId",
+                table: "AspNetUsers",
+                column: "LocationId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_AspNetUsers_PhotoIdId",
+                table: "AspNetUsers",
+                column: "PhotoIdId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_AspNetUsers_WorkExperienceId",
+                table: "AspNetUsers",
+                column: "WorkExperienceId");
+
+            migrationBuilder.CreateIndex(
                 name: "UserNameIndex",
                 table: "AspNetUsers",
                 column: "NormalizedUserName",
@@ -230,6 +392,16 @@ namespace HW.Account.DAL.Migrations
                 name: "IX_Devices_UserId",
                 table: "Devices",
                 column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_EducationInfos_EducationId",
+                table: "EducationInfos",
+                column: "EducationId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_WorkExperienceInfos_WorkExperienceId",
+                table: "WorkExperienceInfos",
+                column: "WorkExperienceId");
         }
 
         /// <inheritdoc />
@@ -254,10 +426,31 @@ namespace HW.Account.DAL.Migrations
                 name: "Devices");
 
             migrationBuilder.DropTable(
+                name: "EducationInfos");
+
+            migrationBuilder.DropTable(
+                name: "WorkExperienceInfos");
+
+            migrationBuilder.DropTable(
                 name: "AspNetRoles");
 
             migrationBuilder.DropTable(
                 name: "AspNetUsers");
+
+            migrationBuilder.DropTable(
+                name: "BirthDate");
+
+            migrationBuilder.DropTable(
+                name: "Education");
+
+            migrationBuilder.DropTable(
+                name: "Locations");
+
+            migrationBuilder.DropTable(
+                name: "PhotoIds");
+
+            migrationBuilder.DropTable(
+                name: "WorkExperience");
         }
     }
 }
