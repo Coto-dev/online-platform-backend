@@ -1,4 +1,6 @@
 using HW.Common.DataTransferObjects;
+using HW.Common.Enums;
+using HW.Common.Other;
 using Microsoft.AspNetCore.Mvc;
 
 namespace HW.Backend.API.Controllers;
@@ -25,20 +27,12 @@ public class ModuleStudentController : ControllerBase {
     /// Get all available modules
     /// </summary>
     [HttpGet]
-    [Route("all/list")]
-    public async Task<ActionResult<ModuleShortDto>> GetAvailableModules() {
+    [Route("student/list")]
+    public async Task<ActionResult<PagedList<ModuleShortDto>>> GetAvailableModules([FromQuery] PaginationParamsDto pagination, 
+        [FromQuery] ModuleFilterStudentType? section = ModuleFilterStudentType.InProcess) {
         throw new NotImplementedException();
     }
-    
-    /// <summary>
-    /// Get purchased modules
-    /// </summary>
-    [HttpGet]
-    [Route("purchased/list")]
-    public async Task<ActionResult<ModuleShortDto>> GetPurchasedModules() {
-        throw new NotImplementedException();
-    }
-    
+
     /// <summary>
     /// Get module content by moduleId
     /// </summary>

@@ -1,5 +1,6 @@
 using HW.Common.DataTransferObjects;
 using HW.Common.Enums;
+using HW.Common.Other;
 using Microsoft.AspNetCore.Mvc;
 
 namespace HW.Backend.API.Controllers; 
@@ -23,11 +24,12 @@ public class ModuleManagerController : ControllerBase {
     }
     
     /// <summary>
-    /// Get my created modules
+    /// Get teacher's created modules
     /// </summary>
     [HttpGet]
-    [Route("my/list")]
-    public async Task<ActionResult<ModuleShortDto>> GetMyModules([FromQuery] ModuleStatusType? filter) {
+    [Route("teacher/list")]
+    public async Task<ActionResult<PagedList<ModuleShortDto>>> GetMyModules([FromQuery] PaginationParamsDto pagination, 
+        [FromQuery] ModuleFilterTeacherType? section = ModuleFilterTeacherType.Published) {
         throw new NotImplementedException();
     }
     
@@ -118,7 +120,7 @@ public class ModuleManagerController : ControllerBase {
     /// </summary>
     [HttpPut]
     [Route("chapter/{chapterId}")]
-    public async Task<ActionResult> EditChapter(Guid chapterId, [FromBody] ChapterCreateDto model) {
+    public async Task<ActionResult> EditChapter(Guid chapterId, [FromBody] ChapterEditDto model) {
         throw new NotImplementedException();
     }
     

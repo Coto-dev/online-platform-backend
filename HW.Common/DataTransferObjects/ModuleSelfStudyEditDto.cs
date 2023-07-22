@@ -17,4 +17,7 @@ public class ModuleSelfStudyEditDto {
     public string? TimeDuration { get; set; }
     [Required]
     public ModuleVisibilityType VisibilityType { get; set; }
+    [Required]
+    public List<Guid> Teachers { get; set; } = new();
+
 }

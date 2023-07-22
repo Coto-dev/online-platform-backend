@@ -12,4 +12,6 @@ public class ModuleSelfStudyCreateDto {
     public int? Price { get; set; }
     public List<RequiredModulesDto>? RequiredModules { get; set; } = new();
     public string? TimeDuration { get; set; }
+    public List<Guid>? Teachers { get; set; } = new();
+
 }
