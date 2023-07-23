@@ -13,7 +13,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace HW.Backend.DAL.Migrations
 {
     [DbContext(typeof(BackendDbContext))]
-    [Migration("20230719152301_Initial")]
+    [Migration("20230723084520_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -32,12 +32,14 @@ namespace HW.Backend.DAL.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<int>("ChapterType")
+                        .HasColumnType("integer");
+
                     b.Property<string>("Content")
-                        .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<List<Guid>>("Files")
-                        .HasColumnType("uuid[]");
+                    b.Property<List<string>>("Files")
+                        .HasColumnType("text[]");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -311,6 +313,9 @@ namespace HW.Backend.DAL.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<int>("SubModuleType")
+                        .HasColumnType("integer");
+
                     b.HasKey("Id");
 
                     b.HasIndex("ModuleId");
@@ -331,8 +336,8 @@ namespace HW.Backend.DAL.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<List<Guid>>("Files")
-                        .HasColumnType("uuid[]");
+                    b.Property<List<string>>("Files")
+                        .HasColumnType("text[]");
 
                     b.Property<string>("Question")
                         .IsRequired()
@@ -481,6 +486,9 @@ namespace HW.Backend.DAL.Migrations
                 {
                     b.HasBaseType("HW.Backend.DAL.Data.Entities.Module");
 
+                    b.Property<DateTime?>("ExpiredAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<int>("MaxStudents")
                         .HasColumnType("integer");
 
@@ -527,8 +535,10 @@ namespace HW.Backend.DAL.Migrations
                         .HasColumnType("integer");
 
                     b.Property<string>("AnswerContent")
-                        .IsRequired()
                         .HasColumnType("text");
+
+                    b.Property<List<string>>("Files")
+                        .HasColumnType("text[]");
 
                     b.HasDiscriminator().HasValue("DetailedAnswer");
                 });
@@ -715,7 +725,7 @@ namespace HW.Backend.DAL.Migrations
             modelBuilder.Entity("HW.Backend.DAL.Data.Entities.Test", b =>
                 {
                     b.HasOne("HW.Backend.DAL.Data.Entities.Chapter", "Chapter")
-                        .WithMany("TestChapter")
+                        .WithMany("ChapterTests")
                         .HasForeignKey("ChapterId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -833,7 +843,7 @@ namespace HW.Backend.DAL.Migrations
 
             modelBuilder.Entity("HW.Backend.DAL.Data.Entities.Chapter", b =>
                 {
-                    b.Navigation("TestChapter");
+                    b.Navigation("ChapterTests");
                 });
 
             modelBuilder.Entity("HW.Backend.DAL.Data.Entities.EducationalProgram", b =>

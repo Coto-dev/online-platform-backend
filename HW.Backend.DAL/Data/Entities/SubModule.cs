@@ -1,4 +1,6 @@
-﻿namespace HW.Backend.DAL.Data.Entities;
+﻿using HW.Common.Enums;
+
+namespace HW.Backend.DAL.Data.Entities;
 
 /// <summary>
 /// Entity for chapter
@@ -6,16 +8,22 @@
 public class SubModule
 {
     /// <summary>
-    /// Submodule id
+    /// Sub module id
     /// </summary>
     public Guid Id { get; set; }
     /// <summary>
     /// Submodule's name
     /// </summary>
     public required string Name { get; set; }
+    
+    /// <summary>
+    /// Sub module type
+    /// </summary>
+    public SubModuleType SubModuleType { get; set; }
+
     /// <summary>
     /// List of chapters in submodule
     /// </summary>
-    public required List<Chapter> Chapters { get; set; }
+    public List<Chapter>? Chapters { get; set; } = new();
 
 }

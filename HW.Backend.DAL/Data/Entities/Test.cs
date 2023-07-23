@@ -19,6 +19,5 @@ public class Test
     /// <summary>
     /// Test's files
     /// </summary>
-    public List<Guid>? Files { get; set; }
-
+    public List<string>? Files { get; set; } = new();
 }

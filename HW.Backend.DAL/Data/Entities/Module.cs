@@ -39,14 +39,16 @@ public class Module
     /// Teacher-creator identifier
     /// </summary>
     public required Teacher Creator { get; set; }
+
     /// <summary>
     /// List of students on module
     /// </summary>
-    public List<Student>? Students { get; set; }
+    public List<Student>? Students { get; set; } = new();
+
     /// <summary>
     /// List of submodules 
     /// </summary>
-    public required List<SubModule> SubModules { get; set; }
+    public List<SubModule>? SubModules { get; set; } = new();
     /// <summary>
     /// Module's visibility
     /// </summary>

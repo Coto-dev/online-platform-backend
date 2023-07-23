@@ -51,9 +51,10 @@ namespace HW.Backend.DAL.Migrations
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     Name = table.Column<string>(type: "text", nullable: false),
-                    Content = table.Column<string>(type: "text", nullable: false),
+                    Content = table.Column<string>(type: "text", nullable: true),
                     SubModuleId = table.Column<Guid>(type: "uuid", nullable: false),
-                    Files = table.Column<List<Guid>>(type: "uuid[]", nullable: true),
+                    Files = table.Column<List<string>>(type: "text[]", nullable: true),
+                    ChapterType = table.Column<int>(type: "integer", nullable: false),
                     StudentId = table.Column<Guid>(type: "uuid", nullable: true)
                 },
                 constraints: table =>
@@ -68,7 +69,7 @@ namespace HW.Backend.DAL.Migrations
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     ChapterId = table.Column<Guid>(type: "uuid", nullable: false),
                     Question = table.Column<string>(type: "text", nullable: false),
-                    Files = table.Column<List<Guid>>(type: "uuid[]", nullable: true),
+                    Files = table.Column<List<string>>(type: "text[]", nullable: true),
                     Discriminator = table.Column<string>(type: "text", nullable: false)
                 },
                 constraints: table =>
@@ -194,6 +195,7 @@ namespace HW.Backend.DAL.Migrations
                     Discriminator = table.Column<string>(type: "text", nullable: false),
                     ModuleInEducationalProgramId = table.Column<Guid>(type: "uuid", nullable: true),
                     StartAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    ExpiredAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     MaxStudents = table.Column<int>(type: "integer", nullable: true)
                 },
                 constraints: table =>
@@ -212,6 +214,7 @@ namespace HW.Backend.DAL.Migrations
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     Name = table.Column<string>(type: "text", nullable: false),
+                    SubModuleType = table.Column<int>(type: "integer", nullable: false),
                     ModuleId = table.Column<Guid>(type: "uuid", nullable: true)
                 },
                 constraints: table =>
@@ -355,6 +358,7 @@ namespace HW.Backend.DAL.Migrations
                     Order = table.Column<int>(type: "integer", nullable: true),
                     AnswerContent = table.Column<string>(type: "text", nullable: true),
                     Accuracy = table.Column<int>(type: "integer", nullable: true),
+                    Files = table.Column<List<string>>(type: "text[]", nullable: true),
                     SimpleAnswerId = table.Column<Guid>(type: "uuid", nullable: true)
                 },
                 constraints: table =>

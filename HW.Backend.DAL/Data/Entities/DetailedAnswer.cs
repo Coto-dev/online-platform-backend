@@ -8,10 +8,14 @@ public class DetailedAnswer : UserAnswer
     /// <summary>
     /// DetailedAnswer content 
     /// </summary>
-    public required string AnswerContent { get; set; }
+    public string? AnswerContent { get; set; }
     /// <summary>
     /// Accuracy of answer
     /// </summary>
     public int Accuracy { get; set; }
+    /// <summary>
+    /// Files which user attach to answer
+    /// </summary>
+    public List<string>? Files { get; set; } = new();
 
 }
