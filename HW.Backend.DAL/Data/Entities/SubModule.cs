@@ -17,6 +17,11 @@ public class SubModule
     public required string Name { get; set; }
     
     /// <summary>
+    /// Module 
+    /// </summary>
+    public required Module Module { get; set; }
+
+    /// <summary>
     /// Sub module type
     /// </summary>
     public SubModuleType SubModuleType { get; set; }

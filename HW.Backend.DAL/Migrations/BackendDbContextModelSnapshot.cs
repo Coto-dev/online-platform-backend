@@ -303,7 +303,7 @@ namespace HW.Backend.DAL.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<Guid?>("ModuleId")
+                    b.Property<Guid>("ModuleId")
                         .HasColumnType("uuid");
 
                     b.Property<string>("Name")
@@ -714,9 +714,13 @@ namespace HW.Backend.DAL.Migrations
 
             modelBuilder.Entity("HW.Backend.DAL.Data.Entities.SubModule", b =>
                 {
-                    b.HasOne("HW.Backend.DAL.Data.Entities.Module", null)
+                    b.HasOne("HW.Backend.DAL.Data.Entities.Module", "Module")
                         .WithMany("SubModules")
-                        .HasForeignKey("ModuleId");
+                        .HasForeignKey("ModuleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Module");
                 });
 
             modelBuilder.Entity("HW.Backend.DAL.Data.Entities.Test", b =>

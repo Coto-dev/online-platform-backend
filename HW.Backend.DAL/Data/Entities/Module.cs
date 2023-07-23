@@ -53,9 +53,10 @@ public class Module
     /// Module's visibility
     /// </summary>
     public required ModuleVisibilityType ModuleVisibility { get; set; }
+
     /// <summary>
     /// List of teachers who teach this module
     /// </summary>
-    public List<Teacher>? Teachers { get; set; }
+    public List<Teacher>? Teachers { get; set; } = new();
 
 }

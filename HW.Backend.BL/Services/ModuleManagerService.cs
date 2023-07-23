@@ -1,11 +1,22 @@
+using HW.Backend.DAL.Data;
 using HW.Common.DataTransferObjects;
 using HW.Common.Enums;
 using HW.Common.Interfaces;
 using HW.Common.Other;
+using Microsoft.Extensions.Logging;
 
 namespace HW.Backend.BL.Services; 
 
 public class ModuleManagerService : IModuleManagerService {
+    private readonly ILogger<ModuleManagerService> _logger;
+    private readonly BackendDbContext _dbContext;
+
+    public ModuleManagerService(ILogger<ModuleManagerService> logger, BackendDbContext dbContext) {
+        _logger = logger;
+        _dbContext = dbContext;
+    }
+
+
     public async Task<PagedList<ModuleShortDto>> GetTeacherModules(PaginationParamsDto pagination, ModuleFilterTeacherType? section, Guid userId) {
         throw new NotImplementedException();
     }
