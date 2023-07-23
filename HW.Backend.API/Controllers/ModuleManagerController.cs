@@ -29,7 +29,10 @@ public class ModuleManagerController : ControllerBase {
     [HttpGet]
     [Route("teacher/list")]
     public async Task<ActionResult<PagedList<ModuleShortDto>>> GetMyModules([FromQuery] PaginationParamsDto pagination, 
-        [FromQuery] ModuleFilterTeacherType? section = ModuleFilterTeacherType.Published) {
+        [FromQuery] FilterModuleType? filter, 
+        [FromQuery] string? sortByNameFilter, 
+        [FromQuery] ModuleFilterTeacherType? section = ModuleFilterTeacherType.Published,
+        [FromQuery] SortModuleType? sortModuleType = SortModuleType.NameAsc) {
         throw new NotImplementedException();
     }
     

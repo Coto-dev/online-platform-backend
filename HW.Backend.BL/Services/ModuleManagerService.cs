@@ -1,8 +1,11 @@
+using HW.Backend.BL.Extensions;
 using HW.Backend.DAL.Data;
+using HW.Backend.DAL.Data.Entities;
 using HW.Common.DataTransferObjects;
 using HW.Common.Enums;
 using HW.Common.Interfaces;
 using HW.Common.Other;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace HW.Backend.BL.Services; 
@@ -17,8 +20,26 @@ public class ModuleManagerService : IModuleManagerService {
     }
 
 
-    public async Task<PagedList<ModuleShortDto>> GetTeacherModules(PaginationParamsDto pagination, ModuleFilterTeacherType? section, Guid userId) {
-        throw new NotImplementedException();
+    public async Task<PagedList<ModuleShortDto>> GetTeacherModules(PaginationParamsDto pagination, FilterModuleType? filter,
+        ModuleFilterTeacherType? section, string? sortByNameFilter, SortModuleType? sortModuleType, Guid userId) {
+        var user = await _dbContext.Teachers
+            .FirstOrDefaultAsync(u => u.Id == userId);
+        var modules = _dbContext.Modules
+            .ModuleTeacherFilter(filter, section, sortByNameFilter, userId)
+            .ModuleOrderBy(sortModuleType)
+            .AsQueryable();
+        var shortModules = modules.Select(x =>new ModuleShortDto
+        {
+            Id = x.Id,
+            Name = x.Name,
+            Price = x.Price,
+            Status = null,
+            StartAt = typeof(Module) == x.GetType() ? null : _dbContext.StreamingModules.Find(x.Id)!.StartAt, // cringe
+            ExpiredAt = typeof(Module) == x.GetType() ? null : _dbContext.StreamingModules.Find(x.Id)!.ExpiredAt,
+            MaxStudents = typeof(Module) == x.GetType() ? null : _dbContext.StreamingModules.Find(x.Id)!.MaxStudents
+        });
+    return PagedList<ModuleShortDto>.ToPagedList(shortModules, pagination.PageNumber, pagination.PageSize);
+     
     }
 
     public async Task CreateSelfStudyModule(ModuleSelfStudyCreateDto model, Guid userId) {

@@ -5,7 +5,7 @@ namespace HW.Backend.DAL.Data.Entities;
 /// <summary>
 /// Entity for UserModule
 /// </summary>
-public class UserModule
+public class StudentModule
 {
     /// <summary>
     /// UserModule identifier
@@ -14,9 +14,9 @@ public class UserModule
     /// <summary>
     /// Student identifier
     /// </summary>
-    public required Student Stundet { get; set; }
+    public required Student Student { get; set; }
     /// <summary>
-    /// List of stundent modules
+    /// List of students modules
     /// </summary>
     public required Module Module { get; set; }
     /// <summary>

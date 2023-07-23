@@ -23,13 +23,29 @@ public class ModuleStudentController : ControllerBase {
         _logger = logger;
     }
 
+    
     /// <summary>
-    /// Get all available modules
+    /// Get all available modules(main page)
+    /// </summary>
+    [HttpGet]
+    [Route("available/list")]
+    public async Task<ActionResult<PagedList<ModuleShortDto>>> GetAvailableModules([FromQuery] PaginationParamsDto pagination, 
+        [FromQuery] FilterModuleType? filter, 
+        [FromQuery] string? sortByNameFilter, 
+        [FromQuery] SortModuleType? sortModuleType = SortModuleType.NameAsc) {
+        throw new NotImplementedException();
+    }
+    
+    /// <summary>
+    /// Get student modules
     /// </summary>
     [HttpGet]
     [Route("student/list")]
-    public async Task<ActionResult<PagedList<ModuleShortDto>>> GetAvailableModules([FromQuery] PaginationParamsDto pagination, 
-        [FromQuery] ModuleFilterStudentType? section = ModuleFilterStudentType.InProcess) {
+    public async Task<ActionResult<PagedList<ModuleShortDto>>> GetStudentModules([FromQuery] PaginationParamsDto pagination,
+        [FromQuery] FilterModuleType? filter,
+        [FromQuery] string? sortByNameFilter, 
+        [FromQuery] ModuleFilterStudentType? section = ModuleFilterStudentType.InProcess,
+        [FromQuery] SortModuleType? sortModuleType = SortModuleType.NameAsc) {
         throw new NotImplementedException();
     }
 

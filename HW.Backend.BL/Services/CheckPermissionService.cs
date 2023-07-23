@@ -21,11 +21,11 @@ public class CheckPermissionService: ICheckPermissionService {
         if (user == null)
             throw new NotFoundException("User not found");
         var module = await _dbContext.Modules
-            .Include(m=>m.Creator)
+            .Include(m=>m.Creators)
             .FirstOrDefaultAsync(m => m.Id == moduleId);
         if (module == null)
             throw new NotFoundException("Module not found");
-        if (module.Creator != user)
+        if (module.Creators != null && module.Creators.Contains(user))
             throw new ForbiddenException("User do not have permission");
 
     }
@@ -51,11 +51,12 @@ public class CheckPermissionService: ICheckPermissionService {
         if (user == null)
             throw new NotFoundException("User not found");
         var module = await _dbContext.Modules
-            .Include(m=>m.Students)
+            .Include(m=>m.UserModules)! // <------------------------------- warning
+            .ThenInclude(u=>u.Student)            
             .FirstOrDefaultAsync(m => m.Id == moduleId);
         if (module == null)
             throw new NotFoundException("Module not found");
-        if (module.Students == null || !module.Students.Contains(user))
+        if (module.UserModules!.Any(u=>u.Student == user))
             throw new ForbiddenException("User do not have permission");
     }
 
@@ -66,11 +67,11 @@ public class CheckPermissionService: ICheckPermissionService {
             throw new NotFoundException("User not found");
         var subModule = await _dbContext.SubModules
             .Include(s=>s.Module)
-            .ThenInclude(m=>m.Creator)
+            .ThenInclude(m=>m.Creators)
             .FirstOrDefaultAsync(u => u.Id == subModuleId);
         if (subModule == null)
             throw new NotFoundException(" Sub module not found");    
-        if (subModule.Module.Creator != user)
+        if (subModule.Module.Creators != null && subModule.Module.Creators.Contains(user))
             throw new ForbiddenException("User do not have permission");
 
     }
@@ -97,12 +98,15 @@ public class CheckPermissionService: ICheckPermissionService {
             throw new NotFoundException("User not found");
         var subModule = await _dbContext.SubModules
             .Include(s=>s.Module)
-            .ThenInclude(m=>m.Students)
+            .ThenInclude(m=>m.UserModules)!                                  //<------------------------
+            .ThenInclude(u=>u.Student)
             .FirstOrDefaultAsync(u => u.Id == subModuleId);
         if (subModule == null)
             throw new NotFoundException("Sub module not found");    
-        if (subModule.Module.Students == null || !subModule.Module.Students.Contains(user))
-            throw new ForbiddenException("User do not have permission");    }
+        if (subModule.Module.UserModules!.Any(u=>u.Student == user))
+            throw new ForbiddenException("User do not have permission");
+        
+    }
 
     public async Task CheckCreatorChapterPermission(Guid creatorId, Guid chapterId) {
         var user = await _dbContext.Teachers
@@ -112,11 +116,11 @@ public class CheckPermissionService: ICheckPermissionService {
         var chapter = await _dbContext.Chapters
             .Include(c=>c.SubModule)
             .ThenInclude(s=>s.Module)
-            .ThenInclude(m=>m.Creator)
+            .ThenInclude(m=>m.Creators)
             .FirstOrDefaultAsync(u => u.Id == chapterId);
         if (chapter == null)
             throw new NotFoundException("Chapter not found");    
-        if (chapter.SubModule.Module.Creator != user)
+        if (chapter.SubModule.Module.Creators != null && chapter.SubModule.Module.Creators.Contains(user))
             throw new ForbiddenException("User do not have permission");    
     }
 
@@ -145,11 +149,12 @@ public class CheckPermissionService: ICheckPermissionService {
         var chapter = await _dbContext.Chapters
             .Include(c=>c.SubModule)
             .ThenInclude(s=>s.Module)
-            .ThenInclude(m=>m.Students)
+            .ThenInclude(m=>m.UserModules)!                             //<---------------------
+            .ThenInclude(u=>u.Student)            
             .FirstOrDefaultAsync(u => u.Id == chapterId);
         if (chapter == null)
             throw new NotFoundException("Chapter not found");    
-        if (chapter.SubModule.Module.Students == null || !chapter.SubModule.Module.Students.Contains(user))
+        if (chapter.SubModule.Module.UserModules!.Any(u=>u.Student == user))
             throw new ForbiddenException("User do not have permission");
         
     }

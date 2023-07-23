@@ -29,14 +29,17 @@ public class BackendDbContext : DbContext {
     public DbSet<UserAnswer> UserAnswers { get; set; }
     public DbSet<UserAnswerTest> UserAnswerTests { get; set; }
     public DbSet<UserBackend> UserBackends { get; set; }
-    public DbSet<UserModule> UserModules { get; set; }
+    public DbSet<StudentModule> UserModules { get; set; }
 
-    protected override void OnModelCreating(ModelBuilder modelBuilder)
-    {
+    protected override void OnModelCreating(ModelBuilder modelBuilder) {
         modelBuilder.Entity<Module>()
-            .HasOne(m => m.Creator)
-            .WithMany()
-            .HasForeignKey(m => m.Id);
+            .ToTable("ModuleCreators")
+            .HasMany(m => m.Creators)
+            .WithMany(t => t.CreatedModules);
+        modelBuilder.Entity<Module>()
+            .ToTable("ModuleTeachers")
+            .HasMany(m => m.Teachers)
+            .WithMany(t => t.ControlledModules);
     }
 
     public BackendDbContext(DbContextOptions<BackendDbContext> options) : base(options) {

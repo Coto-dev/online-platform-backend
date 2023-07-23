@@ -28,22 +28,18 @@ public class Module
     /// </summary>
     public required DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     /// <summary>
-    /// Date and time the module was editted
+    /// Date and time the module was edited
     /// </summary>
     public DateTime? EditedAt { get; set; }
     /// <summary>
     /// Date and time the module was archived
     /// </summary>
     public DateTime? ArchivedAt { get; set; }
-    /// <summary>
-    /// Teacher-creator identifier
-    /// </summary>
-    public required Teacher Creator { get; set; }
 
     /// <summary>
     /// List of students on module
     /// </summary>
-    public List<Student>? Students { get; set; } = new();
+    public List<StudentModule>? UserModules { get; set; } = new();
 
     /// <summary>
     /// List of submodules 
@@ -58,5 +54,9 @@ public class Module
     /// List of teachers who teach this module
     /// </summary>
     public List<Teacher>? Teachers { get; set; } = new();
+    /// <summary>
+    /// List of creators
+    /// </summary>
+    public List<Teacher>? Creators { get; set; } = new();
 
 }
