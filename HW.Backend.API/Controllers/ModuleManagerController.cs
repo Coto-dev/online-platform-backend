@@ -1,6 +1,9 @@
 using HW.Common.DataTransferObjects;
 using HW.Common.Enums;
+using HW.Common.Exceptions;
+using HW.Common.Interfaces;
 using HW.Common.Other;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace HW.Backend.API.Controllers; 
@@ -9,18 +12,26 @@ namespace HW.Backend.API.Controllers;
 /// Controller for teacher module management
 /// </summary>
 [ApiController]
+[Authorize(AuthenticationSchemes = "Bearer", Roles = ApplicationRoleNames.Teacher + "," + ApplicationRoleNames.Administrator)]
 [Route("api/module")]
 public class ModuleManagerController : ControllerBase {
    
 
     private readonly ILogger<ModuleManagerController> _logger;
+    private readonly IModuleManagerService _moduleManagerService;
+    private readonly ICheckPermissionService _checkPermissionService;
 
     /// <summary>
     /// Constructor
     /// </summary>
     /// <param name="logger"></param>
-    public ModuleManagerController(ILogger<ModuleManagerController> logger) {
+    /// <param name="checkPermissionService"></param>
+    /// <param name="moduleManagerService"></param>
+    public ModuleManagerController(ILogger<ModuleManagerController> logger, ICheckPermissionService checkPermissionService,
+        IModuleManagerService moduleManagerService) {
         _logger = logger;
+        _checkPermissionService = checkPermissionService;
+        _moduleManagerService = moduleManagerService;
     }
     
     /// <summary>
@@ -33,7 +44,10 @@ public class ModuleManagerController : ControllerBase {
         [FromQuery] string? sortByNameFilter, 
         [FromQuery] ModuleFilterTeacherType? section = ModuleFilterTeacherType.Published,
         [FromQuery] SortModuleType? sortModuleType = SortModuleType.NameAsc) {
-        throw new NotImplementedException();
+        if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false) {
+            throw new UnauthorizedException("User is not authorized");
+        }
+        return Ok(await _moduleManagerService.GetTeacherModules(pagination, filter, section, sortByNameFilter, sortModuleType, userId));
     }
     
     /// <summary>
@@ -42,16 +56,26 @@ public class ModuleManagerController : ControllerBase {
     [HttpPost]
     [Route("self-study")]
     public async Task<ActionResult> CreateSelfStudyModule([FromBody] ModuleSelfStudyCreateDto model) {
-        throw new NotImplementedException();
+        if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false) {
+            throw new UnauthorizedException("User is not authorized");
+        }
+        await _moduleManagerService.CreateSelfStudyModule(model, userId);
+        return Ok();
     }
     
     /// <summary>
     /// Edit self-study module
     /// </summary>
     [HttpPut]
-    [Route("self-study")]
-    public async Task<ActionResult> EditSelfStudyModule([FromBody] ModuleSelfStudyEditDto model) {
-        throw new NotImplementedException();
+    [Route("{moduleId}/self-study")]
+    public async Task<ActionResult> EditSelfStudyModule([FromBody] ModuleSelfStudyEditDto model, Guid moduleId) {
+        if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false) {
+            throw new UnauthorizedException("User is not authorized");
+        }
+        
+        await _checkPermissionService.CheckCreatorModulePermission(userId, moduleId);
+        await _moduleManagerService.EditSelfStudyModule(model, moduleId);
+        return Ok();
     }
     
     /// <summary>
@@ -60,16 +84,26 @@ public class ModuleManagerController : ControllerBase {
     [HttpPost]
     [Route("streaming")]
     public async Task<ActionResult> CreateStreamingModule([FromBody] ModuleStreamingCreateDto model) {
-        throw new NotImplementedException();
+        if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false) {
+            throw new UnauthorizedException("User is not authorized");
+        }
+
+        await _moduleManagerService.CreateStreamingModule(model, userId);
+        return Ok();
     }
     
     /// <summary>
     /// Edit streaming module
     /// </summary>
     [HttpPut]
-    [Route("streaming")]
-    public async Task<ActionResult> EditStreamingModule([FromBody] ModuleStreamingEditDto model) {
-        throw new NotImplementedException();
+    [Route("{moduleId}/streaming")]
+    public async Task<ActionResult> EditStreamingModule([FromBody] ModuleStreamingEditDto model, Guid moduleId) {
+        if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false) {
+            throw new UnauthorizedException("User is not authorized");
+        }
+        await _checkPermissionService.CheckCreatorModulePermission(userId, moduleId);
+        await _moduleManagerService.EditStreamingModule(model, moduleId);
+        return Ok();    
     }
     
     /// <summary>
@@ -78,7 +112,12 @@ public class ModuleManagerController : ControllerBase {
     [HttpDelete]
     [Route("{moduleId}")]
     public async Task<ActionResult> ArchiveModule(Guid moduleId) {
-        throw new NotImplementedException();
+        if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false) {
+            throw new UnauthorizedException("User is not authorized");
+        }
+        await _checkPermissionService.CheckCreatorModulePermission(userId, moduleId);
+        await _moduleManagerService.ArchiveModule(moduleId);
+        return Ok();
     }
     
     /// <summary>
@@ -87,7 +126,12 @@ public class ModuleManagerController : ControllerBase {
     [HttpPost]
     [Route("{moduleId}/sub-module")]
     public async Task<ActionResult> AddSubModule(Guid moduleId, [FromBody] SubModuleCreateDto model) {
-        throw new NotImplementedException();
+        if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false) {
+            throw new UnauthorizedException("User is not authorized");
+        }
+        await _checkPermissionService.CheckCreatorModulePermission(userId, moduleId);
+        await _moduleManagerService.AddSubModule(moduleId, model);
+        return Ok();
     }
     
     /// <summary>
@@ -96,7 +140,12 @@ public class ModuleManagerController : ControllerBase {
     [HttpPut]
     [Route("sub-module/{subModuleId}")]
     public async Task<ActionResult> EditSubModule(Guid subModuleId, [FromBody] SubModuleEditDto model) {
-        throw new NotImplementedException();
+        if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false) {
+            throw new UnauthorizedException("User is not authorized");
+        }
+        await _checkPermissionService.CheckCreatorSubModulePermission(userId, subModuleId);
+        await _moduleManagerService.EditSubModule(subModuleId, model);
+        return Ok();
     }
     
     /// <summary>
@@ -105,17 +154,26 @@ public class ModuleManagerController : ControllerBase {
     [HttpDelete]
     [Route("sub-module/{subModuleId}")]
     public async Task<ActionResult> ArchiveSubModule(Guid subModuleId) {
-        throw new NotImplementedException();
+        if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false) {
+            throw new UnauthorizedException("User is not authorized");
+        }
+        await _checkPermissionService.CheckCreatorSubModulePermission(userId, subModuleId);
+        await _moduleManagerService.ArchiveSubModule(subModuleId);
+        return Ok();
     }
     
-    //TODO: создание chapter, просмотр саб моулей и глав в режиме редактирования.
     /// <summary>
     /// Create chapter in sub module
     /// </summary>
     [HttpPost]
     [Route("sub-module/{subModuleId}/chapter")]
     public async Task<ActionResult> CreateChapter(Guid subModuleId, [FromBody] ChapterCreateDto model) {
-        throw new NotImplementedException();
+        if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false) {
+            throw new UnauthorizedException("User is not authorized");
+        }
+        await _checkPermissionService.CheckCreatorSubModulePermission(userId, subModuleId);
+        await _moduleManagerService.CreateChapter(subModuleId, model);
+        return Ok();
     }
     
     /// <summary>
@@ -124,7 +182,12 @@ public class ModuleManagerController : ControllerBase {
     [HttpPut]
     [Route("chapter/{chapterId}")]
     public async Task<ActionResult> EditChapter(Guid chapterId, [FromBody] ChapterEditDto model) {
-        throw new NotImplementedException();
+        if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false) {
+            throw new UnauthorizedException("User is not authorized");
+        }
+        await _checkPermissionService.CheckCreatorChapterPermission(userId, chapterId);
+        await _moduleManagerService.EditChapter(chapterId, model);
+        return Ok();
     }
     
     /// <summary>
@@ -133,7 +196,12 @@ public class ModuleManagerController : ControllerBase {
     [HttpDelete]
     [Route("chapter/{chapterId}")]
     public async Task<ActionResult> ArchiveChapter(Guid chapterId) {
-        throw new NotImplementedException();
+        if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false) {
+            throw new UnauthorizedException("User is not authorized");
+        }
+        await _checkPermissionService.CheckCreatorChapterPermission(userId, chapterId);
+        await _moduleManagerService.ArchiveChapter(chapterId);
+        return Ok();
     }
     
 }

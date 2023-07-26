@@ -10,9 +10,9 @@ public class ChapterCreateDto {
     [MaxLength(128)]
     [DefaultValue("Цели моделирования")]
     public string Name { get; set; }
+
     [Required]
     [DefaultValue(Enums.ChapterType.DefaultChapter)]
-    public ChapterType ChapterType { get; set; }
+    public ChapterType ChapterType { get; set; } = ChapterType.DefaultChapter;
     public string? Content { get; set; } // html
-    public List<Guid>? FileIds { get; set; } = new();
 }

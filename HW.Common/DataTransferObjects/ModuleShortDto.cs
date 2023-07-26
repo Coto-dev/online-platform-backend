@@ -6,8 +6,8 @@ public class ModuleShortDto {
     public Guid Id { get; set; }
     public string Name { get; set; }
     public int Price { get; set; }
-    public ModuleStatusType? Status { get; set; }
-    public DateTime? StartAt { get; set; }
+    public ModuleType? Status { get; set; }
+    /*public DateTime? StartAt { get; set; }
     public DateTime? ExpiredAt { get; set; }
-    public int? MaxStudents { get; set; }
+    public int? MaxStudents { get; set; }*/
 }

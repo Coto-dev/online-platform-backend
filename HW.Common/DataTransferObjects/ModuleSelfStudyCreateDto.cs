@@ -10,8 +10,9 @@ public class ModuleSelfStudyCreateDto {
     public string Name { get; set; }
     public string? Description { get; set; }
     public int? Price { get; set; }
-    public List<RequiredModulesDto>? RequiredModules { get; set; } = new();
-    public string? TimeDuration { get; set; }
+    //public List<RequiredModulesDto>? RequiredModules { get; set; } = new();
+    //public string? TimeDuration { get; set; }
+    public List<Guid>? Creators { get; set; } = new();
     public List<Guid>? Teachers { get; set; } = new();
 
 }

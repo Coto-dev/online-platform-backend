@@ -36,7 +36,7 @@ public class EducationalProgram
     /// <summary>
     /// List of available modules in this EducationalProgram
     /// </summary>
-    public List<ModuleInEducationalProgram>? AvailableModules { get; set; }
+    public List<Module>? Modules { get; set; }
     /// <summary>
     /// List of students in this EducationalProgram
     /// </summary>

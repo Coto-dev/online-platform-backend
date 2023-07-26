@@ -13,7 +13,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace HW.Backend.DAL.Migrations
 {
     [DbContext(typeof(BackendDbContext))]
-    [Migration("20230723123642_Initial")]
+    [Migration("20230726092940_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -25,6 +25,21 @@ namespace HW.Backend.DAL.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
+
+            modelBuilder.Entity("EducationalProgramModule", b =>
+                {
+                    b.Property<Guid>("ModulesId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ProgramsId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("ModulesId", "ProgramsId");
+
+                    b.HasIndex("ProgramsId");
+
+                    b.ToTable("EducationalProgramModule");
+                });
 
             modelBuilder.Entity("EducationalProgramStudent", b =>
                 {
@@ -209,9 +224,6 @@ namespace HW.Backend.DAL.Migrations
                     b.Property<DateTime?>("EditedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<Guid?>("ModuleInEducationalProgramId")
-                        .HasColumnType("uuid");
-
                     b.Property<int>("ModuleVisibility")
                         .HasColumnType("integer");
 
@@ -224,9 +236,7 @@ namespace HW.Backend.DAL.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ModuleInEducationalProgramId");
-
-                    b.ToTable("ModuleTeachers", (string)null);
+                    b.ToTable("Modules");
 
                     b.HasDiscriminator<string>("Discriminator").HasValue("Module");
 
@@ -270,27 +280,6 @@ namespace HW.Backend.DAL.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("ModuleComments");
-                });
-
-            modelBuilder.Entity("HW.Backend.DAL.Data.Entities.ModuleInEducationalProgram", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("EducationalProgramId")
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("ModuleId")
-                        .HasColumnType("uuid");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("EducationalProgramId");
-
-                    b.HasIndex("ModuleId");
-
-                    b.ToTable("ModuleInEducationalPrograms");
                 });
 
             modelBuilder.Entity("HW.Backend.DAL.Data.Entities.SimpleAnswer", b =>
@@ -483,6 +472,21 @@ namespace HW.Backend.DAL.Migrations
                     b.UseTphMappingStrategy();
                 });
 
+            modelBuilder.Entity("ModuleModule", b =>
+                {
+                    b.Property<Guid>("ModuleId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("RecommendedModulesId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("ModuleId", "RecommendedModulesId");
+
+                    b.HasIndex("RecommendedModulesId");
+
+                    b.ToTable("RecommendedModules", (string)null);
+                });
+
             modelBuilder.Entity("ModuleTeacher", b =>
                 {
                     b.Property<Guid>("CreatedModulesId")
@@ -600,6 +604,21 @@ namespace HW.Backend.DAL.Migrations
                     b.HasDiscriminator().HasValue("Teacher");
                 });
 
+            modelBuilder.Entity("EducationalProgramModule", b =>
+                {
+                    b.HasOne("HW.Backend.DAL.Data.Entities.Module", null)
+                        .WithMany()
+                        .HasForeignKey("ModulesId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("HW.Backend.DAL.Data.Entities.EducationalProgram", null)
+                        .WithMany()
+                        .HasForeignKey("ProgramsId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("EducationalProgramStudent", b =>
                 {
                     b.HasOne("HW.Backend.DAL.Data.Entities.EducationalProgram", null)
@@ -683,13 +702,6 @@ namespace HW.Backend.DAL.Migrations
                     b.Navigation("LearnedBy");
                 });
 
-            modelBuilder.Entity("HW.Backend.DAL.Data.Entities.Module", b =>
-                {
-                    b.HasOne("HW.Backend.DAL.Data.Entities.ModuleInEducationalProgram", null)
-                        .WithMany("RequRequiredModules")
-                        .HasForeignKey("ModuleInEducationalProgramId");
-                });
-
             modelBuilder.Entity("HW.Backend.DAL.Data.Entities.ModuleComment", b =>
                 {
                     b.HasOne("HW.Backend.DAL.Data.Entities.Module", "Module")
@@ -711,25 +723,6 @@ namespace HW.Backend.DAL.Migrations
                     b.Navigation("Module");
 
                     b.Navigation("User");
-                });
-
-            modelBuilder.Entity("HW.Backend.DAL.Data.Entities.ModuleInEducationalProgram", b =>
-                {
-                    b.HasOne("HW.Backend.DAL.Data.Entities.EducationalProgram", "EducationalProgram")
-                        .WithMany("AvailableModules")
-                        .HasForeignKey("EducationalProgramId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("HW.Backend.DAL.Data.Entities.Module", "Module")
-                        .WithMany()
-                        .HasForeignKey("ModuleId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("EducationalProgram");
-
-                    b.Navigation("Module");
                 });
 
             modelBuilder.Entity("HW.Backend.DAL.Data.Entities.SimpleAnswer", b =>
@@ -825,6 +818,21 @@ namespace HW.Backend.DAL.Migrations
                     b.Navigation("Test");
                 });
 
+            modelBuilder.Entity("ModuleModule", b =>
+                {
+                    b.HasOne("HW.Backend.DAL.Data.Entities.Module", null)
+                        .WithMany()
+                        .HasForeignKey("ModuleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("HW.Backend.DAL.Data.Entities.Module", null)
+                        .WithMany()
+                        .HasForeignKey("RecommendedModulesId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("ModuleTeacher", b =>
                 {
                     b.HasOne("HW.Backend.DAL.Data.Entities.Module", null)
@@ -882,21 +890,11 @@ namespace HW.Backend.DAL.Migrations
                     b.Navigation("ChapterTests");
                 });
 
-            modelBuilder.Entity("HW.Backend.DAL.Data.Entities.EducationalProgram", b =>
-                {
-                    b.Navigation("AvailableModules");
-                });
-
             modelBuilder.Entity("HW.Backend.DAL.Data.Entities.Module", b =>
                 {
                     b.Navigation("SubModules");
 
                     b.Navigation("UserModules");
-                });
-
-            modelBuilder.Entity("HW.Backend.DAL.Data.Entities.ModuleInEducationalProgram", b =>
-                {
-                    b.Navigation("RequRequiredModules");
                 });
 
             modelBuilder.Entity("HW.Backend.DAL.Data.Entities.SubModule", b =>

@@ -14,9 +14,10 @@ public class BackendDbContext : DbContext {
     public DbSet<DetailedAnswer> DetailedAnswers { get; set; }
     public DbSet<EducationalProgram> EducationalPrograms { get; set; }
     public DbSet<Learned> Learned { get; set; }
+    //public DbSet<ModuleRelationship> ModuleRelationships { get; set; }
     public DbSet<Module> Modules { get; set; }
     public DbSet<ModuleComment> ModuleComments { get; set; }
-    public DbSet<ModuleInEducationalProgram> ModuleInEducationalPrograms { get; set; }
+    // public DbSet<ModuleInEducationalProgram> ModuleInEducationalPrograms { get; set; }
     public DbSet<SimpleAnswer> SimpleAnswers { get; set; }
     public DbSet<SimpleAnswerTest> SimpleAnswerTests { get; set; }
     public DbSet<SimpleUserAnswer> SimpleUserAnswers { get; set; }
@@ -33,13 +34,16 @@ public class BackendDbContext : DbContext {
 
     protected override void OnModelCreating(ModelBuilder modelBuilder) {
         modelBuilder.Entity<Module>()
-            .ToTable("ModuleCreators")
             .HasMany(m => m.Creators)
             .WithMany(t => t.CreatedModules);
         modelBuilder.Entity<Module>()
-            .ToTable("ModuleTeachers")
             .HasMany(m => m.Teachers)
             .WithMany(t => t.ControlledModules);
+        
+        modelBuilder.Entity<Module>()
+            .HasMany(m => m.RecommendedModules)
+            .WithMany() 
+            .UsingEntity(j => j.ToTable("RecommendedModules")); 
     }
 
     public BackendDbContext(DbContextOptions<BackendDbContext> options) : base(options) {

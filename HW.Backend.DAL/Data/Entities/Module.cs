@@ -26,7 +26,7 @@ public class Module
     /// <summary>
     /// Date and time the module was created
     /// </summary>
-    public required DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     /// <summary>
     /// Date and time the module was edited
     /// </summary>
@@ -58,5 +58,13 @@ public class Module
     /// List of creators
     /// </summary>
     public List<Teacher>? Creators { get; set; } = new();
+    /// <summary>
+    /// List of educational programs
+    /// </summary>
+    public List<EducationalProgram>? Programs { get; set; } = new();
+    /// <summary>
+    /// List of recommended modules 
+    /// </summary>
+    public List<Module>? RecommendedModules { get; set; } = new();
 
 }
