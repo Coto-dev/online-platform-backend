@@ -2,6 +2,7 @@ using System.Reflection;
 using System.Text.Json.Serialization;
 using HW.Backend.BL.Extensions;
 using HW.Common.Extennsions;
+using HW.Common.Middlewares;
 using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -47,13 +48,14 @@ builder.Services.AddJwtAuthentication(builder.Configuration);
 
 var app = builder.Build();
 
-//await app.MigrateDbAsync();
+await app.MigrateDbAsync();
 
 
 // Configure the HTTP request pipeline.
     app.UseSwagger();
     app.UseSwaggerUI();
 
+app.UseErrorHandleMiddleware();
 
 app.UseHttpsRedirection();
 

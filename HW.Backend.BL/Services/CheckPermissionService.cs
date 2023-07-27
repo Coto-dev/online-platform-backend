@@ -25,7 +25,7 @@ public class CheckPermissionService: ICheckPermissionService {
             .FirstOrDefaultAsync(m => m.Id == moduleId);
         if (module == null)
             throw new NotFoundException("Module not found");
-        if (module.Creators != null && module.Creators.Contains(user))
+        if (module.Creators != null && !module.Creators.Contains(user))
             throw new ForbiddenException("User do not have permission");
 
     }
@@ -71,7 +71,7 @@ public class CheckPermissionService: ICheckPermissionService {
             .FirstOrDefaultAsync(u => u.Id == subModuleId);
         if (subModule == null)
             throw new NotFoundException(" Sub module not found");    
-        if (subModule.Module.Creators != null && subModule.Module.Creators.Contains(user))
+        if (subModule.Module.Creators != null && !subModule.Module.Creators.Contains(user))
             throw new ForbiddenException("User do not have permission");
 
     }
@@ -120,7 +120,7 @@ public class CheckPermissionService: ICheckPermissionService {
             .FirstOrDefaultAsync(u => u.Id == chapterId);
         if (chapter == null)
             throw new NotFoundException("Chapter not found");    
-        if (chapter.SubModule.Module.Creators != null && chapter.SubModule.Module.Creators.Contains(user))
+        if (chapter.SubModule.Module.Creators != null && !chapter.SubModule.Module.Creators.Contains(user))
             throw new ForbiddenException("User do not have permission");    
     }
 

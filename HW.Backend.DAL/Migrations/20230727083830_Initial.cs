@@ -116,6 +116,9 @@ namespace HW.Backend.DAL.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    EditedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    ArchivedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     Name = table.Column<string>(type: "text", nullable: false),
                     ModuleId = table.Column<Guid>(type: "uuid", nullable: false),
                     SubModuleType = table.Column<int>(type: "integer", nullable: false)
@@ -288,6 +291,9 @@ namespace HW.Backend.DAL.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    EditedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    ArchivedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     Name = table.Column<string>(type: "text", nullable: false),
                     Content = table.Column<string>(type: "text", nullable: true),
                     SubModuleId = table.Column<Guid>(type: "uuid", nullable: false),
@@ -375,6 +381,9 @@ namespace HW.Backend.DAL.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    EditedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    ArchivedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     ChapterId = table.Column<Guid>(type: "uuid", nullable: false),
                     Question = table.Column<string>(type: "text", nullable: false),
                     Files = table.Column<List<string>>(type: "text[]", nullable: true),

@@ -23,33 +23,37 @@ public class ModuleManagerService : IModuleManagerService {
 
     public async Task<PagedList<ModuleShortDto>> GetTeacherModules(PaginationParamsDto pagination, FilterModuleType? filter,
         ModuleFilterTeacherType? section, string? sortByNameFilter, SortModuleType? sortModuleType, Guid userId) {
-        /*var user = await _dbContext.Teachers
-            .FirstOrDefaultAsync(u => u.Id == userId);*/
+        if (pagination.PageNumber <= 0)
+            throw new BadRequestException("Wrong page");
+        
         var modules = _dbContext.Modules
-            .Where(m=>!m.ArchivedAt.HasValue)
+            .Where(m => !m.ArchivedAt.HasValue)
             .ModuleTeacherFilter(filter, section, sortByNameFilter, userId)
             .ModuleOrderBy(sortModuleType)
             .AsQueryable()
             .AsNoTracking();
-        var shortModules = modules.Select(x =>new ModuleShortDto
-        {
+        
+        var shortModules = modules.Select(x =>new ModuleShortDto {
             Id = x.Id,
             Name = x.Name,
             Price = x.Price,
             Status = typeof(Module) == x.GetType()? ModuleType.SelfStudyModule : ModuleType.StreamingModule,
-            /*StartAt = typeof(Module) == x.GetType() ? null : _dbContext.StreamingModules.Find(x.Id)!.StartAt, // cringe
-            ExpiredAt = typeof(Module) == x.GetType() ? null : _dbContext.StreamingModules.Find(x.Id)!.ExpiredAt,
-            MaxStudents = typeof(Module) == x.GetType() ? null : _dbContext.StreamingModules.Find(x.Id)!.MaxStudents*/
         });
-    return PagedList<ModuleShortDto>.ToPagedList(shortModules, pagination.PageNumber, pagination.PageSize);
-     
+         return await PagedList<ModuleShortDto>.ToPagedList(shortModules, pagination.PageNumber, pagination.PageSize);
+         
     }
 
     public async Task CreateSelfStudyModule(ModuleSelfStudyCreateDto model, Guid userId) {
         var user = await _dbContext.Teachers
             .FirstOrDefaultAsync(u => u.Id == userId);
-        if (user == null) 
-            throw new NotFoundException("User not teacher or not found");
+        if (user == null) {
+            var teacher = new Teacher() {
+                Id = userId
+            };
+            await _dbContext.AddAsync(teacher);
+            user = teacher;
+            //TODO: throw new NotFoundException("User not teacher or not found");
+        }
         var creators = model.Creators!.Count == 0
             ? new List<Teacher>() { user } 
             : await _dbContext.Teachers.Where(t => model.Creators.Contains(t.Id)).ToListAsync();
@@ -94,8 +98,14 @@ public class ModuleManagerService : IModuleManagerService {
     public async Task CreateStreamingModule(ModuleStreamingCreateDto model, Guid userId) {
         var user = await _dbContext.Teachers
             .FirstOrDefaultAsync(u => u.Id == userId);
-        if (user == null) 
-            throw new NotFoundException("User not teacher or not found");
+        if (user == null) {
+            var teacher = new Teacher() {
+                Id = userId
+            };
+            await _dbContext.AddAsync(teacher);
+            user = teacher;
+            //TODO: throw new NotFoundException("User not teacher or not found");
+        }
         var creators = model.Creators!.Count == 0
             ? new List<Teacher>() { user } 
             : await _dbContext.Teachers.Where(t => model.Creators.Contains(t.Id)).ToListAsync();

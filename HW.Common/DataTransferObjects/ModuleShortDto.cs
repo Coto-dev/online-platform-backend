@@ -7,6 +7,7 @@ public class ModuleShortDto {
     public string Name { get; set; }
     public int Price { get; set; }
     public ModuleType? Status { get; set; }
+    public ModuleStatusType? ModuleStatusType { get; set; }
     /*public DateTime? StartAt { get; set; }
     public DateTime? ExpiredAt { get; set; }
     public int? MaxStudents { get; set; }*/

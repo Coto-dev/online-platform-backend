@@ -59,11 +59,20 @@ namespace HW.Backend.DAL.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<DateTime?>("ArchivedAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<int>("ChapterType")
                         .HasColumnType("integer");
 
                     b.Property<string>("Content")
                         .HasColumnType("text");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("EditedAt")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<List<string>>("Files")
                         .HasColumnType("text[]");
@@ -332,6 +341,15 @@ namespace HW.Backend.DAL.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<DateTime?>("ArchivedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("EditedAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<Guid>("ModuleId")
                         .HasColumnType("uuid");
 
@@ -355,12 +373,21 @@ namespace HW.Backend.DAL.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<DateTime?>("ArchivedAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<Guid>("ChapterId")
                         .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Discriminator")
                         .IsRequired()
                         .HasColumnType("text");
+
+                    b.Property<DateTime?>("EditedAt")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<List<string>>("Files")
                         .HasColumnType("text[]");
