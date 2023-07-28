@@ -396,6 +396,9 @@ namespace HW.Backend.DAL.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<int>("TestType")
+                        .HasColumnType("integer");
+
                     b.HasKey("Id");
 
                     b.HasIndex("ChapterId");
@@ -676,7 +679,7 @@ namespace HW.Backend.DAL.Migrations
             modelBuilder.Entity("HW.Backend.DAL.Data.Entities.ChapterComment", b =>
                 {
                     b.HasOne("HW.Backend.DAL.Data.Entities.Chapter", "Chapter")
-                        .WithMany()
+                        .WithMany("ChapterComments")
                         .HasForeignKey("ChapterId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -832,7 +835,7 @@ namespace HW.Backend.DAL.Migrations
                         .IsRequired();
 
                     b.HasOne("HW.Backend.DAL.Data.Entities.Test", "Test")
-                        .WithMany()
+                        .WithMany("UserAnswerTests")
                         .HasForeignKey("TestId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -911,6 +914,8 @@ namespace HW.Backend.DAL.Migrations
 
             modelBuilder.Entity("HW.Backend.DAL.Data.Entities.Chapter", b =>
                 {
+                    b.Navigation("ChapterComments");
+
                     b.Navigation("ChapterTests");
                 });
 
@@ -924,6 +929,11 @@ namespace HW.Backend.DAL.Migrations
             modelBuilder.Entity("HW.Backend.DAL.Data.Entities.SubModule", b =>
                 {
                     b.Navigation("Chapters");
+                });
+
+            modelBuilder.Entity("HW.Backend.DAL.Data.Entities.Test", b =>
+                {
+                    b.Navigation("UserAnswerTests");
                 });
 
             modelBuilder.Entity("HW.Backend.DAL.Data.Entities.UserAnswerTest", b =>

@@ -387,6 +387,7 @@ namespace HW.Backend.DAL.Migrations
                     ChapterId = table.Column<Guid>(type: "uuid", nullable: false),
                     Question = table.Column<string>(type: "text", nullable: false),
                     Files = table.Column<List<string>>(type: "text[]", nullable: true),
+                    TestType = table.Column<int>(type: "integer", nullable: false),
                     Discriminator = table.Column<string>(type: "text", nullable: false)
                 },
                 constraints: table =>

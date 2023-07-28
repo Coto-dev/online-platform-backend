@@ -210,7 +210,8 @@ public class ModuleManagerService : IModuleManagerService {
             Name = model.Name,
             Content = model.Content,
             SubModule = subModule,
-            ChapterType = model.ChapterType
+            ChapterType = model.ChapterType,
+            Files = model.FileIds
         };
         await _dbContext.AddAsync(chapter);
         await _dbContext.SaveChangesAsync();
@@ -224,6 +225,7 @@ public class ModuleManagerService : IModuleManagerService {
         chapter.Name = model.Name;
         chapter.Content = model.Content;
         chapter.ChapterType = model.ChapterType;
+        chapter.Files = model.FileIds;
         _dbContext.Update(chapter);
         await _dbContext.SaveChangesAsync();
     }

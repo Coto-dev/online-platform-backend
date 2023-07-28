@@ -15,4 +15,5 @@ public class ChapterCreateDto {
     [DefaultValue(Enums.ChapterType.DefaultChapter)]
     public ChapterType ChapterType { get; set; } = ChapterType.DefaultChapter;
     public string? Content { get; set; } // html
+    public List<string>? FileIds { get; set; } = new();
 }

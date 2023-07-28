@@ -49,4 +49,10 @@ public class Chapter
     /// Chapter type
     /// </summary>
 	public ChapterType ChapterType { get; set; }
+
+    /// <summary>
+    /// Chapter comments
+    /// </summary>
+
+    public List<ChapterComment>? ChapterComments { get; set; } = new();
 }

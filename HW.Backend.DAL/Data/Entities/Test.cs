@@ -1,4 +1,6 @@
-﻿namespace HW.Backend.DAL.Data.Entities;
+﻿using HW.Common.Enums;
+
+namespace HW.Backend.DAL.Data.Entities;
 /// <summary>
 /// Entity for Test
 /// </summary>
@@ -32,4 +34,13 @@ public class Test
     /// Test's files
     /// </summary>
     public List<string>? Files { get; set; } = new();
+    /// <summary>
+    /// User's answers
+    /// </summary>
+
+    public List<UserAnswerTest>? UserAnswerTests { get; set; } = new();
+    /// <summary>
+    /// Test type
+    /// </summary>
+    public TestType TestType { get; set; }
 }

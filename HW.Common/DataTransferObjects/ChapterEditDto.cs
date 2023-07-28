@@ -15,5 +15,6 @@ public class ChapterEditDto {
     public ChapterType ChapterType { get; set; }
     [Required]
     public string Content { get; set; } // html
-    public List<Guid>? FileIds { get; set; } = new();
+    [Required]
+    public List<string>? FileIds { get; set; } = new();
 }

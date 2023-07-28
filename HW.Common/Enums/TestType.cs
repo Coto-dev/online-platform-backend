@@ -20,5 +20,6 @@ public enum TestType{
     /// <summary>
     /// Правильная последовательность ответов
     /// </summary>
-    CorrectSequenceAnswer
+    CorrectSequenceAnswer,
+    DetailedAnswer
 }

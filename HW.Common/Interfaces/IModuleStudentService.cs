@@ -10,12 +10,13 @@ public interface IModuleStudentService {
         string? sortByNameFilter, SortModuleType? sortModuleType, Guid userId);
     public Task<PagedList<ModuleShortDto>> GetStudentModules(PaginationParamsDto pagination, FilterModuleType? filter,
          string? sortByNameFilter, ModuleFilterStudentType? section, SortModuleType? sortModuleType, Guid userId);
-    public Task<ModuleFullDto> GetModuleContent(Guid moduleId);
-    public Task<ChapterFullDto> GetChapterContent(Guid chapterId);
-    public Task<ModuleDetailsDto> GetModuleDetails(Guid moduleId);
-    public Task<ModuleDetailsDto> SendCommentToModule(ModuleCommentDto model, Guid moduleId);
-    public Task<ModuleDetailsDto> BuyModule(Guid moduleId);
-    public Task AddModuleToBasket(Guid moduleId);
-    public Task DeleteModuleToBasket(Guid moduleId);
+    public Task<ModuleFullDto> GetModuleContent(Guid moduleId, Guid userId);
+    public Task<string> CalculateProgress(Guid moduleId, Guid userId);
+    public Task<ChapterFullDto> GetChapterContent(Guid chapterId, Guid userId);
+    public Task<ModuleDetailsDto> GetModuleDetails(Guid moduleId, Guid userId);
+    public Task<ModuleDetailsDto> SendCommentToModule(ModuleCommentDto model, Guid moduleId, Guid userId);
+    public Task BuyModule(Guid moduleId, Guid userId);
+    public Task AddModuleToBasket(Guid moduleId, Guid userId);
+    public Task DeleteModuleToBasket(Guid moduleId, Guid userId);
 
 }
