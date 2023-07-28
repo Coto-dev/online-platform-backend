@@ -8,7 +8,7 @@ public class Learned
     /// <summary>
     /// Learned's id
     /// </summary>
-    public Guid Id { get; set; }
+    public Guid Id { get; set; } = Guid.NewGuid();
     /// <summary>
     /// User identifier
     /// </summary>
@@ -20,6 +20,6 @@ public class Learned
     /// <summary>
     /// DataTime when was learned
     /// </summary>
-    public DateTime LearnDate { get; set; }
+    public DateTime? LearnDate { get; set; }
 
 }

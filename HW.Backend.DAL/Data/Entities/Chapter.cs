@@ -37,4 +37,6 @@ public class Chapter
     /// Chapter type
     /// </summary>
 	public ChapterType ChapterType { get; set; }
+
+    public List<ChapterComment>? ChapterComments { get; set; }
 }
