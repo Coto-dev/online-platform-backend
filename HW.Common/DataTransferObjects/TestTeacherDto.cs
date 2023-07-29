@@ -3,19 +3,18 @@ using HW.Common.Enums;
 
 namespace HW.Common.DataTransferObjects; 
 
-public class TestDto {
+public class TestTeacherDto {
     /// <summary>
     /// Если потребуется реализовать новые тесты, добавить сюда поля
     /// </summary>
     public Guid Id { get; set; }
-    [DefaultValue("Где рождаются волки?🤔")]
-    public string Question { get; set; }
-
+    public string Question { get; set; } = "";
     public List<FileLinkDto>? FileIds { get; set; } = new();
-    public List<PossibleAnswerDto> PossibleAnswers { get; set; } = new();
+    public List<SimpleAnswerDto>? PossibleSimpleAnswers { get; set; } = new();
+    public List<CorrectSequenceAnswerDto>? PossibleCorrectSequenceAnswers { get; set; } = new();
     /// <summary>
-    /// если у пользователя не было ответов на тест то пустой список
+    /// Это будет что-то типо ключевых слов
     /// </summary>
-    public UserAnswerFullDto? UserAnswer { get; set; }
+    public string? KeyWords { get; set; }
     public TestType Type { get; set; }
 }

@@ -35,7 +35,7 @@ public class ModuleStudentController : ControllerBase {
 
 
     /// <summary>
-    /// Get all available modules(main page)
+    /// Get all available modules(main page) [Any(unauthorized)]
     /// </summary>
     [HttpGet]
     [Route("available/list")]
@@ -53,7 +53,7 @@ public class ModuleStudentController : ControllerBase {
     
 
     /// <summary>
-    /// Get student modules
+    /// Get student modules [Student]
     /// </summary>
     [HttpGet]
     [Route("student/list")]
@@ -71,34 +71,45 @@ public class ModuleStudentController : ControllerBase {
     }
 
     /// <summary>
-    /// Get module content by moduleId
+    /// Get module content by moduleId [Student]
     /// </summary>
     ///<remarks>
     /// return module with submodules 
     /// </remarks>
     [HttpGet]
     [Route("{moduleId}/content")]
+    [Authorize(AuthenticationSchemes = "Bearer", Roles = ApplicationRoleNames.Student)]
     public async Task<ActionResult<ModuleFullDto>> GetModuleContent(Guid moduleId) {
         if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false) {
             throw new UnauthorizedException("User is not authorized");
         }
-        throw new NotImplementedException();
+
+        await _checkPermissionService.CheckStudentModulePermission(userId, moduleId);
+        return Ok(await _moduleStudentService.GetModuleContent(moduleId, userId));
     }
     
     /// <summary>
-    /// Get chapter content by chapterId
+    /// Get chapter content by chapterId [Student]
     /// </summary>
     ///<remarks>
     /// 
     /// </remarks>
     [HttpGet]
     [Route("chapter/{chapterId}")]
+    [Authorize(AuthenticationSchemes = "Bearer", Roles = ApplicationRoleNames.Student)]
+
     public async Task<ActionResult<ChapterFullDto>> GetChapterContent(Guid chapterId) {
-        throw new NotImplementedException();
+        if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false) {
+            throw new UnauthorizedException("User is not authorized");
+        }
+        
+        await _checkPermissionService.CheckStudentChapterPermission(userId, chapterId);
+        return Ok(await _moduleStudentService.GetChapterContent(chapterId, userId));
+        
     }
     
     /// <summary>
-    /// Get module details by moduleId
+    /// Get module details by moduleId [Any(unauthorized)]
     /// </summary>
     [HttpGet]
     [Route("{moduleId}/details")]
@@ -110,20 +121,19 @@ public class ModuleStudentController : ControllerBase {
     }
     
     /// <summary>
-    /// Send comment to module
+    /// Send comment to module [Teacher][Student]
     /// </summary>
     [HttpPost]
     [Route("{moduleId}/comment")]
-    [Authorize(AuthenticationSchemes = "Bearer", 
-        Roles = ApplicationRoleNames.Student
-                + "," + ApplicationRoleNames.Teacher 
-                + "," + ApplicationRoleNames.Administrator)]
+    [Authorize(AuthenticationSchemes = "Bearer", Roles = ApplicationRoleNames.Student
+                                                         + "," + ApplicationRoleNames.Teacher 
+                                                         + "," + ApplicationRoleNames.Administrator)]
     public async Task<ActionResult> SendCommentToModule([FromBody] ModuleCommentDto model, Guid moduleId) {
         throw new NotImplementedException();
     }
     
     /// <summary>
-    /// Buy module
+    /// Buy module [Student]
     /// </summary>
     [HttpPost]
     [Route("{moduleId}")]
@@ -137,7 +147,7 @@ public class ModuleStudentController : ControllerBase {
     }
     
     /// <summary>
-    /// Add module to basket
+    /// Add module to basket [Student]
     /// </summary>
     [HttpPost]
     [Route("{moduleId}/basket")]
@@ -151,7 +161,7 @@ public class ModuleStudentController : ControllerBase {
     }
     
     /// <summary>
-    /// Delete module from basket
+    /// Delete module from basket [Student]
     /// </summary>
     [HttpDelete]
     [Route("{moduleId}/basket")]

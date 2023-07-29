@@ -42,7 +42,81 @@ public class ModuleManagerService : IModuleManagerService {
          return await PagedList<ModuleShortDto>.ToPagedList(shortModules, pagination.PageNumber, pagination.PageSize);
          
     }
-
+    public async Task<ModuleFullTeacherDto> GetModuleContent(Guid moduleId, Guid userId) {
+        var module = await _dbContext.Modules
+            .Include(m=>m.SubModules)!
+            .ThenInclude(s=>s.Chapters)
+            .AsNoTracking()
+            .FirstOrDefaultAsync(m => m.Id == moduleId);
+        if (module == null)
+            throw new NotFoundException("Module not found");
+        return new ModuleFullTeacherDto {
+            Id = module.Id,
+            SubModules = module.SubModules != null? module.SubModules.Select(s=> new SubModuleFullDto {
+                Id = s.Id,
+                Name = s.Name,
+                Chapters = s.Chapters != null ? s.Chapters.Select(c=> new ChapterShrotDto {
+                    Id = c.Id,
+                    Name = c.Name,
+                    ChapterType = c.ChapterType
+                }).ToList() : new List<ChapterShrotDto>()
+            }).ToList() : new List<SubModuleFullDto>()
+        };
+    }
+    
+    public async Task<ChapterFullTeacherDto> GetChapterContent(Guid chapterId, Guid userId) {
+        var chapter = await _dbContext.Chapters
+            .Include(c=>c.ChapterTests)
+            .Include(c=>c.ChapterComments)!
+            .ThenInclude(com=>com.User)
+            .FirstOrDefaultAsync(m => m.Id == chapterId);
+        var user = await _dbContext.Students
+            .Include(u=>u.LearnedChapters)
+            .FirstOrDefaultAsync(u => u.Id == userId);
+        return new ChapterFullTeacherDto {
+            Id = chapter!.Id,
+            Name = chapter.Name,
+            Content = chapter.Content ?? "",
+            FileIds = chapter.Files == null
+                ? new List<FileLinkDto>()
+                : chapter.Files.Select(f => new FileLinkDto {
+                    FileId = f,
+                    Url = null // TODO: await _minio.getLinkByFileIdAsync(f);
+                }).ToList(),
+            Comments = chapter.ChapterComments == null
+                ? new List<ChapterCommentDto>()
+                : chapter.ChapterComments.Select(com => new ChapterCommentDto {
+                    Id = com.Id,
+                    UserId = com.User.Id,
+                    IsTeacherComment = com.IsTeacherComment,
+                    Message = com.Comment
+                }).ToList(),
+            ChapterType = chapter.ChapterType,
+            Tests = chapter.ChapterTests == null
+                ? new List<TestTeacherDto>()
+                : chapter.ChapterTests.Select(t => new TestTeacherDto {
+                    Id = t.Id,
+                    Question = t.Question,
+                    FileIds = t.Files == null
+                        ? new List<FileLinkDto>()
+                        : t.Files.Select(f => new FileLinkDto {
+                            FileId = f,
+                            Url = null // TODO: await _minio.getLinkByFileIdAsync(f);
+                        }).ToList(),
+                    PossibleSimpleAnswers = t is SimpleAnswerTest simpleAnswerTest ? simpleAnswerTest.PossibleAnswers
+                        .Select(uat=> new SimpleAnswerDto {
+                            AnswerContent = uat.AnswerContent,
+                            isRight = uat.IsRight
+                        }).ToList():new List<SimpleAnswerDto>(),
+                    PossibleCorrectSequenceAnswers = t is CorrectSequenceTest correctSequenceTest ? correctSequenceTest.PossibleAnswers
+                        .Select(uat=> new CorrectSequenceAnswerDto {
+                            AnswerContent = uat.AnswerContent,
+                            RightOrder = uat.RightOrder
+                        }).ToList():new List<CorrectSequenceAnswerDto>(),
+                    Type = t.TestType,
+                }).ToList()
+        };
+    }
     public async Task CreateSelfStudyModule(ModuleSelfStudyCreateDto model, Guid userId) {
         var user = await _dbContext.Teachers
             .FirstOrDefaultAsync(u => u.Id == userId);

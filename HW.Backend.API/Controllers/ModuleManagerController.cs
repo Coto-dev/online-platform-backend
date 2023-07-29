@@ -35,7 +35,7 @@ public class ModuleManagerController : ControllerBase {
     }
     
     /// <summary>
-    /// Get teacher's created modules
+    /// Get teacher's created modules [Teacher]
     /// </summary>
     [HttpGet]
     [Route("teacher/list")]
@@ -51,7 +51,39 @@ public class ModuleManagerController : ControllerBase {
     }
     
     /// <summary>
-    /// Create self-study module
+    /// Get module content by moduleId [Teacher]
+    /// </summary>
+    ///<remarks>
+    /// return module with submodules 
+    /// </remarks>
+    [HttpGet]
+    [Route("{moduleId}/content/teacher")]
+    public async Task<ActionResult<ModuleFullTeacherDto>> GetModuleContent(Guid moduleId) {
+        if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false) {
+            throw new UnauthorizedException("User is not authorized");
+        }
+        await _checkPermissionService.CheckCreatorModulePermission(userId, moduleId);
+        return Ok(await _moduleManagerService.GetModuleContent(moduleId, userId));
+    }
+    
+    /// <summary>
+    /// Get chapter content by chapterId [Teacher]
+    /// </summary>
+    ///<remarks>
+    /// 
+    /// </remarks>
+    [HttpGet]
+    [Route("chapter/{chapterId}/teacher")]
+    public async Task<ActionResult<ChapterFullTeacherDto>> GetChapterContent(Guid chapterId) {
+        if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false) {
+            throw new UnauthorizedException("User is not authorized");
+        }
+        await _checkPermissionService.CheckCreatorChapterPermission(userId, chapterId);
+        return Ok(await _moduleManagerService.GetChapterContent(chapterId, userId));
+    }
+    
+    /// <summary>
+    /// Create self-study module [Teacher]
     /// </summary>
     [HttpPost]
     [Route("self-study")]
@@ -64,7 +96,7 @@ public class ModuleManagerController : ControllerBase {
     }
     
     /// <summary>
-    /// Edit self-study module
+    /// Edit self-study module [Teacher]
     /// </summary>
     [HttpPut]
     [Route("{moduleId}/self-study")]
@@ -79,7 +111,7 @@ public class ModuleManagerController : ControllerBase {
     }
     
     /// <summary>
-    /// Create streaming module
+    /// Create streaming module [Teacher]
     /// </summary>
     [HttpPost]
     [Route("streaming")]
@@ -93,7 +125,7 @@ public class ModuleManagerController : ControllerBase {
     }
     
     /// <summary>
-    /// Edit streaming module
+    /// Edit streaming module [Teacher]
     /// </summary>
     [HttpPut]
     [Route("{moduleId}/streaming")]
@@ -107,7 +139,7 @@ public class ModuleManagerController : ControllerBase {
     }
     
     /// <summary>
-    /// Archive my module
+    /// Archive my module [Teacher]
     /// </summary>
     [HttpDelete]
     [Route("{moduleId}")]
@@ -121,7 +153,7 @@ public class ModuleManagerController : ControllerBase {
     }
     
     /// <summary>
-    /// Create sub module
+    /// Create sub module [Teacher]
     /// </summary>
     [HttpPost]
     [Route("{moduleId}/sub-module")]
@@ -135,7 +167,7 @@ public class ModuleManagerController : ControllerBase {
     }
     
     /// <summary>
-    /// Edit sub module
+    /// Edit sub module [Teacher]
     /// </summary>
     [HttpPut]
     [Route("sub-module/{subModuleId}")]
@@ -149,7 +181,7 @@ public class ModuleManagerController : ControllerBase {
     }
     
     /// <summary>
-    /// Archive sub module
+    /// Archive sub module [Teacher]
     /// </summary>
     [HttpDelete]
     [Route("sub-module/{subModuleId}")]
@@ -163,7 +195,7 @@ public class ModuleManagerController : ControllerBase {
     }
     
     /// <summary>
-    /// Create chapter in sub module
+    /// Create chapter in sub module [Teacher]
     /// </summary>
     [HttpPost]
     [Route("sub-module/{subModuleId}/chapter")]
@@ -177,7 +209,7 @@ public class ModuleManagerController : ControllerBase {
     }
     
     /// <summary>
-    /// Edit chapter(save changes)
+    /// Edit chapter(save changes) [Teacher]
     /// </summary>
     [HttpPut]
     [Route("chapter/{chapterId}")]
@@ -191,7 +223,7 @@ public class ModuleManagerController : ControllerBase {
     }
     
     /// <summary>
-    /// Archive chapter
+    /// Archive chapter [Teacher]
     /// </summary>
     [HttpDelete]
     [Route("chapter/{chapterId}")]
