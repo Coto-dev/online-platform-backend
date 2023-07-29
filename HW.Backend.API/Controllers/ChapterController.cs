@@ -1,10 +1,8 @@
 using HW.Common.DataTransferObjects;
-using HW.Common.Enums;
 using HW.Common.Exceptions;
 using HW.Common.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Data;
 
 namespace HW.Backend.API.Controllers;
 
@@ -32,23 +30,6 @@ public class ChapterController : ControllerBase {
         _logger = logger;
         _checkPermissionService = checkPermissionService;
         _chapterService = chapterService;
-    }
-   
-    /// <summary>
-    /// Get chapter by id
-    /// </summary>
-    [HttpGet]
-    [Route("{chapterId}")]
-    public async Task<ActionResult<ChapterFullDto>> GetChapter(Guid chapterId) {
-        if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false)
-        {
-            throw new UnauthorizedException("User is not authorized");
-        }
-
-        await _checkPermissionService.CheckStudentChapterPermission(userId, chapterId);
-        await _checkPermissionService.CheckTeacherChapterPermission(userId, chapterId);
-        await _chapterService.GetChapter(chapterId, userId);
-        return Ok();
     }
     
     /// <summary>

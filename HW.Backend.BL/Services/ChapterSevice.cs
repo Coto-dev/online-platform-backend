@@ -1,11 +1,8 @@
-﻿using HW.Backend.BL.Extensions;
-using HW.Backend.DAL.Data;
+﻿using HW.Backend.DAL.Data;
 using HW.Backend.DAL.Data.Entities;
 using HW.Common.DataTransferObjects;
-using HW.Common.Enums;
 using HW.Common.Exceptions;
 using HW.Common.Interfaces;
-using HW.Common.Other;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -20,19 +17,6 @@ public class ChapterService : IChapterService
     {
         _logger = logger;
         _dbContext = dbContext;
-    }
-
-    public async Task<ChapterFullDto> GetChapter(Guid chapterId, Guid userId)
-    {
-        var chapter = _dbContext.Chapters
-            .Where(n => n.Id == chapterId)
-            .AsNoTracking();
-
-
-        //
-
-
-        throw new NotImplementedException();
     }
 
     public async Task LearnChapter(Guid chapterId, Guid userId)
