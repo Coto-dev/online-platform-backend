@@ -13,7 +13,7 @@ public class TestDto {
     public List<FileLinkDto>? FileIds { get; set; }
     public List<PossibleAnswerDto> PossibleAnswers { get; set; }
     /// <summary>
-    /// если у пользователя не было ответов на тест то null
+    /// если у пользователя не было ответов на тест то пустой список
     /// </summary>
     public UserAnswerFullDto? UserAnswer { get; set; }
     public TestType Type { get; set; }

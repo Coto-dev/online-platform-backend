@@ -22,7 +22,7 @@ public class ModuleStudentService : IModuleStudentService {
     }
 
     public async Task<PagedList<ModuleShortDto>> GetAvailableModules(PaginationParamsDto pagination, FilterModuleType? filter, string? sortByNameFilter,
-        SortModuleType? sortModuleType, Guid userId) {
+        SortModuleType? sortModuleType, Guid? userId) {
         var user = await _dbContext.Students
             .FirstOrDefaultAsync(u => u.Id == userId);
         
@@ -200,7 +200,7 @@ public class ModuleStudentService : IModuleStudentService {
         };
     }
 
-    public async Task<ModuleDetailsDto> GetModuleDetails(Guid moduleId, Guid userId) {
+    public async Task<ModuleDetailsDto> GetModuleDetails(Guid moduleId, Guid? userId) {
         var module = await _dbContext.Modules
             .FirstOrDefaultAsync(m => m.Id == moduleId);
         if (module == null)
@@ -249,7 +249,9 @@ public class ModuleStudentService : IModuleStudentService {
             .FirstOrDefaultAsync(u => u.Id == userId);
         
         if (user == null) {
-            user = new Student();
+            user = new Student {
+                Id = userId,
+            };
             var studentModule = new StudentModule {
                 Student = user,
                 Module = module,
@@ -281,7 +283,9 @@ public class ModuleStudentService : IModuleStudentService {
             .FirstOrDefaultAsync(u => u.Id == userId);
         
         if (user == null) {
-            user = new Student();
+            user = new Student {
+                Id = userId,
+            };
             var studentModule = new StudentModule {
                 Student = user,
                 Module = module,
@@ -302,7 +306,7 @@ public class ModuleStudentService : IModuleStudentService {
         
     }
 
-    public async Task DeleteModuleToBasket(Guid moduleId, Guid userId) {
+    public async Task DeleteModuleFromBasket(Guid moduleId, Guid userId) {
         var module = await _dbContext.Modules
             .FirstOrDefaultAsync(m => m.Id == moduleId);
         if (module == null)
