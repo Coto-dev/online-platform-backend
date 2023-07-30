@@ -1,9 +1,19 @@
-﻿namespace HW.Backend.DAL.Data.Entities;
+﻿using System.ComponentModel.DataAnnotations.Schema;
+
+namespace HW.Backend.DAL.Data.Entities;
 
 /// <summary>
 /// Entity for student
 /// </summary>
-public class Student : UserBackend {
+public class Student {
+    /// <summary>
+    /// Student id = User id
+    /// </summary>
+    public Guid Id { get; set; }
+    /// <summary>
+    /// Link to main user
+    /// </summary>
+    public required UserBackend UserBackend { get; set; }
     /// <summary>
     /// List of student's module
     /// </summary>
@@ -13,13 +23,8 @@ public class Student : UserBackend {
     /// </summary>
     public List<Chapter>? LearnedChapters { get; set; } = new();
     /// <summary>
-    /// List of student's comments to modules
+    /// User educational programs
     /// </summary>
-    public List<ModuleComment>? ModuleComments { get; set; } = new();
-    /// <summary>
-    /// User's chapter comments
-    /// </summary>
-    public List<ChapterComment>? ChapterComments { get; set; } = new();
     public List<EducationalProgram>? EducationalPrograms { get; set; } = new();
 
 

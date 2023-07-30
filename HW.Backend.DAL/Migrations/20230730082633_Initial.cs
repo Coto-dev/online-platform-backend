@@ -55,8 +55,7 @@ namespace HW.Backend.DAL.Migrations
                 name: "UserBackends",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    Discriminator = table.Column<string>(type: "text", nullable: false)
+                    Id = table.Column<Guid>(type: "uuid", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -135,30 +134,6 @@ namespace HW.Backend.DAL.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "EducationalProgramStudent",
-                columns: table => new
-                {
-                    EducationalProgramsId = table.Column<Guid>(type: "uuid", nullable: false),
-                    StudentsId = table.Column<Guid>(type: "uuid", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_EducationalProgramStudent", x => new { x.EducationalProgramsId, x.StudentsId });
-                    table.ForeignKey(
-                        name: "FK_EducationalProgramStudent_EducationalPrograms_EducationalPr~",
-                        column: x => x.EducationalProgramsId,
-                        principalTable: "EducationalPrograms",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_EducationalProgramStudent_UserBackends_StudentsId",
-                        column: x => x.StudentsId,
-                        principalTable: "UserBackends",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "ModuleComments",
                 columns: table => new
                 {
@@ -168,8 +143,7 @@ namespace HW.Backend.DAL.Migrations
                     Message = table.Column<string>(type: "text", nullable: false),
                     ModuleId = table.Column<Guid>(type: "uuid", nullable: false),
                     UserId = table.Column<Guid>(type: "uuid", nullable: false),
-                    IsTeacherComment = table.Column<bool>(type: "boolean", nullable: false),
-                    StudentId = table.Column<Guid>(type: "uuid", nullable: true)
+                    IsTeacherComment = table.Column<bool>(type: "boolean", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -181,11 +155,6 @@ namespace HW.Backend.DAL.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_ModuleComments_UserBackends_StudentId",
-                        column: x => x.StudentId,
-                        principalTable: "UserBackends",
-                        principalColumn: "Id");
-                    table.ForeignKey(
                         name: "FK_ModuleComments_UserBackends_UserId",
                         column: x => x.UserId,
                         principalTable: "UserBackends",
@@ -194,93 +163,34 @@ namespace HW.Backend.DAL.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "ModuleTeacher",
+                name: "Students",
                 columns: table => new
                 {
-                    CreatedModulesId = table.Column<Guid>(type: "uuid", nullable: false),
-                    CreatorsId = table.Column<Guid>(type: "uuid", nullable: false)
+                    Id = table.Column<Guid>(type: "uuid", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_ModuleTeacher", x => new { x.CreatedModulesId, x.CreatorsId });
+                    table.PrimaryKey("PK_Students", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_ModuleTeacher_Modules_CreatedModulesId",
-                        column: x => x.CreatedModulesId,
-                        principalTable: "Modules",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_ModuleTeacher_UserBackends_CreatorsId",
-                        column: x => x.CreatorsId,
+                        name: "FK_Students_UserBackends_Id",
+                        column: x => x.Id,
                         principalTable: "UserBackends",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
-                name: "ModuleTeacher1",
+                name: "Teachers",
                 columns: table => new
                 {
-                    ControlledModulesId = table.Column<Guid>(type: "uuid", nullable: false),
-                    TeachersId = table.Column<Guid>(type: "uuid", nullable: false)
+                    Id = table.Column<Guid>(type: "uuid", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_ModuleTeacher1", x => new { x.ControlledModulesId, x.TeachersId });
+                    table.PrimaryKey("PK_Teachers", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_ModuleTeacher1_Modules_ControlledModulesId",
-                        column: x => x.ControlledModulesId,
-                        principalTable: "Modules",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_ModuleTeacher1_UserBackends_TeachersId",
-                        column: x => x.TeachersId,
-                        principalTable: "UserBackends",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "UserActions",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    StudentId = table.Column<Guid>(type: "uuid", nullable: false),
-                    Actions = table.Column<int>(type: "integer", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_UserActions", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_UserActions_UserBackends_StudentId",
-                        column: x => x.StudentId,
-                        principalTable: "UserBackends",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "UserModules",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    StudentId = table.Column<Guid>(type: "uuid", nullable: false),
-                    ModuleId = table.Column<Guid>(type: "uuid", nullable: false),
-                    ModuleStatus = table.Column<int>(type: "integer", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_UserModules", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_UserModules_Modules_ModuleId",
-                        column: x => x.ModuleId,
-                        principalTable: "Modules",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_UserModules_UserBackends_StudentId",
-                        column: x => x.StudentId,
+                        name: "FK_Teachers_UserBackends_Id",
+                        column: x => x.Id,
                         principalTable: "UserBackends",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
@@ -305,16 +215,133 @@ namespace HW.Backend.DAL.Migrations
                 {
                     table.PrimaryKey("PK_Chapters", x => x.Id);
                     table.ForeignKey(
+                        name: "FK_Chapters_Students_StudentId",
+                        column: x => x.StudentId,
+                        principalTable: "Students",
+                        principalColumn: "Id");
+                    table.ForeignKey(
                         name: "FK_Chapters_SubModules_SubModuleId",
                         column: x => x.SubModuleId,
                         principalTable: "SubModules",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "EducationalProgramStudent",
+                columns: table => new
+                {
+                    EducationalProgramsId = table.Column<Guid>(type: "uuid", nullable: false),
+                    StudentsId = table.Column<Guid>(type: "uuid", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_EducationalProgramStudent", x => new { x.EducationalProgramsId, x.StudentsId });
                     table.ForeignKey(
-                        name: "FK_Chapters_UserBackends_StudentId",
+                        name: "FK_EducationalProgramStudent_EducationalPrograms_EducationalPr~",
+                        column: x => x.EducationalProgramsId,
+                        principalTable: "EducationalPrograms",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_EducationalProgramStudent_Students_StudentsId",
+                        column: x => x.StudentsId,
+                        principalTable: "Students",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "UserActions",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    StudentId = table.Column<Guid>(type: "uuid", nullable: false),
+                    Actions = table.Column<int>(type: "integer", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_UserActions", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_UserActions_Students_StudentId",
                         column: x => x.StudentId,
-                        principalTable: "UserBackends",
-                        principalColumn: "Id");
+                        principalTable: "Students",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "UserModules",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    StudentId = table.Column<Guid>(type: "uuid", nullable: false),
+                    ModuleId = table.Column<Guid>(type: "uuid", nullable: false),
+                    ModuleStatus = table.Column<int>(type: "integer", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_UserModules", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_UserModules_Modules_ModuleId",
+                        column: x => x.ModuleId,
+                        principalTable: "Modules",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_UserModules_Students_StudentId",
+                        column: x => x.StudentId,
+                        principalTable: "Students",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "ModuleTeacher",
+                columns: table => new
+                {
+                    CreatedModulesId = table.Column<Guid>(type: "uuid", nullable: false),
+                    CreatorsId = table.Column<Guid>(type: "uuid", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ModuleTeacher", x => new { x.CreatedModulesId, x.CreatorsId });
+                    table.ForeignKey(
+                        name: "FK_ModuleTeacher_Modules_CreatedModulesId",
+                        column: x => x.CreatedModulesId,
+                        principalTable: "Modules",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_ModuleTeacher_Teachers_CreatorsId",
+                        column: x => x.CreatorsId,
+                        principalTable: "Teachers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "ModuleTeacher1",
+                columns: table => new
+                {
+                    ControlledModulesId = table.Column<Guid>(type: "uuid", nullable: false),
+                    TeachersId = table.Column<Guid>(type: "uuid", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ModuleTeacher1", x => new { x.ControlledModulesId, x.TeachersId });
+                    table.ForeignKey(
+                        name: "FK_ModuleTeacher1_Modules_ControlledModulesId",
+                        column: x => x.ControlledModulesId,
+                        principalTable: "Modules",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_ModuleTeacher1_Teachers_TeachersId",
+                        column: x => x.TeachersId,
+                        principalTable: "Teachers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -325,8 +352,7 @@ namespace HW.Backend.DAL.Migrations
                     ChapterId = table.Column<Guid>(type: "uuid", nullable: false),
                     UserId = table.Column<Guid>(type: "uuid", nullable: false),
                     IsTeacherComment = table.Column<bool>(type: "boolean", nullable: false),
-                    Comment = table.Column<string>(type: "text", nullable: false),
-                    StudentId = table.Column<Guid>(type: "uuid", nullable: true)
+                    Comment = table.Column<string>(type: "text", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -337,11 +363,6 @@ namespace HW.Backend.DAL.Migrations
                         principalTable: "Chapters",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_ChapterComments_UserBackends_StudentId",
-                        column: x => x.StudentId,
-                        principalTable: "UserBackends",
-                        principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_ChapterComments_UserBackends_UserId",
                         column: x => x.UserId,
@@ -369,9 +390,9 @@ namespace HW.Backend.DAL.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_Learned_UserBackends_LearnedById",
+                        name: "FK_Learned_Students_LearnedById",
                         column: x => x.LearnedById,
-                        principalTable: "UserBackends",
+                        principalTable: "Students",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -455,15 +476,15 @@ namespace HW.Backend.DAL.Migrations
                 {
                     table.PrimaryKey("PK_UserAnswerTests", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_UserAnswerTests_Tests_TestId",
-                        column: x => x.TestId,
-                        principalTable: "Tests",
+                        name: "FK_UserAnswerTests_Students_StudentId",
+                        column: x => x.StudentId,
+                        principalTable: "Students",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_UserAnswerTests_UserBackends_StudentId",
-                        column: x => x.StudentId,
-                        principalTable: "UserBackends",
+                        name: "FK_UserAnswerTests_Tests_TestId",
+                        column: x => x.TestId,
+                        principalTable: "Tests",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -511,11 +532,6 @@ namespace HW.Backend.DAL.Migrations
                 column: "ChapterId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_ChapterComments_StudentId",
-                table: "ChapterComments",
-                column: "StudentId");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_ChapterComments_UserId",
                 table: "ChapterComments",
                 column: "UserId");
@@ -559,11 +575,6 @@ namespace HW.Backend.DAL.Migrations
                 name: "IX_ModuleComments_ModuleId",
                 table: "ModuleComments",
                 column: "ModuleId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_ModuleComments_StudentId",
-                table: "ModuleComments",
-                column: "StudentId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_ModuleComments_UserId",
@@ -681,6 +692,9 @@ namespace HW.Backend.DAL.Migrations
                 name: "EducationalPrograms");
 
             migrationBuilder.DropTable(
+                name: "Teachers");
+
+            migrationBuilder.DropTable(
                 name: "CorrectSequenceAnswers");
 
             migrationBuilder.DropTable(
@@ -694,6 +708,9 @@ namespace HW.Backend.DAL.Migrations
 
             migrationBuilder.DropTable(
                 name: "Chapters");
+
+            migrationBuilder.DropTable(
+                name: "Students");
 
             migrationBuilder.DropTable(
                 name: "SubModules");

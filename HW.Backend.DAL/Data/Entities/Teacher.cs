@@ -1,9 +1,19 @@
-﻿namespace HW.Backend.DAL.Data.Entities;
+﻿using System.ComponentModel.DataAnnotations.Schema;
+
+namespace HW.Backend.DAL.Data.Entities;
 
 /// <summary>
 /// Entity for teacher
 /// </summary>
-public class Teacher : UserBackend {
+public class Teacher {
+    /// <summary>
+    /// Teacher id = User id
+    /// </summary>
+    public Guid Id { get; set; }
+    /// <summary>
+    /// Link to main user
+    /// </summary>
+    public required UserBackend UserBackend { get; set; }
     /// <summary>
     /// List of teacher's controlled modules
     /// </summary>

@@ -12,7 +12,7 @@ public class Learned
     /// <summary>
     /// User identifier
     /// </summary>
-    public required UserBackend LearnedBy { get; set; }
+    public required Student LearnedBy { get; set; }
     /// <summary>
     /// Chapter identifier
     /// </summary>

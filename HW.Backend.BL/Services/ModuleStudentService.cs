@@ -243,32 +243,40 @@ public class ModuleStudentService : IModuleStudentService {
             .FirstOrDefaultAsync(m => m.Id == moduleId);
         if (module == null)
             throw new NotFoundException("Module not found");
-        var user = await _dbContext.Students
-            .Include(u => u.Modules)!
-            .ThenInclude(m=>m.Module)
+        var user = await _dbContext.UserBackends
+            .Include(u => u.Student)
             .FirstOrDefaultAsync(u => u.Id == userId);
         
         if (user == null) {
-            user = new Student {
-                Id = userId,
+            user = new UserBackend {
+                Id = userId
             };
-            var studentModule = new StudentModule {
-                Student = user,
+            await _dbContext.UserBackends.AddAsync(user);
+        }
+
+        if (user.Student == null) {
+            user.Student = new Student {
+                Id = userId, UserBackend = user
+            };
+            await _dbContext.Students.AddAsync(user.Student);
+        }
+
+        var studentModule = await _dbContext.UserModules
+                .FirstOrDefaultAsync(um => um.Student == user.Student && um.Module == module);
+        if (studentModule == null) {
+            studentModule = new StudentModule
+            {
+                Student = user.Student,
                 Module = module,
                 ModuleStatus = ModuleStatusType.Purchased
             };
-            await _dbContext.AddAsync(user);
-            await _dbContext.AddAsync(studentModule);
+            await _dbContext.UserModules.AddAsync(studentModule);
         }
         else {
-            if (user.Modules!.Any(m => m.Module == module))
-                user.Modules!.FirstOrDefault(m => m.Module == module)!.ModuleStatus = ModuleStatusType.Purchased;
-            else user.Modules!.Add(new StudentModule {
-                Student = user,
-                Module = module,
-                ModuleStatus = ModuleStatusType.Purchased
-            });
-             _dbContext.Update(user);
+            if (studentModule.ModuleStatus != ModuleStatusType.InCart)
+                throw new ConflictException("User already has this module");
+            studentModule.ModuleStatus = ModuleStatusType.Purchased;
+            _dbContext.Update(studentModule);
         }
         await _dbContext.SaveChangesAsync();
     }
@@ -278,32 +286,38 @@ public class ModuleStudentService : IModuleStudentService {
             .FirstOrDefaultAsync(m => m.Id == moduleId);
         if (module == null)
             throw new NotFoundException("Module not found");
-        var user = await _dbContext.Students
-            .Include(u => u.Modules)!
+        var user = await _dbContext.UserBackends
+            .Include(u => u.Student)
             .FirstOrDefaultAsync(u => u.Id == userId);
         
         if (user == null) {
-            user = new Student {
-                Id = userId,
+            user = new UserBackend {
+                Id = userId
             };
-            var studentModule = new StudentModule {
-                Student = user,
-                Module = module,
-                ModuleStatus = ModuleStatusType.InCart
+           await _dbContext.UserBackends.AddAsync(user);
+        }
+
+        if (user.Student == null) {
+            user.Student = new Student {
+                Id = userId, UserBackend = user
             };
-            await _dbContext.AddAsync(user);
-            await _dbContext.AddAsync(studentModule);
+            await _dbContext.Students.AddAsync(user.Student);
         }
-        else {
-            user.Modules!.Add(new StudentModule {
-                Student = user,
-                Module = module,
-                ModuleStatus = ModuleStatusType.InCart
-            });
-            _dbContext.Update(user);
+
+        if (await _dbContext.UserModules
+                .AnyAsync(um => um.Student == user.Student && um.Module == module)) {
+            throw new ConflictException("User already has this module");
         }
-        await _dbContext.SaveChangesAsync();
-        
+
+        var studentModule = new StudentModule
+        {
+            Student = user.Student,
+            Module = module,
+            ModuleStatus = ModuleStatusType.InCart
+        };
+
+       await _dbContext.UserModules.AddAsync(studentModule);
+       await _dbContext.SaveChangesAsync();
     }
 
     public async Task DeleteModuleFromBasket(Guid moduleId, Guid userId) {
@@ -319,7 +333,11 @@ public class ModuleStudentService : IModuleStudentService {
             throw new NotFoundException("User not found");
         if (user.Modules!.All(m => m.Module != module))
             throw new ConflictException("User not have this module in basket");
-        if (user.Modules!.FirstOrDefault(m => m.Module == module)!.ModuleStatus != ModuleStatusType.InCart)
+        var studentModule = user.Modules!
+            .FirstOrDefault(m => m.Module == module);
+        if (studentModule!.ModuleStatus != ModuleStatusType.InCart)
             throw new ConflictException("User probably already bought this course");
+        _dbContext.Remove(studentModule);
+        await _dbContext.SaveChangesAsync();
     }
 }

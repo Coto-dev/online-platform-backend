@@ -118,18 +118,22 @@ public class ModuleManagerService : IModuleManagerService {
         };
     }
     public async Task CreateSelfStudyModule(ModuleSelfStudyCreateDto model, Guid userId) {
-        var user = await _dbContext.Teachers
+        var user = await _dbContext.UserBackends
+            .Include(u=>u.Teacher)
             .FirstOrDefaultAsync(u => u.Id == userId);
         if (user == null) {
-            var teacher = new Teacher() {
+            var newUser = new UserBackend() {
                 Id = userId
             };
-            await _dbContext.AddAsync(teacher);
-            user = teacher;
-            //TODO: throw new NotFoundException("User not teacher or not found");
+            user = newUser;
+            await _dbContext.AddAsync(user);
         }
+        user.Teacher ??= new Teacher {
+            Id = user.Id,
+            UserBackend = user
+        };
         var creators = model.Creators!.Count == 0
-            ? new List<Teacher>() { user } 
+            ? new List<Teacher>() { user.Teacher } 
             : await _dbContext.Teachers.Where(t => model.Creators.Contains(t.Id)).ToListAsync();
         var teachers = model.Teachers!.Count == 0
             ? new List<Teacher>()
@@ -170,18 +174,24 @@ public class ModuleManagerService : IModuleManagerService {
     }
 
     public async Task CreateStreamingModule(ModuleStreamingCreateDto model, Guid userId) {
-        var user = await _dbContext.Teachers
+        var user = await _dbContext.UserBackends
+            .Include(u=>u.Teacher)
             .FirstOrDefaultAsync(u => u.Id == userId);
+        
         if (user == null) {
-            var teacher = new Teacher() {
+            var newUser = new UserBackend() {
                 Id = userId
             };
-            await _dbContext.AddAsync(teacher);
-            user = teacher;
-            //TODO: throw new NotFoundException("User not teacher or not found");
+            user = newUser;
+            await _dbContext.AddAsync(user);
         }
+        user.Teacher ??= new Teacher {
+            Id = user.Id,
+            UserBackend = user
+        };
+        
         var creators = model.Creators!.Count == 0
-            ? new List<Teacher>() { user } 
+            ? new List<Teacher>() { user.Teacher } 
             : await _dbContext.Teachers.Where(t => model.Creators.Contains(t.Id)).ToListAsync();
         var teachers = model.Teachers!.Count == 0
             ? new List<Teacher>()
@@ -216,7 +226,7 @@ public class ModuleManagerService : IModuleManagerService {
         module.Name = model.Name;
         module.Description = model.Description;
         module.Price = model.Price;
-        module.ModuleVisibility = module.ModuleVisibility;
+        module.ModuleVisibility = model.VisibilityType;
         if (creators.Count != 0) module.Creators = creators;
         if (teachers.Count != 0) module.Teachers = teachers;
         module.StartAt = model.StartTime;

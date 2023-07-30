@@ -44,6 +44,16 @@ public class BackendDbContext : DbContext {
             .HasMany(m => m.RecommendedModules)
             .WithMany() 
             .UsingEntity(j => j.ToTable("RecommendedModules")); 
+        modelBuilder.Entity<UserBackend>()
+            .HasOne(u => u.Student)
+            .WithOne(c => c.UserBackend)
+            .HasForeignKey<Student>();
+        modelBuilder.Entity<UserBackend>()
+            .HasOne(u => u.Teacher)
+            .WithOne(c => c.UserBackend)
+            .HasForeignKey<Teacher>();
+
+        
     }
 
     public BackendDbContext(DbContextOptions<BackendDbContext> options) : base(options) {
