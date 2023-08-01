@@ -8,16 +8,19 @@ using HW.Common.Interfaces;
 using HW.Common.Other;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Microsoft.IdentityModel.Tokens;
 
 namespace HW.Backend.BL.Services; 
 
 public class ModuleManagerService : IModuleManagerService {
     private readonly ILogger<ModuleManagerService> _logger;
     private readonly BackendDbContext _dbContext;
+    private readonly IFileService _fileService;
 
-    public ModuleManagerService(ILogger<ModuleManagerService> logger, BackendDbContext dbContext) {
+    public ModuleManagerService(ILogger<ModuleManagerService> logger, BackendDbContext dbContext, IFileService fileService) {
         _logger = logger;
         _dbContext = dbContext;
+        _fileService = fileService;
     }
 
 
@@ -39,7 +42,13 @@ public class ModuleManagerService : IModuleManagerService {
             Price = x.Price,
             Status = typeof(Module) == x.GetType()? ModuleType.SelfStudyModule : ModuleType.StreamingModule,
         });
-         return await PagedList<ModuleShortDto>.ToPagedList(shortModules, pagination.PageNumber, pagination.PageSize);
+        var response = await PagedList<ModuleShortDto>.ToPagedList(shortModules, pagination.PageNumber, pagination.PageSize);
+        foreach (var moduleShortDto in response.Items) {
+            moduleShortDto.AvatarId = moduleShortDto.AvatarId == null
+                ? moduleShortDto.AvatarId
+                : await _fileService.GetAvatarLink(moduleShortDto.AvatarId);
+        }
+        return response;
          
     }
     public async Task<ModuleFullTeacherDto> GetModuleContent(Guid moduleId, Guid userId) {
@@ -73,15 +82,15 @@ public class ModuleManagerService : IModuleManagerService {
         var user = await _dbContext.Students
             .Include(u=>u.LearnedChapters)
             .FirstOrDefaultAsync(u => u.Id == userId);
-        return new ChapterFullTeacherDto {
+        var response = new ChapterFullTeacherDto {
             Id = chapter!.Id,
             Name = chapter.Name,
             Content = chapter.Content ?? "",
             FileIds = chapter.Files == null
                 ? new List<FileLinkDto>()
-                : chapter.Files.Select(f => new FileLinkDto {
+                : chapter.Files.Select( f => new FileLinkDto {
                     FileId = f,
-                    Url = null // TODO: await _minio.getLinkByFileIdAsync(f);
+                    Url = null //TODO 
                 }).ToList(),
             Comments = chapter.ChapterComments == null
                 ? new List<ChapterCommentDto>()
@@ -99,9 +108,9 @@ public class ModuleManagerService : IModuleManagerService {
                     Question = t.Question,
                     FileIds = t.Files == null
                         ? new List<FileLinkDto>()
-                        : t.Files.Select(f => new FileLinkDto {
+                        : t.Files.Select( f => new FileLinkDto {
                             FileId = f,
-                            Url = null // TODO: await _minio.getLinkByFileIdAsync(f);
+                            Url = null //TODO 
                         }).ToList(),
                     PossibleSimpleAnswers = t is SimpleAnswerTest simpleAnswerTest ? simpleAnswerTest.PossibleAnswers
                         .Select(uat=> new SimpleAnswerDto {
@@ -116,6 +125,13 @@ public class ModuleManagerService : IModuleManagerService {
                     Type = t.TestType,
                 }).ToList()
         };
+        foreach (var responseFileId in response.FileIds) {
+            responseFileId.Url = (await _fileService.GetFileLink(responseFileId.FileId!) ?? null)!;
+        }
+        foreach (var fileLinkDto in response.Tests.SelectMany(testTeacherDto => testTeacherDto.FileIds!)) {
+            fileLinkDto.Url = (await _fileService.GetFileLink(fileLinkDto.FileId!) ?? null)!;
+        }
+        return response;
     }
     public async Task CreateSelfStudyModule(ModuleSelfStudyCreateDto model, Guid userId) {
         var user = await _dbContext.UserBackends
@@ -144,6 +160,7 @@ public class ModuleManagerService : IModuleManagerService {
             Description = model.Description ?? "",
             Price = model.Price ?? 0,
             ModuleVisibility = ModuleVisibilityType.OnlyMe,
+            AvatarId = model.AvatarId,
             Creators = creators,
             Teachers = teachers
         };
@@ -166,6 +183,7 @@ public class ModuleManagerService : IModuleManagerService {
         module.Description = model.Description;
         module.Price = model.Price;
         module.EditedAt = DateTime.UtcNow;
+        module.AvatarId = model.AvatarId;
         module.ModuleVisibility = module.ModuleVisibility;
         if (creators.Count != 0) module.Creators = creators;
         if (teachers.Count != 0) module.Teachers = teachers;
@@ -202,6 +220,7 @@ public class ModuleManagerService : IModuleManagerService {
             Description = model.Description ?? "",
             Price = model.Price ?? 0,
             ModuleVisibility = ModuleVisibilityType.OnlyMe,
+            AvatarId = model.AvatarId,
             Creators = creators,
             Teachers = teachers,
             StartAt = model.StartTime ?? DateTime.UtcNow.AddMonths(1),
@@ -226,6 +245,7 @@ public class ModuleManagerService : IModuleManagerService {
         module.Name = model.Name;
         module.Description = model.Description;
         module.Price = model.Price;
+        module.AvatarId = model.AvatarId;
         module.ModuleVisibility = model.VisibilityType;
         if (creators.Count != 0) module.Creators = creators;
         if (teachers.Count != 0) module.Teachers = teachers;

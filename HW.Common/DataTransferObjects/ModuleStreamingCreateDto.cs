@@ -7,6 +7,7 @@ public class ModuleStreamingCreateDto {
     [MinLength(6)]
     public string Name { get; set; }
     public string? Description { get; set; }
+    public string? AvatarId { get; set; }
     public int? Price { get; set; }
     public List<RequiredModulesDto>? RequiredModules { get; set; } = new();
     public DateTime? ExpirationTime { get; set; }

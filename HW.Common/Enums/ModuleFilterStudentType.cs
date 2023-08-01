@@ -2,6 +2,10 @@ namespace HW.Common.Enums;
 
 public enum ModuleFilterStudentType {
     /// <summary>
+    /// Приобретен
+    /// </summary>
+    Purchased,
+    /// <summary>
     /// В корзине
     /// </summary>
     InCart,
@@ -10,7 +14,7 @@ public enum ModuleFilterStudentType {
     /// </summary>
     InProcess,
     /// <summary>
-    /// Проейденный
+    /// Пройденный
     /// </summary>
     Passed,
     /// <summary>

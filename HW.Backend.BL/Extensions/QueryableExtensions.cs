@@ -57,7 +57,11 @@ public static  class QueryableExtensions {
                                         && (u.ModuleStatus == ModuleStatusType.NotPassedByExam 
                                             || u.ModuleStatus == ModuleStatusType.NotPassedByExpiration)))
                                 || (section == ModuleFilterStudentType.InProcess 
-                                    && x.UserModules!.Any(u=>u.Student.Id == userId && u.ModuleStatus == ModuleStatusType.InProcess)))
+                                    && x.UserModules!.Any(u=>u.Student.Id == userId && u.ModuleStatus == ModuleStatusType.InProcess))
+                                || (section == ModuleFilterStudentType.InCart 
+                                    && x.UserModules!.Any(u=>u.Student.Id == userId && u.ModuleStatus == ModuleStatusType.InCart))
+                                || (section == ModuleFilterStudentType.Purchased 
+                                    && x.UserModules!.Any(u=>u.Student.Id == userId && u.ModuleStatus == ModuleStatusType.Purchased)))
             && (sortByNameFilter == null || x.Name.Contains(sortByNameFilter)));        
     }
     

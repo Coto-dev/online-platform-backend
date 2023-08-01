@@ -24,6 +24,10 @@ public class Module
     /// </summary>
     public required int Price { get; set; }
     /// <summary>
+    /// Module's avatar
+    /// </summary>
+    public string? AvatarId { get; set; }
+    /// <summary>
     /// Date and time the module was created
     /// </summary>
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

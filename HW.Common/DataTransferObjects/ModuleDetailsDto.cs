@@ -7,6 +7,7 @@ public class ModuleDetailsDto {
     public string Name { get; set; }
     public string? Description { get; set; }
     public int Price { get; set; }
+    public FileLinkDto? FileLink { get; set; }
     public ModuleStatusType Status { get; set; }
     public ModuleType Type { get; set; }
     public List<RequiredModulesDto> RequiredModules { get; set; } = new();

@@ -10,6 +10,8 @@ public class ModuleSelfStudyEditDto {
     [Required]
     public string Description { get; set; }
     [Required]
+    public string? AvatarId { get; set; }
+    [Required]
     public int Price { get; set; }
     [Required]
     public List<RequiredModulesDto>? RequiredModules { get; set; } = new();

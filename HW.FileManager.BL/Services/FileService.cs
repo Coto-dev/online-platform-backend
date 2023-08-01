@@ -63,6 +63,25 @@ public class FileService : IFileService {
         return fileNames;
     }
 
+    public async Task<string?> GetAvatarLink(string avatarId) {
+        var args = new PresignedGetObjectArgs()
+            .WithBucket(_configuration.GetSection("MinioCredentials")["ImageBucketName"])
+            .WithObject(avatarId)
+            .WithExpiry(1000);
+        var presignedUrl = await _minioClient.PresignedGetObjectAsync(args).ConfigureAwait(false);
+        return presignedUrl;
+    }
+
+    public async Task<string> GetFileLink(string fileId) {
+        var bucketName = GetBucketName(fileId);
+        var args = new PresignedGetObjectArgs()
+            .WithBucket(bucketName)
+            .WithObject(fileId)
+            .WithExpiry(1000);
+        var presignedUrl = await _minioClient.PresignedGetObjectAsync(args).ConfigureAwait(false);
+        return presignedUrl;
+    }
+
     public async Task<List<FileDownloadDto>> GetFiles(List<string> fileNames) {
         var files = new List<FileDownloadDto>();
         foreach (var fileName in fileNames) {

@@ -14,16 +14,20 @@ namespace HW.Backend.BL.Services;
 
 public class ModuleStudentService : IModuleStudentService {
     private readonly ILogger<ModuleStudentService> _logger;
+    private readonly IFileService _fileService;
     private readonly BackendDbContext _dbContext;
 
-    public ModuleStudentService(BackendDbContext dbContext, ILogger<ModuleStudentService> logger) {
+    public ModuleStudentService(BackendDbContext dbContext, ILogger<ModuleStudentService> logger, IFileService fileService) {
         _dbContext = dbContext;
         _logger = logger;
+        _fileService = fileService;
     }
 
     public async Task<PagedList<ModuleShortDto>> GetAvailableModules(PaginationParamsDto pagination, FilterModuleType? filter, string? sortByNameFilter,
         SortModuleType? sortModuleType, Guid? userId) {
         var user = await _dbContext.Students
+            .Include(u=>u.Modules)!
+            .ThenInclude(m=>m.Module)
             .FirstOrDefaultAsync(u => u.Id == userId);
         
         if (pagination.PageNumber <= 0)
@@ -36,18 +40,25 @@ public class ModuleStudentService : IModuleStudentService {
             .AsQueryable()
             .AsNoTracking();
         
-        var shortModules = modules.Select(x =>new ModuleShortDto {
+        var shortModules = modules.Select( x =>new ModuleShortDto {
             Id = x.Id,
             Name = x.Name,
             Price = x.Price,
+            AvatarId = x.AvatarId,
             Status = typeof(Module) == x.GetType()? ModuleType.SelfStudyModule : ModuleType.StreamingModule,
-            ModuleStatusType =  
-                user == null ? null : 
-                user.Modules!.All(m => m.Module != x) ? null :
-                user.Modules!.FirstOrDefault(m=>m.Module == x)!.ModuleStatus == ModuleStatusType.InCart ? ModuleStatusType.InCart :
-                ModuleStatusType.Purchased
         });
-        return await PagedList<ModuleShortDto>.ToPagedList(shortModules, pagination.PageNumber, pagination.PageSize);
+        var response = await PagedList<ModuleShortDto>.ToPagedList(shortModules, pagination.PageNumber, pagination.PageSize);
+        foreach (var moduleShortDto in response.Items) {
+            moduleShortDto.AvatarId = moduleShortDto.AvatarId == null
+                ? moduleShortDto.AvatarId
+                : await _fileService.GetAvatarLink(moduleShortDto.AvatarId);
+            moduleShortDto.ModuleStatusType = user == null ? null :
+                user.Modules!.All(m => m.Module.Id != moduleShortDto.Id) ? null :
+                user.Modules!.FirstOrDefault(m => m.Module.Id == moduleShortDto.Id)!.ModuleStatus ==
+                ModuleStatusType.InCart ? ModuleStatusType.InCart :
+                ModuleStatusType.Purchased;
+        }
+        return response;
     }
 
     public async Task<PagedList<ModuleShortDto>> GetStudentModules(PaginationParamsDto pagination, FilterModuleType? filter, string? sortByNameFilter,
@@ -68,7 +79,15 @@ public class ModuleStudentService : IModuleStudentService {
             Price = x.Price,
             Status = typeof(Module) == x.GetType()? ModuleType.SelfStudyModule : ModuleType.StreamingModule,
         });
-        return await PagedList<ModuleShortDto>.ToPagedList(shortModules, pagination.PageNumber, pagination.PageSize);    }
+        var response = await PagedList<ModuleShortDto>.ToPagedList(shortModules, pagination.PageNumber, pagination.PageSize);
+        foreach (var moduleShortDto in response.Items) {
+            moduleShortDto.AvatarId = moduleShortDto.AvatarId == null
+                ? moduleShortDto.AvatarId
+                : await _fileService.GetAvatarLink(moduleShortDto.AvatarId);
+        }
+        return response;
+        
+    }
 
     public async Task<ModuleFullDto> GetModuleContent(Guid moduleId, Guid userId) {
         var module = await _dbContext.Modules
@@ -123,13 +142,10 @@ public class ModuleStudentService : IModuleStudentService {
             Id = chapter!.Id,
             Name = chapter.Name,
             Content = chapter.Content ?? "",
-            FileIds = chapter.Files == null
-                ? new List<FileLinkDto>()
-                : chapter.Files.Select(f => new FileLinkDto {
-                    FileId = f,
-                    Url = null // TODO: await _minio.getLinkByFileIdAsync(f);
-                }).ToList(),
-            Comments = chapter.ChapterComments == null
+            FileUrls = chapter.Files.IsNullOrEmpty()
+                ? new List<string>()
+                : chapter.Files!.Select(async f=> await _fileService.GetFileLink(f)).Select(task=>task.Result).ToList()!, ///////// warning
+            Comments = chapter.ChapterComments == null  
                 ? new List<ChapterCommentDto>()
                 : chapter.ChapterComments.Select(com => new ChapterCommentDto {
                     Id = com.Id,
@@ -144,12 +160,9 @@ public class ModuleStudentService : IModuleStudentService {
                 : chapter.ChapterTests.Select(t => new TestDto {
                     Id = t.Id,
                     Question = t.Question,
-                    FileIds = t.Files == null
-                        ? new List<FileLinkDto>()
-                        : t.Files.Select(f => new FileLinkDto {
-                            FileId = f,
-                            Url = null // TODO: await _minio.getLinkByFileIdAsync(f);
-                        }).ToList(),
+                    FileIds = t.Files.IsNullOrEmpty()
+                        ? new List<string>()
+                        : t.Files!.Select(async f=> await _fileService.GetFileLink(f)).Select(task=>task.Result).ToList()!, ///////// warning
                     PossibleAnswers = t switch {
                         SimpleAnswerTest simpleTest => simpleTest.PossibleAnswers
                             .Select(pa => new PossibleAnswerDto {
@@ -217,6 +230,12 @@ public class ModuleStudentService : IModuleStudentService {
             Name = module.Name,
             Description = module.Description,
             Price = module.Price,
+            FileLink = module.AvatarId == null 
+                ? null 
+                : new FileLinkDto {
+                    FileId = _dbContext.Teachers.Any(t=>t.Id == userId) ? module.AvatarId : null,
+                    Url = await _fileService.GetFileLink(module.AvatarId) 
+                },
             Status = user?.Modules != null && user.Modules.Any(m => m.Module == module)
                 ? user.Modules.FirstOrDefault(m => m.Module == module)!.ModuleStatus
                 : ModuleStatusType.NotPurchased,
@@ -240,7 +259,7 @@ public class ModuleStudentService : IModuleStudentService {
 
     public async Task BuyModule(Guid moduleId, Guid userId) {
         var module = await _dbContext.Modules
-            .FirstOrDefaultAsync(m => m.Id == moduleId);
+            .FirstOrDefaultAsync(m => m.Id == moduleId && m.ModuleVisibility == ModuleVisibilityType.Everyone);
         if (module == null)
             throw new NotFoundException("Module not found");
         var user = await _dbContext.UserBackends
@@ -283,7 +302,7 @@ public class ModuleStudentService : IModuleStudentService {
 
     public async Task AddModuleToBasket(Guid moduleId, Guid userId) {
         var module = await _dbContext.Modules
-            .FirstOrDefaultAsync(m => m.Id == moduleId);
+            .FirstOrDefaultAsync(m => m.Id == moduleId && m.ModuleVisibility == ModuleVisibilityType.Everyone);
         if (module == null)
             throw new NotFoundException("Module not found");
         var user = await _dbContext.UserBackends

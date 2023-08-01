@@ -1,6 +1,7 @@
 using HW.Backend.BL.Services;
 using HW.Backend.DAL.Data;
 using HW.Common.Interfaces;
+using HW.FileManager.BL.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -15,6 +16,7 @@ public static class ServiceDependencyExtension {
         services.AddScoped<IModuleManagerService, ModuleManagerService>();
         services.AddScoped<ICheckPermissionService, CheckPermissionService>();
         services.AddScoped<IModuleStudentService, ModuleStudentService>();
+        services.AddScoped<IFileService, FileService>();
 
         return services;
     }
