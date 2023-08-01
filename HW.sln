@@ -22,6 +22,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HW.Notification.DAL", "HW.N
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HW.EmailReciever.MVC", "HW.EmailReciever.MVC\HW.EmailReciever.MVC.csproj", "{5C40A2CB-5A7F-4A24-B135-81B32EFD1CF5}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HW.FileManager.API", "HW.FileManager.API\HW.FileManager.API.csproj", "{1ADA7B15-3007-4FC7-A4C5-502B9D3F13CE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HW.FileManager.BL", "HW.FileManager.BL\HW.FileManager.BL.csproj", "{CCAFEB25-C6FC-4392-8659-0AC48DB984FB}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -72,5 +76,13 @@ Global
 		{5C40A2CB-5A7F-4A24-B135-81B32EFD1CF5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5C40A2CB-5A7F-4A24-B135-81B32EFD1CF5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5C40A2CB-5A7F-4A24-B135-81B32EFD1CF5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1ADA7B15-3007-4FC7-A4C5-502B9D3F13CE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1ADA7B15-3007-4FC7-A4C5-502B9D3F13CE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1ADA7B15-3007-4FC7-A4C5-502B9D3F13CE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1ADA7B15-3007-4FC7-A4C5-502B9D3F13CE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CCAFEB25-C6FC-4392-8659-0AC48DB984FB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CCAFEB25-C6FC-4392-8659-0AC48DB984FB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CCAFEB25-C6FC-4392-8659-0AC48DB984FB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CCAFEB25-C6FC-4392-8659-0AC48DB984FB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
