@@ -8,6 +8,6 @@ public class TestCorrectSequenceCreateDto {
     public string Question { get; set; }
     [Required]
     public List<CorrectSequenceAnswerDto> PossibleAnswers { get; set; }
-    public List<Guid>? FileIds { get; set; }
+    public List<string>? FileIds { get; set; }
 
 }

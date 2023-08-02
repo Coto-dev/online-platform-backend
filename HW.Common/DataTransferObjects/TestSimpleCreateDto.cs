@@ -12,5 +12,5 @@ public class TestSimpleCreateDto {
     public TestSimpleType TestType { get; set; }
     [Required]
     public List<SimpleAnswerDto> PossibleAnswers { get; set; }
-    public List<Guid>? FileIds { get; set; }
+    public List<string>? FileIds { get; set; }
 }
