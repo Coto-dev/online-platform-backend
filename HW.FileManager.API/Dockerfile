@@ -6,6 +6,8 @@ EXPOSE 443
 FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build
 WORKDIR /src
 COPY ["HW.FileManager.API/HW.FileManager.API.csproj", "HW.FileManager.API/"]
+COPY ["HW.Common/HW.Common.csproj", "HW.Common/"]
+COPY ["HW.FileManager.BL/HW.FileManager.BL.csproj", "HW.FileManager.BL/"]
 RUN dotnet restore "HW.FileManager.API/HW.FileManager.API.csproj"
 COPY . .
 WORKDIR "/src/HW.FileManager.API"

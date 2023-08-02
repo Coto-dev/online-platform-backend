@@ -100,10 +100,14 @@ public class ModuleStudentService : IModuleStudentService {
         return new ModuleFullDto {
             Id = module.Id,
             Progress = await CalculateProgress(moduleId, userId),
-            SubModules = module.SubModules != null? module.SubModules.Select(s=> new SubModuleFullDto {
+            SubModules = module.SubModules != null? module.SubModules
+                .OrderBy(s=>s.CreatedAt)
+                .Select(s=> new SubModuleFullDto {
                 Id = s.Id,
                 Name = s.Name,
-                Chapters = s.Chapters != null ? s.Chapters.Select(c=> new ChapterShrotDto {
+                Chapters = s.Chapters != null ? s.Chapters
+                    .OrderBy(c=>c.CreatedAt)
+                    .Select(c=> new ChapterShrotDto {
                     Id = c.Id,
                     Name = c.Name,
                     ChapterType = c.ChapterType
@@ -144,7 +148,7 @@ public class ModuleStudentService : IModuleStudentService {
             Content = chapter.Content ?? "",
             FileUrls = chapter.Files.IsNullOrEmpty()
                 ? new List<string>()
-                : chapter.Files!.Select(async f=> await _fileService.GetFileLink(f)).Select(task=>task.Result).ToList()!, ///////// warning
+                : chapter.Files!.Select(async f=> await _fileService.GetFileLink(f)).Select(task=>task.Result).ToList()!, 
             Comments = chapter.ChapterComments == null  
                 ? new List<ChapterCommentDto>()
                 : chapter.ChapterComments.Select(com => new ChapterCommentDto {
@@ -162,7 +166,7 @@ public class ModuleStudentService : IModuleStudentService {
                     Question = t.Question,
                     FileIds = t.Files.IsNullOrEmpty()
                         ? new List<string>()
-                        : t.Files!.Select(async f=> await _fileService.GetFileLink(f)).Select(task=>task.Result).ToList()!, ///////// warning
+                        : t.Files!.Select(async f=> await _fileService.GetFileLink(f)).Select(task=>task.Result).ToList()!, 
                     PossibleAnswers = t switch {
                         SimpleAnswerTest simpleTest => simpleTest.PossibleAnswers
                             .Select(pa => new PossibleAnswerDto {
@@ -215,6 +219,7 @@ public class ModuleStudentService : IModuleStudentService {
 
     public async Task<ModuleDetailsDto> GetModuleDetails(Guid moduleId, Guid? userId) {
         var module = await _dbContext.Modules
+            .Include(m=>m.Creators)
             .FirstOrDefaultAsync(m => m.Id == moduleId);
         if (module == null)
             throw new NotFoundException("Module not found");
@@ -225,16 +230,16 @@ public class ModuleStudentService : IModuleStudentService {
         
         var streamingModule = module as StreamingModule; 
         
-        return new ModuleDetailsDto {
+        var response = new ModuleDetailsDto {
             Id = module.Id,
             Name = module.Name,
             Description = module.Description,
             Price = module.Price,
-            FileLink = module.AvatarId == null 
+            Avatar = module.AvatarId == null 
                 ? null 
                 : new FileLinkDto {
                     FileId = _dbContext.Teachers.Any(t=>t.Id == userId) ? module.AvatarId : null,
-                    Url = await _fileService.GetFileLink(module.AvatarId) 
+                    Url = await _fileService.GetAvatarLink(module.AvatarId) 
                 },
             Status = user?.Modules != null && user.Modules.Any(m => m.Module == module)
                 ? user.Modules.FirstOrDefault(m => m.Module == module)!.ModuleStatus
@@ -243,6 +248,10 @@ public class ModuleStudentService : IModuleStudentService {
             RequiredModules = module.RecommendedModules != null
                 ? module.RecommendedModules.Select(m => new RequiredModulesDto {
                     Id = m.Id,
+                    Avatar = new FileLinkDto{
+                        FileId = !module.Creators.IsNullOrEmpty() ? module.Creators!.Any(c=>c.Id == userId) ? m.AvatarId : null : null,
+                        Url = m.AvatarId
+                        },
                     Name = m.Name
                 }).ToList()
                 : new List<RequiredModulesDto>(),
@@ -250,7 +259,14 @@ public class ModuleStudentService : IModuleStudentService {
             ExpirationDate = streamingModule?.ExpiredAt,
             MaxStudents = streamingModule?.MaxStudents,
         };
-
+        
+        foreach (var responseRequiredModule in response.RequiredModules) {
+            if (responseRequiredModule.Avatar != null)
+                responseRequiredModule.Avatar.Url = responseRequiredModule.Avatar.Url == null
+                    ? null
+                    : await _fileService.GetAvatarLink(responseRequiredModule.Avatar.Url);
+        }
+        return response;
     }
 
     public async Task<ModuleDetailsDto> SendCommentToModule(ModuleCommentDto model, Guid moduleId, Guid userId) {

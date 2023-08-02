@@ -29,14 +29,14 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Content Include="..\.dockerignore">
-        <Link>.dockerignore</Link>
-      </Content>
+      <ProjectReference Include="..\HW.Backend.BL\HW.Backend.BL.csproj" />
+      <ProjectReference Include="..\HW.Common\HW.Common.csproj" />
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\HW.Backend.BL\HW.Backend.BL.csproj" />
-      <ProjectReference Include="..\HW.Common\HW.Common.csproj" />
+      <Content Include="..\.dockerignore">
+        <Link>.dockerignore</Link>
+      </Content>
     </ItemGroup>
 
 </Project>

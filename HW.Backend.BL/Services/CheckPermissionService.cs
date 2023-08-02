@@ -1,4 +1,5 @@
 using HW.Backend.DAL.Data;
+using HW.Common.Enums;
 using HW.Common.Exceptions;
 using HW.Common.Interfaces;
 using Microsoft.EntityFrameworkCore;
@@ -56,7 +57,7 @@ public class CheckPermissionService: ICheckPermissionService {
             .FirstOrDefaultAsync(m => m.Id == moduleId);
         if (module == null)
             throw new NotFoundException("Module not found");
-        if (module.UserModules!.All(u => u.Student != user))
+        if (!module.UserModules!.Any(u => u.Student == user && u.ModuleStatus!= ModuleStatusType.InCart))
             throw new ForbiddenException("User do not have permission");
     }
 
@@ -103,7 +104,7 @@ public class CheckPermissionService: ICheckPermissionService {
             .FirstOrDefaultAsync(u => u.Id == subModuleId);
         if (subModule == null)
             throw new NotFoundException("Sub module not found");    
-        if (subModule.Module.UserModules!.All(u => u.Student != user))
+        if (!subModule.Module.UserModules!.Any(u => u.Student == user && u.ModuleStatus != ModuleStatusType.InCart))
             throw new ForbiddenException("User do not have permission");
         
     }
@@ -154,7 +155,7 @@ public class CheckPermissionService: ICheckPermissionService {
             .FirstOrDefaultAsync(u => u.Id == chapterId);
         if (chapter == null)
             throw new NotFoundException("Chapter not found");    
-        if (chapter.SubModule.Module.UserModules!.All(u => u.Student != user))
+        if (!chapter.SubModule.Module.UserModules!.Any(u => u.Student == user && u.ModuleStatus != ModuleStatusType.InCart))
             throw new ForbiddenException("User do not have permission");
         
     }
