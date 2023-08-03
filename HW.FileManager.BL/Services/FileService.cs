@@ -40,7 +40,7 @@ public class FileService : IFileService {
                     var bucketName = GetBucketName(file.ContentType);
                     var id = Guid.NewGuid();
                     var fileKey = new FileKeyDto {
-                        NewFileName = bucketName + id,
+                        NewFileName = bucketName + id + Path.GetExtension(file.FileName),
                         PreviousFileName = file.FileName
                     };
                     fileNames.Add(fileKey);
