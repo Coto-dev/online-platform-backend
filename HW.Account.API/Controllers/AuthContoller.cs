@@ -139,12 +139,13 @@ public class AuthController : ControllerBase {
         await _authService.DeleteDeviceAsync(userId, deviceId);
         return Ok();
     }
-    [HttpGet]
+    
+    /*[HttpGet]
     [Route("confirm")]
     public async Task<ActionResult> ConfirmToken([FromQuery] string code, [FromQuery] Guid userId) {
         
         var encode = HttpUtility.UrlDecode(code);
         await _authService.ConfirmEmail(userId, code);
         return Ok();
-    }
+    }*/
 }

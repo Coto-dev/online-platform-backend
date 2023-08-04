@@ -9,11 +9,11 @@ public class User : IdentityUser<Guid> {
     /// <summary>
     /// User`s full name
     /// </summary>
-    public required string FullName { get; set; }
+    public  string? FullName { get; set; }
     /// <summary>
     /// User's nickname
     /// </summary>
-    public string? NickName { get; set; }
+    public required string NickName { get; set; }
 
     /// <summary>
     /// User's work experience

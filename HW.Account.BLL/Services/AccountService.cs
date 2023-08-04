@@ -14,19 +14,21 @@ public class AccountService: IAccountService {
     
     private readonly UserManager<User> _userManager;
     private readonly AccountDbContext _authDb;
+    private readonly IFileService _fileService;
 
     /// <summary>
     /// Constructor
     /// </summary>
     /// <param name="userManager"></param>
     /// <param name="authDb"></param>
-    public AccountService(UserManager<User> userManager, AccountDbContext authDb) {
+    /// <param name="fileService"></param>
+    public AccountService(UserManager<User> userManager, AccountDbContext authDb, IFileService fileService) {
         _userManager = userManager;
         _authDb = authDb;
+        _fileService = fileService;
     }
     
-    /// <inheritdoc cref="IAccountService.GetProfileAsync"/>
-    public async Task<ProfileFullDto> GetProfileAsync(Guid userId) {
+    public async Task<ProfileFullDto> GetMyProfile(Guid userId) {
         var userM = await _userManager.FindByIdAsync(userId.ToString());
         var user = await _authDb.Users
             .Include(u =>u.WorkExperience)
@@ -44,9 +46,12 @@ public class AccountService: IAccountService {
             Id = user.Id,
             Email = user.Email!,
             FullName = user.FullName,
+            NickName = user.NickName,
             WorkExperience = new WorkExperienceDto {
                 WorkExperienceInfos = user.WorkExperience.WorkExperiencesInfos?.Count != 0?
-                    user.WorkExperience.WorkExperiencesInfos!.Select(x=> new WorkExperienceInfoDto {
+                    user.WorkExperience.WorkExperiencesInfos!
+                        .OrderBy(w=>w.EndTime)
+                        .Select(x=> new WorkExperienceInfoDto {
                         Id = x.Id,
                         CompanyName = x.CompanyName,
                         StartTime = x.StartTime,
@@ -61,12 +66,15 @@ public class AccountService: IAccountService {
             },
             Education = new EducationDto {
                 EducationInfos = user.Education.EducationInfos?.Count !=0?
-                    user.Education.EducationInfos?.Select(x=> new EducationInfoDto {
+                    user.Education.EducationInfos?
+                        .OrderBy(w=>w.EndTime)
+                        .Select(x=> new EducationInfoDto {
                         Id = x.Id,
                         University = x.University,
                         Faculty = x.Faculty,
                         Specialization = x.Specialization,
-                        Status = x.Status
+                        Status = x.Status,
+                        EndTime = x.EndTime
                     }).ToList() : new List<EducationInfoDto>(),
                 Visibility = user.Education?.Visibility ?? ProfileVisibility.All
             },
@@ -75,14 +83,16 @@ public class AccountService: IAccountService {
                 Visibility = user.BirthDate.Visibility
             },
             JoinedAt = user.JoinedAt,
-            AvatarId = user.AvatarId,
+            Avatar = user.AvatarId == null ? null : new FileLinkDto() {
+                FileId = user.AvatarId,
+                Url = await _fileService.GetAvatarLink(user.AvatarId)
+            },
             Roles = await _userManager.GetRolesAsync(userM!)
         };
         return profile;
     }
 
-    /// <inheritdoc cref="IAccountService.EditProfileAsync"/>
-    public async Task EditProfileAsync(Guid userId, ProfileEditDto accountProfileEditDto) {
+    public async Task EditProfile(Guid userId, ProfileEditDto accountProfileEditDto) {
         var user = await _authDb.Users
             .Include(u =>u.WorkExperience)
             .Include(u=>u.Location)
@@ -93,8 +103,9 @@ public class AccountService: IAccountService {
         if (user == null) {
             throw new NotFoundException("User not found");
         }
-
+        
         user.FullName = accountProfileEditDto.FullName;
+        user.NickName = accountProfileEditDto.NickName;
         user.BirthDate.Value = accountProfileEditDto.BirthDate.Value;
         user.BirthDate.Visibility = accountProfileEditDto.BirthDate.Visibility;
         user.AvatarId = accountProfileEditDto.AvatarId;
@@ -105,17 +116,75 @@ public class AccountService: IAccountService {
         _authDb.UpdateRange(user);
          await _authDb.SaveChangesAsync();
     }
-    
-    /// <inheritdoc cref="IAccountService.GetShortProfileAsync"/>
-    public async Task<ProfileShortDto> GetShortProfileAsync(Guid userId) {
+
+    public async Task EditProfilePrivacy(Guid userId, ProfilePrivacyEditDto profilePrivacyEditDto) {
+        var user = await _authDb.Users
+            .Include(u =>u.WorkExperience)
+            .Include(u=>u.Location)
+            .Include(u=>u.Education)
+            .Include(u=>u.BirthDate)
+            .FirstOrDefaultAsync(u => u.Id == userId);
+        if (user == null) {
+            throw new NotFoundException("User not found");
+        }
+        user.BirthDate.Visibility = profilePrivacyEditDto.BirthDateVisibility;
+        user.Education.Visibility = profilePrivacyEditDto.EducationVisibility;
+        user.Location.Visibility = profilePrivacyEditDto.LocationVisibility;
+        user.WorkExperience.Visibility = profilePrivacyEditDto.WorkExperienceVisibility;
+        _authDb.UpdateRange(user);
+        await _authDb.SaveChangesAsync();
+    }
+
+    public async Task<ProfileUserFullDto> GetUserFullProfile(Guid userId) {
+ var userM = await _userManager.FindByIdAsync(userId.ToString());
+        var user = await _authDb.Users
+            .Include(u =>u.WorkExperience)
+            .ThenInclude(w=>w.WorkExperiencesInfos)
+            .Include(u=>u.Location)
+            .Include(u=>u.Education)
+            .ThenInclude(e=>e.EducationInfos)
+            .Include(u=>u.BirthDate)
+            .FirstOrDefaultAsync(u => u.Id == userId);
+            
+        if (user == null) {
+            throw new NotFoundException("User not found");
+        }
+        /*var profile = new ProfileUserFullDto {
+            Id = user.Id,
+            FullName = user.FullName,
+            NickName = user.NickName,
+            WorkExperienceInfos = new List<WorkExperienceInfoDto>() {
+            },
+            Location = new LocationDto {
+                Place = user.Location.Place,
+                Visibility = user.Location.Visibility
+            },
+            EducationInfos = new List<EducationInfoDto>() {
+               
+            },
+            BirthDate = new BirthDateDto {
+                Value = user.BirthDate.Value,
+                Visibility = user.BirthDate.Visibility
+            },
+            AvatarUrl = user.AvatarId == null ? null : new FileLinkDto() {
+                FileId = user.AvatarId,
+                Url = await _fileService.GetAvatarLink(user.AvatarId)
+            },
+            Roles = await _userManager.GetRolesAsync(userM!)
+        };*/
+        // return profile;
+        throw new NotImplementedException();
+    }
+
+    public async Task<ProfileShortDto> GetUserShortProfile(Guid userId) {
         var user = await _userManager.FindByIdAsync(userId.ToString());
         if (user == null) {
             throw new NotFoundException("User not found");
         }
         var profile = new ProfileShortDto {
             Id = user.Id,
-            AvatarId = user.AvatarId,
-            FullName = user.FullName
+            AvatarId = user.AvatarId == null ? null : await _fileService.GetAvatarLink(user.AvatarId),
+            NickName = user.NickName
         };
         return profile;    
     }
@@ -135,7 +204,8 @@ public class AccountService: IAccountService {
             University = model.University,
             Faculty = model.Faculty,
             Specialization = model.Specialization,
-            Status = model.Status
+            Status = model.Status,
+            EndTime = model.EndTime
         };
         await _authDb.AddAsync(educationInfo);
         await _authDb.SaveChangesAsync();
@@ -165,6 +235,7 @@ public class AccountService: IAccountService {
         educationInfo.Specialization = model.Specialization;
         educationInfo.Faculty = model.Faculty;
         educationInfo.Status = model.Status;
+        educationInfo.EndTime = model.EndTime;
         
         await _authDb.SaveChangesAsync();
     }

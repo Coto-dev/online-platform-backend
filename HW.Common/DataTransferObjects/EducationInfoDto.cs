@@ -6,4 +6,5 @@ public class EducationInfoDto {
     public string? Faculty { get; set; }
     public string? Specialization { get; set; }
     public string? Status { get; set; }
+    public DateTime? EndTime { get; set; }
 }

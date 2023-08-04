@@ -1,6 +1,7 @@
 using HW.Account.BLL.Services;
 using HW.Account.DAL.Data;
 using HW.Common.Interfaces;
+using HW.FileManager.BL.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -24,6 +25,7 @@ public static class ServiceDependencyExtension {
         services.AddScoped<IEmailService, EmailService>();
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<IAccountService, AccountService>();
+        services.AddScoped<IFileService, FileService>();
         return services;
     }
 }

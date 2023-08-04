@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace HW.Account.DAL.Migrations
 {
     [DbContext(typeof(AccountDbContext))]
-    [Migration("20230720122601_Initial")]
+    [Migration("20230804093817_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -105,6 +105,9 @@ namespace HW.Account.DAL.Migrations
                     b.Property<Guid>("EducationId")
                         .HasColumnType("uuid");
 
+                    b.Property<DateTime?>("EndTime")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<string>("Faculty")
                         .HasColumnType("text");
 
@@ -167,6 +170,9 @@ namespace HW.Account.DAL.Migrations
                     b.Property<int>("AccessFailedCount")
                         .HasColumnType("integer");
 
+                    b.Property<string>("AvatarId")
+                        .HasColumnType("text");
+
                     b.Property<Guid>("BirthDateId")
                         .HasColumnType("uuid");
 
@@ -185,7 +191,6 @@ namespace HW.Account.DAL.Migrations
                         .HasColumnType("boolean");
 
                     b.Property<string>("FullName")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<DateTime>("JoinedAt")
@@ -199,6 +204,10 @@ namespace HW.Account.DAL.Migrations
 
                     b.Property<DateTimeOffset?>("LockoutEnd")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("NickName")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<string>("NormalizedEmail")
                         .HasMaxLength(256)
@@ -216,9 +225,6 @@ namespace HW.Account.DAL.Migrations
 
                     b.Property<bool>("PhoneNumberConfirmed")
                         .HasColumnType("boolean");
-
-                    b.Property<Guid>("PhotoIdId")
-                        .HasColumnType("uuid");
 
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("text");
@@ -247,8 +253,6 @@ namespace HW.Account.DAL.Migrations
                     b.HasIndex("NormalizedUserName")
                         .IsUnique()
                         .HasDatabaseName("UserNameIndex");
-
-                    b.HasIndex("PhotoIdId");
 
                     b.HasIndex("WorkExperienceId");
 
@@ -469,12 +473,6 @@ namespace HW.Account.DAL.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("HW.Account.DAL.Data.Entities.PhotoId", "PhotoId")
-                        .WithMany()
-                        .HasForeignKey("PhotoIdId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("HW.Account.DAL.Data.Entities.WorkExperience", "WorkExperience")
                         .WithMany()
                         .HasForeignKey("WorkExperienceId")
@@ -486,8 +484,6 @@ namespace HW.Account.DAL.Migrations
                     b.Navigation("Education");
 
                     b.Navigation("Location");
-
-                    b.Navigation("PhotoId");
 
                     b.Navigation("WorkExperience");
                 });

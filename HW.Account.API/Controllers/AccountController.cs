@@ -31,7 +31,7 @@ public class AccountController : ControllerBase {
         if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false) {
             throw new UnauthorizedException("User is not authorized");
         }
-        return Ok(await _accountService.GetProfileAsync(userId));
+        return Ok(await _accountService.GetMyProfile(userId));
     }
     
     /// <summary> 
@@ -45,7 +45,7 @@ public class AccountController : ControllerBase {
             throw new UnauthorizedException("User is not authorized");
         }
         
-        await _accountService.EditProfileAsync(userId, profileEditDto);
+        await _accountService.EditProfile(userId, profileEditDto);
         return Ok();
     }
     /// <summary>
@@ -55,7 +55,7 @@ public class AccountController : ControllerBase {
     [HttpGet]
     [Route("{userId}")]
     public async Task<ActionResult<ProfileShortDto>> GetCurrentProfile(Guid userId) {
-        return Ok(await _accountService.GetShortProfileAsync(userId));
+        return Ok(await _accountService.GetUserShortProfile(userId));
     }
 
     /// <summary>

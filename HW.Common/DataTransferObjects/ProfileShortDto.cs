@@ -17,6 +17,7 @@ public class ProfileShortDto {
     /// <summary>
     /// User`s full name (surname, name, patronymic)
     /// </summary>
-    public required string FullName { get; set; }
+    public string? FullName { get; set; }
+    public string? NickName { get; set; }
  
 }

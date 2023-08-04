@@ -14,6 +14,15 @@ public class AccountRegisterDto {
     [EmailAddress]
     [DisplayName("email")]
     public required string Email { get; set; }
+    /// <summary>
+    /// User`s nickName
+    /// </summary>
+    [Required]
+    [EmailAddress]
+    [DefaultValue("Евгений Самурович")]
+    [DisplayName("nickName")]
+    [MinLength(3)]
+    public required string NickName { get; set; }
 
     /// <summary>
     /// User`s password
@@ -27,13 +36,11 @@ public class AccountRegisterDto {
     /// <summary>
     /// User`s full name (surname, name, patronymic)
     /// </summary>
-    [Required]
-    public required string FullName { get; set; }
+    public string? FullName { get; set; }
 
     /// <summary>
     /// User`s birth date
     /// </summary>
-    [Required]
     [Range(typeof(DateTime), "01/01/1900", "01/01/2023")]
     public required DateTime BirthDate { get; set; }
 }

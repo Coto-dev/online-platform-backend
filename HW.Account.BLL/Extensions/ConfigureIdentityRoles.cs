@@ -64,7 +64,7 @@ public static class ConfigureIdentityRoles {
             nameof(config), "AdminEmail is not defined"));
         if (adminUser == null) {
             var userResult = await userManager.CreateAsync(new User {
-                FullName = config["AdminFullName"] ??
+                NickName = config["AdminFullName"] ??
                            throw new ArgumentNullException(
                                nameof(config),
                                "AdminFullName is not defined"),

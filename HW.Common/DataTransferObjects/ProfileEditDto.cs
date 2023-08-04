@@ -14,7 +14,10 @@ public class ProfileEditDto {
     /// User`s full name (surname, name, patronymic)
     /// </summary>
     [Required]
-    public required string FullName { get; set; }
+    public string? FullName { get; set; }
+    
+    [Required]
+    public required string NickName { get; set; }
     
     /// <summary>
     /// User's avatar id 

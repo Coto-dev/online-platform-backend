@@ -14,6 +14,7 @@
     <ItemGroup>
       <ProjectReference Include="..\HW.Account.DAL\HW.Account.DAL.csproj" />
       <ProjectReference Include="..\HW.Common\HW.Common.csproj" />
+      <ProjectReference Include="..\HW.FileManager.BL\HW.FileManager.BL.csproj" />
     </ItemGroup>
 
 </Project>

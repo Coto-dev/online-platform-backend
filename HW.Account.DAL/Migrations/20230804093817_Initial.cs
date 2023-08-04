@@ -119,7 +119,8 @@ namespace HW.Account.DAL.Migrations
                     University = table.Column<string>(type: "text", nullable: true),
                     Faculty = table.Column<string>(type: "text", nullable: true),
                     Specialization = table.Column<string>(type: "text", nullable: true),
-                    Status = table.Column<string>(type: "text", nullable: true)
+                    Status = table.Column<string>(type: "text", nullable: true),
+                    EndTime = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -137,12 +138,13 @@ namespace HW.Account.DAL.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    FullName = table.Column<string>(type: "text", nullable: false),
+                    FullName = table.Column<string>(type: "text", nullable: true),
+                    NickName = table.Column<string>(type: "text", nullable: false),
                     WorkExperienceId = table.Column<Guid>(type: "uuid", nullable: false),
                     LocationId = table.Column<Guid>(type: "uuid", nullable: false),
                     EducationId = table.Column<Guid>(type: "uuid", nullable: false),
                     BirthDateId = table.Column<Guid>(type: "uuid", nullable: false),
-                    PhotoIdId = table.Column<Guid>(type: "uuid", nullable: false),
+                    AvatarId = table.Column<string>(type: "text", nullable: true),
                     JoinedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     UserName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
                     NormalizedUserName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
@@ -178,12 +180,6 @@ namespace HW.Account.DAL.Migrations
                         name: "FK_AspNetUsers_Locations_LocationId",
                         column: x => x.LocationId,
                         principalTable: "Locations",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_AspNetUsers_PhotoIds_PhotoIdId",
-                        column: x => x.PhotoIdId,
-                        principalTable: "PhotoIds",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
@@ -373,11 +369,6 @@ namespace HW.Account.DAL.Migrations
                 column: "LocationId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_AspNetUsers_PhotoIdId",
-                table: "AspNetUsers",
-                column: "PhotoIdId");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_AspNetUsers_WorkExperienceId",
                 table: "AspNetUsers",
                 column: "WorkExperienceId");
@@ -429,6 +420,9 @@ namespace HW.Account.DAL.Migrations
                 name: "EducationInfos");
 
             migrationBuilder.DropTable(
+                name: "PhotoIds");
+
+            migrationBuilder.DropTable(
                 name: "WorkExperienceInfos");
 
             migrationBuilder.DropTable(
@@ -445,9 +439,6 @@ namespace HW.Account.DAL.Migrations
 
             migrationBuilder.DropTable(
                 name: "Locations");
-
-            migrationBuilder.DropTable(
-                name: "PhotoIds");
 
             migrationBuilder.DropTable(
                 name: "WorkExperience");

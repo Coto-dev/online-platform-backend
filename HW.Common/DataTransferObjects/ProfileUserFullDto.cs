@@ -1,18 +1,10 @@
 namespace HW.Common.DataTransferObjects; 
 
-/// <summary>
-/// user profile DTO
-/// </summary>
-public class ProfileFullDto {
+public class ProfileUserFullDto {
     /// <summary>
     /// Profile Identifier
     /// </summary>
     public Guid Id { get; set; }
-
-    /// <summary>
-    /// User email
-    /// </summary>
-    public required string Email { get; set; }
 
     /// <summary>
     /// User`s full name (surname, name, patronymic)
@@ -22,36 +14,31 @@ public class ProfileFullDto {
     /// User's nickname
     /// </summary>
     public required string NickName { get; set; }
-    
+
     /// <summary>
     /// User's work experience
     /// </summary>
-    public WorkExperienceDto? WorkExperience { get; set; }
+    public List<WorkExperienceInfoDto> WorkExperienceInfos { get; set; } = new();
     
     /// <summary>
     /// User's location(city)
     /// </summary>
-    public LocationDto? Location { get; set; }
+    public string? Location { get; set; }
     
     /// <summary>
     /// User's education grade
     /// </summary>
-    public EducationDto? Education { get; set; }
+    public List<EducationInfoDto>? EducationInfos { get; set; } = new();
 
     /// <summary>
     /// User`s birth date
     /// </summary>
-    public BirthDateDto BirthDate { get; set; }
+    public DateTime? BirthDate { get; set; }
 
-    /// <summary>
-    /// Date when user joined the system
-    /// </summary>
-    public DateTime JoinedAt { get; set; }
-    
     /// <summary>
     /// Photo Identifier
     /// </summary>
-    public FileLinkDto? Avatar { get; set; }
+    public string? AvatarUrl { get; set; }
     /// <summary>
     /// User's roles
     /// </summary>

@@ -70,6 +70,7 @@ public class AuthService : IAuthService {
 
         var user = new User {
             Email = accountRegisterDto.Email,
+            NickName = accountRegisterDto.NickName,
             UserName = accountRegisterDto.Email,
             FullName = accountRegisterDto.FullName,
             BirthDate = new BirthDate {
