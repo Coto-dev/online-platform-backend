@@ -6,4 +6,9 @@
         <Nullable>enable</Nullable>
     </PropertyGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\HW.Backend.DAL\HW.Backend.DAL.csproj" />
+      <ProjectReference Include="..\HW.FileManager.BL\HW.FileManager.BL.csproj" />
+    </ItemGroup>
+
 </Project>

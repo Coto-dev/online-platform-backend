@@ -6,6 +6,9 @@ EXPOSE 443
 FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build
 WORKDIR /src
 COPY ["HW.EmailReciever.MVC/HW.EmailReciever.MVC.csproj", "HW.EmailReciever.MVC/"]
+COPY ["HW.Account.BLL/HW.Account.BLL.csproj", "HW.Account.BLL/"]
+COPY ["HW.Account.DAL/HW.Account.DAL.csproj", "HW.Account.DAL/"]
+COPY ["HW.Common/HW.Common.csproj", "HW.Common/"]
 RUN dotnet restore "HW.EmailReciever.MVC/HW.EmailReciever.MVC.csproj"
 COPY . .
 WORKDIR "/src/HW.EmailReciever.MVC"

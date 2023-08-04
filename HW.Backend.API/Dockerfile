@@ -6,6 +6,10 @@ EXPOSE 443
 FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build
 WORKDIR /src
 COPY ["HW.Backend.API/HW.Backend.API.csproj", "HW.Backend.API/"]
+COPY ["HW.Common/HW.Common.csproj", "HW.Common/"]
+COPY ["HW.Backend.DAL/HW.Backend.DAL.csproj", "HW.Backend.DAL/"]
+COPY ["HW.Backend.BL/HW.Backend.BL.csproj", "HW.Backend.BL/"]
+COPY ["HW.FileManager.BL/HW.FileManager.BL.csproj", "HW.FileManager.BL/"]
 RUN dotnet restore "HW.Backend.API/HW.Backend.API.csproj"
 COPY . .
 WORKDIR "/src/HW.Backend.API"
