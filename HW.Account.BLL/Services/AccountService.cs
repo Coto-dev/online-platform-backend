@@ -34,7 +34,6 @@ public class AccountService: IAccountService {
             .Include(u=>u.Location)
             .Include(u=>u.Education)
             .ThenInclude(e=>e.EducationInfos)
-            .Include(u=>u.PhotoId)
             .Include(u=>u.BirthDate)
             .FirstOrDefaultAsync(u => u.Id == userId);
             
@@ -46,7 +45,7 @@ public class AccountService: IAccountService {
             Email = user.Email!,
             FullName = user.FullName,
             WorkExperience = new WorkExperienceDto {
-                WorkExperienceInfoDtos = user.WorkExperience.WorkExperiencesInfos?.Count != 0?
+                WorkExperienceInfos = user.WorkExperience.WorkExperiencesInfos?.Count != 0?
                     user.WorkExperience.WorkExperiencesInfos!.Select(x=> new WorkExperienceInfoDto {
                         Id = x.Id,
                         CompanyName = x.CompanyName,
@@ -61,7 +60,7 @@ public class AccountService: IAccountService {
                 Visibility = user.Location.Visibility
             },
             Education = new EducationDto {
-                EducationInfoDtos = user.Education.EducationInfos?.Count !=0?
+                EducationInfos = user.Education.EducationInfos?.Count !=0?
                     user.Education.EducationInfos?.Select(x=> new EducationInfoDto {
                         Id = x.Id,
                         University = x.University,
@@ -76,10 +75,7 @@ public class AccountService: IAccountService {
                 Visibility = user.BirthDate.Visibility
             },
             JoinedAt = user.JoinedAt,
-            PhotoId = new PhotoIdDto {
-                PhotoName = user.PhotoId.PhotoName,
-                Visibility = user.PhotoId.Visibility
-            },
+            AvatarId = user.AvatarId,
             Roles = await _userManager.GetRolesAsync(userM!)
         };
         return profile;
@@ -91,7 +87,6 @@ public class AccountService: IAccountService {
             .Include(u =>u.WorkExperience)
             .Include(u=>u.Location)
             .Include(u=>u.Education)
-            .Include(u=>u.PhotoId)
             .Include(u=>u.BirthDate)
             .FirstOrDefaultAsync(u => u.Id == userId);
             
@@ -102,8 +97,7 @@ public class AccountService: IAccountService {
         user.FullName = accountProfileEditDto.FullName;
         user.BirthDate.Value = accountProfileEditDto.BirthDate.Value;
         user.BirthDate.Visibility = accountProfileEditDto.BirthDate.Visibility;
-        user.PhotoId.PhotoName = accountProfileEditDto.PhotoIdDto.PhotoName;
-        user.PhotoId.Visibility = accountProfileEditDto.PhotoIdDto.Visibility;
+        user.AvatarId = accountProfileEditDto.AvatarId;
         user.Education.Visibility = accountProfileEditDto.EducationVisibility;
         user.Location.Place = accountProfileEditDto.LocationDto.Place;
         user.Location.Visibility = accountProfileEditDto.LocationDto.Visibility;
@@ -120,10 +114,7 @@ public class AccountService: IAccountService {
         }
         var profile = new ProfileShortDto {
             Id = user.Id,
-            PhotoId = new PhotoIdDto {
-                PhotoName = user.PhotoId.PhotoName,
-                Visibility = user.PhotoId.Visibility
-            },
+            AvatarId = user.AvatarId,
             FullName = user.FullName
         };
         return profile;    

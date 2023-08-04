@@ -47,7 +47,7 @@ public class ProfileFullDto {
     /// <summary>
     /// Photo Identifier
     /// </summary>
-    public PhotoIdDto? PhotoId { get; set; }
+    public string? AvatarId { get; set; }
     /// <summary>
     /// User's roles
     /// </summary>

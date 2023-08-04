@@ -83,7 +83,6 @@ public static class ConfigureIdentityRoles {
                 BirthDate = new BirthDate() {
                     Value = DateTime.UtcNow
                 },
-                PhotoId = new PhotoId(),
             }, config["AdminPassword"] ?? throw new ArgumentNullException(
                 nameof(config), "AdminPassword is not defined"));
             if (!userResult.Succeeded) {

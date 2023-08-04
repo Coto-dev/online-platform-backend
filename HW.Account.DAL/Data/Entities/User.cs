@@ -10,6 +10,10 @@ public class User : IdentityUser<Guid> {
     /// User`s full name
     /// </summary>
     public required string FullName { get; set; }
+    /// <summary>
+    /// User's nickname
+    /// </summary>
+    public string? NickName { get; set; }
 
     /// <summary>
     /// User's work experience
@@ -32,9 +36,9 @@ public class User : IdentityUser<Guid> {
     public required BirthDate BirthDate { get; set; } = new BirthDate();
 
     /// <summary>
-    /// Photo id
+    /// Avatar id
     /// </summary>
-    public required PhotoId PhotoId { get; set; } = new PhotoId();
+    public string? AvatarId { get; set; }
 
     /// <summary>
     /// Date when user joined the system

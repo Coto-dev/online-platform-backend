@@ -20,7 +20,7 @@ public class ProfileEditDto {
     /// User's avatar id 
     /// </summary>
     [Required]
-    public PhotoIdDto PhotoIdDto { get; set; }
+    public string? AvatarId { get; set; }
     /// <summary>
     /// User's work experience visibility
     /// </summary>

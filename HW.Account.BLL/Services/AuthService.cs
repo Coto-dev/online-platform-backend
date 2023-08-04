@@ -78,7 +78,6 @@ public class AuthService : IAuthService {
             },
             Location = new Location(),
             Education = new Education(),
-            PhotoId = new PhotoId(),
             WorkExperience = new WorkExperience()
         };
 
