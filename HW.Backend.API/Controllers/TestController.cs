@@ -63,7 +63,7 @@ public class TestController : ControllerBase {
     public async Task<ActionResult> SaveAnswerSimpleTest(Guid testId, [FromBody] List<UserAnswerSimpleDto> userAnswers) {
 
 
-        await _testService.SaveAnswerSimpleTest(testId, userAnswers);
+        await _testService.SaveAnswerSimpleTest(testId, userAnswers, userId);
         return Ok();
     }
     
@@ -73,7 +73,9 @@ public class TestController : ControllerBase {
     [HttpPost]
     [Route("{testId}/simple")]
     public async Task<ActionResult> AnswerSimpleTest(Guid testId, [FromBody] List<UserAnswerSimpleDto> userAnswers) {
-        throw new NotImplementedException();
+        
+        await _testService.AnswerSimpleTest(testId, userAnswers, userId);
+        return Ok();
     }
     
     /// <summary>
@@ -97,21 +99,22 @@ public class TestController : ControllerBase {
     }
 
     /// <summary>
+    /// Save answer for correct sequence test type
+    /// </summary>
+    [HttpPut]
+    [Route("{testId}/correct-sequence/save")]
+    public async Task<ActionResult> SaveAnswerCorrectSequenceTest(Guid testId, List<UserAnswerCorrectSequenceDto> userAnswers)
+    {
+        await _testService.SaveAnswerCorrectSequenceTest(testId, userAnswers, userId);
+        return Ok();
+    }
+
+    /// <summary>
     /// Answer the correct sequence test 
     /// </summary>
     [HttpPost]
     [Route("{testId}/correct-sequence")]
     public async Task<ActionResult> AnswerCorrectSequenceTest(Guid testId, List<UserAnswerCorrectSequenceDto> userAnswers) {
-        throw new NotImplementedException();
-    }
-    
-    
-    /// <summary>
-    /// Save answer for correct sequence test type
-    /// </summary>
-    [HttpPut]
-    [Route("{testId}/correct-sequence/save")]
-    public async Task<ActionResult> SaveAnswerCorrectSequenceTest(Guid testId, List<UserAnswerCorrectSequenceDto> userAnswers) {
         throw new NotImplementedException();
     }
 

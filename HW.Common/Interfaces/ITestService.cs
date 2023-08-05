@@ -10,15 +10,19 @@ namespace HW.Common.Interfaces
 {
     public interface ITestService
     {
-        public Task AddSimpleTestToChapter(Guid chapterId, TestSimpleCreateDto testModel);
-        public Task EditSimpleTest(Guid testId, TestSimpleCreateDto testModel);
-        public Task SaveAnswerSimpleTest(Guid testId, List<UserAnswerSimpleDto> userAnswers);
-        public Task AnswerSimpleTest(Guid testId, List<UserAnswerSimpleDto> userAnswers);
-        public Task AddCorrectSequenceTestToChapter(Guid chapterId, TestCorrectSequenceCreateDto model);
-        public Task EditCorrectSequenceTest(Guid testId, TestCorrectSequenceCreateDto model);
-        public Task AnswerCorrectSequenceTest(Guid testId, List<UserAnswerCorrectSequenceDto> userAnswers);
-        public Task SaveAnswerCorrectSequenceTest(Guid testId, List<UserAnswerCorrectSequenceDto> userAnswers);
-        public Task ArchiveTest(Guid testId);
+        public Task AddSimpleTestToChapter(Guid chapterId, TestSimpleCreateDto testModel); //done
+        public Task EditSimpleTest(Guid testId, TestSimpleCreateDto testModel); //done
+        public Task SaveAnswerSimpleTest(Guid testId, UserAnswerSimpleDto userAnswer, Guid userId); //done
+        public Task AnswerSimpleTest(Guid testId, UserAnswerSimpleDto userAnswer, Guid userId);
+        public Task AddCorrectSequenceTestToChapter(Guid chapterId, TestCorrectSequenceCreateDto model); //done
+        public Task EditCorrectSequenceTest(Guid testId, TestCorrectSequenceCreateDto model); //done
+        public Task AnswerCorrectSequenceTest(Guid testId, List<UserAnswerCorrectSequenceDto> userAnswers, Guid userId);
+        public Task SaveAnswerCorrectSequenceTest(Guid testId, List<UserAnswerCorrectSequenceDto> userAnswers, Guid userId); //done
+        public Task AddDetailedTestToChapter(Guid chapterId, TestDetailedCreateDto testModel);
+        public Task EditDetailedTest(Guid testId, TestDetailedCreateDto testModel);
+        public Task SaveAnswerDetailedTest (Guid testId);
+        public Task AnswerDetailedTest(Guid testId);
+        public Task ArchiveTest(Guid testId); //done
 
 
     }
