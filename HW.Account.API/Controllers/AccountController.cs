@@ -22,7 +22,7 @@ public class AccountController : ControllerBase {
         _accountService = accountService;
     }
     /// <summary>
-    /// Get information about current authenticated user
+    /// Get information about my profile
     /// </summary>
     /// <returns></returns>
     [HttpGet]
@@ -35,7 +35,7 @@ public class AccountController : ControllerBase {
     }
     
     /// <summary> 
-    /// Edit current authenticated user`s profile
+    /// Edit user's profile
     /// </summary>
     /// <returns></returns>
     [HttpPut]
@@ -48,14 +48,47 @@ public class AccountController : ControllerBase {
         await _accountService.EditProfile(userId, profileEditDto);
         return Ok();
     }
+    
+    /// <summary> 
+    /// Edit user's privacy
+    /// </summary>
+    /// <returns></returns>
+    [HttpPut]
+    [Route("privacy")]
+    [Authorize(AuthenticationSchemes = "Bearer")]
+    public async Task<ActionResult> UpdatePrivacy([FromBody] ProfilePrivacyEditDto privacyEditDto) {
+        if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false) {
+            throw new UnauthorizedException("User is not authorized");
+        }
+        await _accountService.EditProfilePrivacy(userId, privacyEditDto);
+        return Ok();
+    }
+    
     /// <summary>
-    /// Get short information about current authenticated user
+    /// Get short profile info about another user
     /// </summary>
     /// <returns></returns>
     [HttpGet]
-    [Route("{userId}")]
-    public async Task<ActionResult<ProfileShortDto>> GetCurrentProfile(Guid userId) {
+    [Route("{userId}/short")]
+    [Authorize(AuthenticationSchemes = "Bearer")]
+
+    public async Task<ActionResult<ProfileShortDto>> GetUserShortProfile(Guid userId) {
         return Ok(await _accountService.GetUserShortProfile(userId));
+    }
+    
+    /// <summary>
+    /// Get full profile info about another user
+    /// </summary>
+    /// <returns></returns>
+    [HttpGet]
+    [Route("{userId}/full")]
+    [Authorize(AuthenticationSchemes = "Bearer")]
+
+    public async Task<ActionResult<ProfileFullDto>> GetUserFullProfile(Guid userId) {
+        if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid requesterId) == false) {
+            throw new UnauthorizedException("User is not authorized");
+        }
+        return Ok(await _accountService.GetUserFullProfile(userId, requesterId));
     }
 
     /// <summary>

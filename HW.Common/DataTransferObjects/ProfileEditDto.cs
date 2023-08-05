@@ -24,30 +24,18 @@ public class ProfileEditDto {
     /// </summary>
     [Required]
     public string? AvatarId { get; set; }
-    /// <summary>
-    /// User's work experience visibility
-    /// </summary>
-    [Required]
-    [DefaultValue(ProfileVisibility.All)]
-    public ProfileVisibility WorkExperienceVisibility { get; set; } 
-    
+
     /// <summary>
     /// User's location(city)
     /// </summary>
     [Required]
-    public LocationDto LocationDto { get; set; }
+    public string? Location { get; set; }
     
-    /// <summary>
-    /// User's education grade visibility
-    /// </summary>
-    [Required]
-    [DefaultValue(ProfileVisibility.All)]
-    public ProfileVisibility EducationVisibility { get; set; }
 
     /// <summary>
     /// User`s birth date
     /// </summary>
     [Required]
-    public required BirthDateDto BirthDate { get; set; }
+    public  DateTime BirthDate { get; set; }
 
 }

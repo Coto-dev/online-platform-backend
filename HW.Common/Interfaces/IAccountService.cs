@@ -6,7 +6,7 @@ public interface IAccountService {
     Task<ProfileFullDto> GetMyProfile(Guid userId);
     Task EditProfile(Guid userId, ProfileEditDto accountProfileEditDto);
     Task EditProfilePrivacy(Guid userId, ProfilePrivacyEditDto profilePrivacyEditDto);
-    Task<ProfileUserFullDto> GetUserFullProfile(Guid userId);
+    Task<ProfileUserFullDto> GetUserFullProfile(Guid targetUserId, Guid userId);
     Task<ProfileShortDto> GetUserShortProfile(Guid userId);
     Task AddEducationInfo(EducationInfoCreateDto model, Guid userId);
     Task EditEducationInfo(EducationInfoCreateDto model, Guid id, Guid userId);

@@ -6,6 +6,7 @@ using HW.Common.Exceptions;
 using HW.Common.Interfaces;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 
 namespace HW.Account.BLL.Services; 
 
@@ -106,13 +107,9 @@ public class AccountService: IAccountService {
         
         user.FullName = accountProfileEditDto.FullName;
         user.NickName = accountProfileEditDto.NickName;
-        user.BirthDate.Value = accountProfileEditDto.BirthDate.Value;
-        user.BirthDate.Visibility = accountProfileEditDto.BirthDate.Visibility;
+        user.BirthDate.Value = accountProfileEditDto.BirthDate;
         user.AvatarId = accountProfileEditDto.AvatarId;
-        user.Education.Visibility = accountProfileEditDto.EducationVisibility;
-        user.Location.Place = accountProfileEditDto.LocationDto.Place;
-        user.Location.Visibility = accountProfileEditDto.LocationDto.Visibility;
-        user.WorkExperience.Visibility = accountProfileEditDto.WorkExperienceVisibility;
+        user.Location.Place = accountProfileEditDto.Location;
         _authDb.UpdateRange(user);
          await _authDb.SaveChangesAsync();
     }
@@ -135,8 +132,13 @@ public class AccountService: IAccountService {
         await _authDb.SaveChangesAsync();
     }
 
-    public async Task<ProfileUserFullDto> GetUserFullProfile(Guid userId) {
- var userM = await _userManager.FindByIdAsync(userId.ToString());
+    public async Task<ProfileUserFullDto> GetUserFullProfile(Guid targetUserId , Guid userId) {
+        var requester = await _userManager.FindByIdAsync(targetUserId.ToString());
+        if (requester == null) {
+            throw new NotFoundException("Requester not found");
+        }
+        var requesterRoles = await _userManager.GetRolesAsync(requester);
+        var userTarget = await _userManager.FindByIdAsync(targetUserId.ToString());
         var user = await _authDb.Users
             .Include(u =>u.WorkExperience)
             .ThenInclude(w=>w.WorkExperiencesInfos)
@@ -144,36 +146,73 @@ public class AccountService: IAccountService {
             .Include(u=>u.Education)
             .ThenInclude(e=>e.EducationInfos)
             .Include(u=>u.BirthDate)
-            .FirstOrDefaultAsync(u => u.Id == userId);
+            .FirstOrDefaultAsync(u => u.Id == targetUserId);
             
         if (user == null) {
             throw new NotFoundException("User not found");
         }
-        /*var profile = new ProfileUserFullDto {
+
+        var workExp = !user.WorkExperience.WorkExperiencesInfos.IsNullOrEmpty()
+            ? user.WorkExperience.WorkExperiencesInfos!
+                .OrderBy(w => w.EndTime)
+                .Select(x => new WorkExperienceInfoDto {
+                    Id = x.Id,
+                    CompanyName = x.CompanyName,
+                    StartTime = x.StartTime,
+                    EndTime = x.EndTime,
+                    IsContinueNowDays = x.IsContinueNowDays
+                }).ToList()
+            : new List<WorkExperienceInfoDto>();
+        var education = !user.Education.EducationInfos.IsNullOrEmpty()
+            ? user.Education.EducationInfos?
+                .OrderBy(w => w.EndTime)
+                .Select(x => new EducationInfoDto {
+                    Id = x.Id,
+                    University = x.University,
+                    Faculty = x.Faculty,
+                    Specialization = x.Specialization,
+                    Status = x.Status,
+                    EndTime = x.EndTime
+                }).ToList()
+            : new List<EducationInfoDto>();
+        
+        var profile = new ProfileUserFullDto {
             Id = user.Id,
             FullName = user.FullName,
             NickName = user.NickName,
-            WorkExperienceInfos = new List<WorkExperienceInfoDto>() {
+            WorkExperienceInfos = 
+               user.WorkExperience.Visibility switch{
+                   ProfileVisibility.All => workExp,
+                   ProfileVisibility.OnlyMe => new List<WorkExperienceInfoDto>(),
+                   ProfileVisibility.OnlyTeachers => requesterRoles.Contains(ApplicationRoleNames.Teacher) 
+                       ? workExp : new List<WorkExperienceInfoDto>(), 
+                   _ => new List<WorkExperienceInfoDto>() 
+        },
+            Location = user.Location.Visibility switch {
+                ProfileVisibility.All => user.Location.Place,
+                ProfileVisibility.OnlyMe => null,
+                ProfileVisibility.OnlyTeachers => requesterRoles.Contains(ApplicationRoleNames.Teacher) 
+                    ? user.Location.Place : null, 
+                _ => null
             },
-            Location = new LocationDto {
-                Place = user.Location.Place,
-                Visibility = user.Location.Visibility
+            EducationInfos = user.WorkExperience.Visibility switch{
+                ProfileVisibility.All => education,
+                ProfileVisibility.OnlyMe => new List<EducationInfoDto>(),
+                ProfileVisibility.OnlyTeachers => requesterRoles.Contains(ApplicationRoleNames.Teacher) 
+                    ? education : new List<EducationInfoDto>(), 
+                _ => new List<EducationInfoDto>() 
             },
-            EducationInfos = new List<EducationInfoDto>() {
-               
+            BirthDate = user.Location.Visibility switch {
+                ProfileVisibility.All => user.BirthDate.Value,
+                ProfileVisibility.OnlyMe => null,
+                ProfileVisibility.OnlyTeachers => requesterRoles.Contains(ApplicationRoleNames.Teacher) 
+                    ? user.BirthDate.Value : null, 
+                _ => null
             },
-            BirthDate = new BirthDateDto {
-                Value = user.BirthDate.Value,
-                Visibility = user.BirthDate.Visibility
-            },
-            AvatarUrl = user.AvatarId == null ? null : new FileLinkDto() {
-                FileId = user.AvatarId,
-                Url = await _fileService.GetAvatarLink(user.AvatarId)
-            },
-            Roles = await _userManager.GetRolesAsync(userM!)
-        };*/
-        // return profile;
-        throw new NotImplementedException();
+            AvatarUrl = user.AvatarId == null ? null : await _fileService.GetAvatarLink(user.AvatarId),
+            Roles = await _userManager.GetRolesAsync(userTarget!)
+        };
+         return profile;
     }
 
     public async Task<ProfileShortDto> GetUserShortProfile(Guid userId) {
