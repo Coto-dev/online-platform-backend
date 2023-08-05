@@ -8,7 +8,7 @@ public class UserAnswerTest
     /// <summary>
     /// UserAnswerTest's id
     /// </summary>
-    public Guid Id { get; set; }
+    public Guid Id { get; set; } = Guid.NewGuid();
     /// <summary>
     /// Test identifier
     /// </summary>
