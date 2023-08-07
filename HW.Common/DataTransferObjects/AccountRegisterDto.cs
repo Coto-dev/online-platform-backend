@@ -18,7 +18,6 @@ public class AccountRegisterDto {
     /// User`s nickName
     /// </summary>
     [Required]
-    [EmailAddress]
     [DefaultValue("Евгений Самурович")]
     [DisplayName("nickName")]
     [MinLength(3)]
@@ -42,5 +41,5 @@ public class AccountRegisterDto {
     /// User`s birth date
     /// </summary>
     [Range(typeof(DateTime), "01/01/1900", "01/01/2023")]
-    public required DateTime BirthDate { get; set; }
+    public DateTime? BirthDate { get; set; }
 }

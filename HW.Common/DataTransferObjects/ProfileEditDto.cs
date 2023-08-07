@@ -13,7 +13,6 @@ public class ProfileEditDto {
     /// <summary>
     /// User`s full name (surname, name, patronymic)
     /// </summary>
-    [Required]
     public string? FullName { get; set; }
     
     [Required]
@@ -22,20 +21,17 @@ public class ProfileEditDto {
     /// <summary>
     /// User's avatar id 
     /// </summary>
-    [Required]
     public string? AvatarId { get; set; }
 
     /// <summary>
     /// User's location(city)
     /// </summary>
-    [Required]
     public string? Location { get; set; }
     
 
     /// <summary>
     /// User`s birth date
     /// </summary>
-    [Required]
-    public  DateTime BirthDate { get; set; }
+    public  DateTime? BirthDate { get; set; }
 
 }

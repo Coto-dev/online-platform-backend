@@ -195,14 +195,14 @@ public class AccountService: IAccountService {
                     ? user.Location.Place : null, 
                 _ => null
             },
-            EducationInfos = user.WorkExperience.Visibility switch{
+            EducationInfos = user.Education.Visibility switch{
                 ProfileVisibility.All => education,
                 ProfileVisibility.OnlyMe => new List<EducationInfoDto>(),
                 ProfileVisibility.OnlyTeachers => requesterRoles.Contains(ApplicationRoleNames.Teacher) 
                     ? education : new List<EducationInfoDto>(), 
                 _ => new List<EducationInfoDto>() 
             },
-            BirthDate = user.Location.Visibility switch {
+            BirthDate = user.BirthDate.Visibility switch {
                 ProfileVisibility.All => user.BirthDate.Value,
                 ProfileVisibility.OnlyMe => null,
                 ProfileVisibility.OnlyTeachers => requesterRoles.Contains(ApplicationRoleNames.Teacher) 

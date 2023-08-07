@@ -15,9 +15,8 @@ public class ProfileShortDto {
     public string? AvatarId { get; set; }
  
     /// <summary>
-    /// User`s full name (surname, name, patronymic)
+    /// User`s nickname
     /// </summary>
-    public string? FullName { get; set; }
     public string? NickName { get; set; }
  
 }
