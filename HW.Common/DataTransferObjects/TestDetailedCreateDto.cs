@@ -7,5 +7,9 @@ namespace HW.Common.DataTransferObjects;
 /// </summary>
 public class TestDetailedCreateDto
 {
+    [Required]
+    public string Question { get; set; }
+
+    public List<string>? FileIds { get; set; }
 
 }

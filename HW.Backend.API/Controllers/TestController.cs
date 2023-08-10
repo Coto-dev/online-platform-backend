@@ -166,7 +166,7 @@ public class TestController : ControllerBase {
     [HttpPost]
     [Authorize(AuthenticationSchemes = "Bearer", Roles = ApplicationRoleNames.Teacher + "," + ApplicationRoleNames.Administrator)]
     [Route("chapter/{chapterId}/detailed")]
-    public async Task<ActionResult> AddDetailedTestToChapter(Guid chapterId)
+    public async Task<ActionResult> AddDetailedTestToChapter(Guid chapterId, [FromBody] TestDetailedCreateDto testModel)
     {
         if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false)
         {
@@ -183,7 +183,7 @@ public class TestController : ControllerBase {
     [HttpPut]
     [Authorize(AuthenticationSchemes = "Bearer", Roles = ApplicationRoleNames.Teacher + "," + ApplicationRoleNames.Administrator)]
     [Route("{testId}/detailed")]
-    public async Task<ActionResult> EditDetailedTest(Guid testId)
+    public async Task<ActionResult> EditDetailedTest(Guid testId, [FromBody] TestDetailedCreateDto testModel)
     {
         if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false)
         {
@@ -199,15 +199,15 @@ public class TestController : ControllerBase {
     /// </summary>
     [HttpPost]
     [Route("{testId}/detailed")]
-    public async Task<ActionResult> AnswerDetailedTest(Guid testId)
+    public async Task<ActionResult> AnswerDetailedTest(Guid testId, [FromBody] DetailedAnswerDto userAnswer)
     {
         if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false)
         {
             throw new UnauthorizedException("User is not authorized");
         }
 
-        await _testService.SaveAnswerDetailedTest(testId);
-        await _testService.AnswerDetailedTest(testId);
+        await _testService.SaveAnswerDetailedTest(testId, userAnswer, userId);
+        await _testService.AnswerDetailedTest(testId, userId);
         return Ok();
     }
 
@@ -217,14 +217,14 @@ public class TestController : ControllerBase {
     /// </summary>
     [HttpPut]
     [Route("{testId}/detailed/save")]
-    public async Task<ActionResult> SaveAnswerDetailedTest(Guid testId)
+    public async Task<ActionResult> SaveAnswerDetailedTest(Guid testId, [FromBody] DetailedAnswerDto userAnswer)
     {
         if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false)
         {
             throw new UnauthorizedException("User is not authorized");
         }
 
-        await _testService.SaveAnswerDetailedTest(testId);
+        await _testService.SaveAnswerDetailedTest(testId, userAnswer, userId);
         return Ok();
     }
     /// <summary>

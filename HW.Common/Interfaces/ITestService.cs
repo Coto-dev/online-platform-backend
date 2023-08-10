@@ -18,10 +18,10 @@ namespace HW.Common.Interfaces
         public Task EditCorrectSequenceTest(Guid testId, TestCorrectSequenceCreateDto model); //done
         public Task AnswerCorrectSequenceTest(Guid testId, Guid userId); //done (saveAnswer and IsAnswered to true)
         public Task SaveAnswerCorrectSequenceTest(Guid testId, List<UserAnswerCorrectSequenceDto> userAnswers, Guid userId); //done
-        public Task AddDetailedTestToChapter(Guid chapterId, TestDetailedCreateDto testModel);
-        public Task EditDetailedTest(Guid testId, TestDetailedCreateDto testModel);
-        public Task SaveAnswerDetailedTest (Guid testId);
-        public Task AnswerDetailedTest(Guid testId);
+        public Task AddDetailedTestToChapter(Guid chapterId, TestDetailedCreateDto testModel); //done
+        public Task EditDetailedTest(Guid testId, TestDetailedCreateDto testModel); //done
+        public Task SaveAnswerDetailedTest (Guid testId, DetailedAnswerDto userAnswer, Guid userId); //done
+        public Task AnswerDetailedTest(Guid testId, Guid userId); //done
         public Task ArchiveTest(Guid testId); //done
 
 

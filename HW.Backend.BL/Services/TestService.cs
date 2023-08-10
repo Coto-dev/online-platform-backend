@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using HW.Common.Exceptions;
 using HW.Backend.DAL.Data.Entities;
 using static System.Net.Mime.MediaTypeNames;
+using HW.Common.Enums;
 
 namespace HW.Backend.BL.Services;
 
@@ -341,22 +342,130 @@ public class TestService : ITestService
 
     public async Task AddDetailedTestToChapter(Guid chapterId, TestDetailedCreateDto testModel)
     {
-        throw new NotImplementedException();
+        var chapter = await _dbContext.Chapters
+            .Include(m => m.ChapterTests)!
+            .FirstOrDefaultAsync(n => n.Id == chapterId && !n.ArchivedAt.HasValue);
+        if (chapter == null)
+            throw new NotFoundException("Chapter not found");
+
+        var newTest = new Test
+        {
+            Chapter = chapter,
+            Question = testModel.Question ?? throw new BadRequestException("Test has no question"),
+            Files = testModel.FileIds,
+            TestType = TestType.DetailedAnswer
+        };
+
+        await _dbContext.AddAsync(newTest);
+        await _dbContext.SaveChangesAsync();
     }
 
     public async Task EditDetailedTest(Guid testId, TestDetailedCreateDto testModel)
     {
-        throw new NotImplementedException();
+        var test = await _dbContext.Tests
+            .FirstOrDefaultAsync(n => n.Id == testId && !n.ArchivedAt.HasValue);
+        if (test == null)
+            throw new NotFoundException("Test not found");
+
+        test.Question = testModel.Question;
+        test.Files = testModel.FileIds; //files
+
+        _dbContext.Update(test);
+        await _dbContext.SaveChangesAsync();
     }
 
-    public async Task SaveAnswerDetailedTest(Guid testId)
+    public async Task SaveAnswerDetailedTest(Guid testId, DetailedAnswerDto userAnswer, Guid userId)
     {
-        throw new NotImplementedException();
+        var student = await _dbContext.Students
+            .FirstOrDefaultAsync(n => n.Id == userId);
+        if (student == null)
+            throw new NotFoundException("Student with this id not found");
+
+        var test = await _dbContext.Tests
+            .FirstOrDefaultAsync(n => n.Id == testId);
+        if (test == null)
+            throw new NotFoundException("Test not found");
+
+        if (test.ArchivedAt.HasValue)
+            throw new NotFoundException("Test was deleted");
+
+        var existingUserAnswerTest = await _dbContext.UserAnswerTests
+            .Include(n => n.UserAnswers)!
+            .FirstOrDefaultAsync(n => n.Test == test && n.Student == student);
+
+        if (existingUserAnswerTest == null)
+        {
+            var newUserAnswerTest = new UserAnswerTest
+            {
+                Test = test,
+                Student = student,
+                IsAnswered = false,
+                NumberOfAttempt = 0,
+                UserAnswers = new List<UserAnswer>() // <--- DetailedAnswer
+            };
+
+            var newDetailedAnswer = new DetailedAnswer
+            {
+                AnswerContent = userAnswer.AnswerContent,
+                Files = userAnswer.Files,
+                Accuracy = 0,
+                UserAnswerTest = newUserAnswerTest
+            };
+
+            newUserAnswerTest.UserAnswers.Add(newDetailedAnswer);
+
+            await _dbContext.UserAnswerTests.AddAsync(newUserAnswerTest);
+            await _dbContext.SaveChangesAsync();
+        }
+        else
+        {
+
+            foreach (var existAnswer in existingUserAnswerTest.UserAnswers) //clear
+            {
+                _dbContext.Remove(existAnswer);
+            }
+
+            existingUserAnswerTest.UserAnswers = new List<UserAnswer>();
+            var newDetailedAnswer = new DetailedAnswer
+            {
+                AnswerContent = userAnswer.AnswerContent,
+                Files = userAnswer.Files,
+                Accuracy = 0,
+                UserAnswerTest = existingUserAnswerTest
+            };
+
+            existingUserAnswerTest.UserAnswers.Add(newDetailedAnswer);
+
+            _dbContext.Update(existingUserAnswerTest);
+            await _dbContext.SaveChangesAsync();
+        }
     }
 
-    public async Task AnswerDetailedTest(Guid testId)
+    public async Task AnswerDetailedTest(Guid testId, Guid userId)
     {
-        throw new NotImplementedException();
+        var student = await _dbContext.Students
+            .FirstOrDefaultAsync(n => n.Id == userId);
+        if (student == null)
+            throw new NotFoundException("Student with this id not found");
+
+        var test = await _dbContext.Tests
+            .FirstOrDefaultAsync(n => n.Id == testId);
+        if (test == null)
+            throw new NotFoundException("Test not found");
+
+        if (test.ArchivedAt.HasValue)
+            throw new NotFoundException("Test was deleted");
+
+        var existingUserAnswerTest = await _dbContext.UserAnswerTests
+            .Include(n => n.UserAnswers)!
+            .FirstOrDefaultAsync(n => n.Test == test && n.Student == student);
+
+        if (existingUserAnswerTest == null)
+            throw new NotFoundException("User Answer not found");
+        existingUserAnswerTest.IsAnswered = true;
+
+        _dbContext.Update(existingUserAnswerTest);
+        await _dbContext.SaveChangesAsync();
     }
 
     public async Task ArchiveTest(Guid testId)
