@@ -69,24 +69,6 @@ public class TestService : ITestService
         test.Question = testModel.Question;
         test.Files = testModel.FileIds; //files
 
-        foreach (var existAnswer in test.PossibleAnswers) //clear
-        {
-            _dbContext.Remove(existAnswer);
-        }
-        test.PossibleAnswers = new List<SimpleAnswer>(); 
-
-        foreach (var answer in testModel.PossibleAnswers)
-        {
-            var newAnswer = new SimpleAnswer
-            {
-                AnswerContent = answer.AnswerContent,
-                IsRight = answer.isRight,
-                SimpleAnswerTest = test
-            };
-
-            test.PossibleAnswers.Add(newAnswer);
-        }
-
         _dbContext.Update(test);
         await _dbContext.SaveChangesAsync();
     }
@@ -225,22 +207,6 @@ public class TestService : ITestService
 
         test.Question = testModel.Question;
         test.Files = testModel.FileIds; //files
-        foreach (var existAnswer in test.PossibleAnswers) //clear
-        {
-            _dbContext.Remove(existAnswer);
-        }
-        test.PossibleAnswers = new List<CorrectSequenceAnswer>();
-
-        foreach (var answer in testModel.PossibleAnswers) 
-        {
-            var newAnswer = new CorrectSequenceAnswer
-            {
-                AnswerContent = answer.AnswerContent,
-                RightOrder = answer.RightOrder,
-                CorrectSequenceTest = test
-            };
-            test.PossibleAnswers.Add(newAnswer);
-        }
         
         _dbContext.Update(test);
         await _dbContext.SaveChangesAsync();
@@ -478,6 +444,98 @@ public class TestService : ITestService
             throw new ConflictException("Test already archived");
         test.ArchivedAt = DateTime.UtcNow;
         _dbContext.Update(test);
+        await _dbContext.SaveChangesAsync();
+    }
+
+    public async Task AddAnswerToSimpleTest(Guid testId, SimpleAnswerDto newAnswerModel)
+    {
+        var test = await _dbContext.SimpleAnswerTests
+            .Include(n => n.PossibleAnswers)!
+            .FirstOrDefaultAsync(n => n.Id == testId);
+
+        var newAnswer = new SimpleAnswer
+        {
+            AnswerContent = newAnswerModel.AnswerContent,
+            IsRight = newAnswerModel.isRight,
+            SimpleAnswerTest = test ?? throw new NotFoundException("Test not found")
+        };
+        
+        test.PossibleAnswers.Add(newAnswer);
+        _dbContext.Update(test);
+        await _dbContext.AddAsync(newAnswer);
+        await _dbContext.SaveChangesAsync();
+    }
+
+    public async Task EditAnswerInSimpleTest(Guid answerId, SimpleAnswerDto answerModel)
+    {
+        var answer = await _dbContext.SimpleAnswers
+            .FirstOrDefaultAsync(n => n.Id == answerId) ?? throw new NotFoundException("Answer not found");
+
+        answer.AnswerContent = answerModel.AnswerContent;
+        answer.IsRight = answerModel.isRight;
+
+        _dbContext.Update(answer); 
+        await _dbContext.SaveChangesAsync();
+    }
+
+    public async Task DeleteAnswerFromSimpleTest(Guid testId, Guid answerId)
+    {
+        var test = await _dbContext.SimpleAnswerTests
+            .Include(n => n.PossibleAnswers)!
+            .FirstOrDefaultAsync(n => n.Id == testId) ?? throw new NotFoundException("Test not found");
+
+        var answer = await _dbContext.SimpleAnswers
+            .FirstOrDefaultAsync(n => n.Id == answerId) ?? throw new NotFoundException("Answer not found");
+
+        test.PossibleAnswers.Remove(answer); 
+        _dbContext.Update(test);
+        _dbContext.Remove(answer);
+        await _dbContext.SaveChangesAsync();
+    }
+
+    public async Task AddAnswerToSequenceTest(Guid testId, CorrectSequenceAnswerDto newAnswerModel)
+    {
+        var test = await _dbContext.CorrectSequenceTest
+            .Include(n => n.PossibleAnswers)!
+            .FirstOrDefaultAsync(n => n.Id == testId);
+
+        var newAnswer = new CorrectSequenceAnswer
+        {
+            AnswerContent = newAnswerModel.AnswerContent,
+            RightOrder = newAnswerModel.RightOrder,
+            CorrectSequenceTest = test ?? throw new NotFoundException("Test not found")
+        };
+
+        test.PossibleAnswers.Add(newAnswer);
+        _dbContext.Update(test);
+        await _dbContext.AddAsync(newAnswer);
+        await _dbContext.SaveChangesAsync();
+    }
+
+    public async Task EditAnswerInSequenceTest(Guid answerId, CorrectSequenceAnswerDto answerModel)
+    {
+        var answer = await _dbContext.CorrectSequenceAnswers
+            .FirstOrDefaultAsync(n => n.Id == answerId) ?? throw new NotFoundException("Answer not found");
+
+        answer.AnswerContent = answerModel.AnswerContent;
+        answer.RightOrder = answerModel.RightOrder;
+
+        _dbContext.Update(answer);
+        await _dbContext.SaveChangesAsync();
+    }
+
+    public async Task DeleteAnswerFromSequenceTest(Guid testId, Guid answerId)
+    {
+        var test = await _dbContext.CorrectSequenceTest
+            .Include(n => n.PossibleAnswers)!
+            .FirstOrDefaultAsync(n => n.Id == testId) ?? throw new NotFoundException("Test not found");
+
+        var answer = await _dbContext.CorrectSequenceAnswers
+            .FirstOrDefaultAsync(n => n.Id == answerId) ?? throw new NotFoundException("Answer not found");
+
+        test.PossibleAnswers.Remove(answer);
+        _dbContext.Update(test);
+        _dbContext.Remove(answer);
         await _dbContext.SaveChangesAsync();
     }
 }

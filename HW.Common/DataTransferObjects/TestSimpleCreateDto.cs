@@ -9,8 +9,5 @@ public class TestSimpleCreateDto {
     [Required]
     public string Question { get; set; }
     [Required]
-    public TestSimpleType TestType { get; set; }
-    [Required]
-    public List<SimpleAnswerDto> PossibleAnswers { get; set; }
     public List<string>? FileIds { get; set; }
 }

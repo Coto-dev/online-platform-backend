@@ -7,7 +7,6 @@ public class TestCorrectSequenceCreateDto {
     [Required]
     public string Question { get; set; }
     [Required]
-    public List<CorrectSequenceAnswerDto> PossibleAnswers { get; set; }
     public List<string>? FileIds { get; set; }
 
 }

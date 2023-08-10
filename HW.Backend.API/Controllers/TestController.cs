@@ -95,7 +95,59 @@ public class TestController : ControllerBase {
         await _testService.AnswerSimpleTest(testId, userId);
         return Ok();
     }
-    
+
+    /// <summary>
+    /// Add answer to simple test
+    /// </summary>
+    [HttpPost]
+    [Authorize(AuthenticationSchemes = "Bearer", Roles = ApplicationRoleNames.Teacher + "," + ApplicationRoleNames.Administrator)]
+    [Route("chapter/{chapterId}/correct-sequence")]
+    public async Task<ActionResult> AddAnswerToSimpleTest(Guid testId, [FromBody] SimpleAnswerDto newAnswer)
+    {
+        if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false)
+        {
+            throw new UnauthorizedException("User is not authorized");
+        }
+
+        await _testService.AddAnswerToSimpleTest(testId, newAnswer);
+        return Ok();
+    }
+
+    /// <summary>
+    /// Edit answer in simple test
+    /// </summary>
+    [HttpPost]
+    [Authorize(AuthenticationSchemes = "Bearer", Roles = ApplicationRoleNames.Teacher + "," + ApplicationRoleNames.Administrator)]
+    [Route("chapter/{chapterId}/correct-sequence")]
+    public async Task<ActionResult> EditAnswerInSimpleTest(Guid answerId, [FromBody] SimpleAnswerDto answer)
+    {
+        if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false)
+        {
+            throw new UnauthorizedException("User is not authorized");
+        }
+
+        await _testService.EditAnswerInSimpleTest(answerId, answer);
+        return Ok();
+    }
+
+    /// <summary>
+    /// Delete answer from simple test
+    /// </summary>
+    [HttpPost]
+    [Authorize(AuthenticationSchemes = "Bearer", Roles = ApplicationRoleNames.Teacher + "," + ApplicationRoleNames.Administrator)]
+    [Route("chapter/{chapterId}/correct-sequence")]
+    public async Task<ActionResult> DeleteAnswerFromSimpleTest(Guid testId, Guid answerId)
+    {
+        if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false)
+        {
+            throw new UnauthorizedException("User is not authorized");
+        }
+
+        await _testService.DeleteAnswerFromSimpleTest(testId, answerId);
+        return Ok();
+    }
+
+
     /// <summary>
     /// Add correct sequence test to chapter
     /// </summary>
@@ -157,6 +209,57 @@ public class TestController : ControllerBase {
 
         await _testService.SaveAnswerCorrectSequenceTest(testId, userAnswers, userId);
         await _testService.AnswerCorrectSequenceTest(testId, userId);
+        return Ok();
+    }
+
+    /// <summary>
+    /// Add answer to sequence test
+    /// </summary>
+    [HttpPost]
+    [Authorize(AuthenticationSchemes = "Bearer", Roles = ApplicationRoleNames.Teacher + "," + ApplicationRoleNames.Administrator)]
+    [Route("chapter/{chapterId}/correct-sequence")]
+    public async Task<ActionResult> AddAnswerToSequenceTest(Guid testId, [FromBody] CorrectSequenceAnswerDto newAnswerModel)
+    {
+        if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false)
+        {
+            throw new UnauthorizedException("User is not authorized");
+        }
+
+        await _testService.AddAnswerToSequenceTest(testId, newAnswerModel);
+        return Ok();
+    }
+
+    /// <summary>
+    /// Edit answer in sequence test
+    /// </summary>
+    [HttpPost]
+    [Authorize(AuthenticationSchemes = "Bearer", Roles = ApplicationRoleNames.Teacher + "," + ApplicationRoleNames.Administrator)]
+    [Route("chapter/{chapterId}/correct-sequence")]
+    public async Task<ActionResult> EditAnswerInSequenceTest(Guid testId, [FromBody] CorrectSequenceAnswerDto answerModel)
+    {
+        if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false)
+        {
+            throw new UnauthorizedException("User is not authorized");
+        }
+
+        await _testService.AddAnswerToSequenceTest(testId, answerModel);
+        return Ok();
+    }
+
+    /// <summary>
+    /// Delete answer from sequence test
+    /// </summary>
+    [HttpPost]
+    [Authorize(AuthenticationSchemes = "Bearer", Roles = ApplicationRoleNames.Teacher + "," + ApplicationRoleNames.Administrator)]
+    [Route("chapter/{chapterId}/correct-sequence")]
+    public async Task<ActionResult> DeleteAnswerFromSequenceTest(Guid testId, Guid answerId)
+    {
+        if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false)
+        {
+            throw new UnauthorizedException("User is not authorized");
+        }
+
+        await _testService.DeleteAnswerFromSequenceTest(testId, answerId);
         return Ok();
     }
 
