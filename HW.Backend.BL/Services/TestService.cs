@@ -66,7 +66,12 @@ public class TestService : ITestService
 
         test.Question = testModel.Question;
         test.Files = testModel.FileIds; //files
-        test.PossibleAnswers = new List<SimpleAnswer>(); //clear
+
+        foreach (var existAnswer in test.PossibleAnswers) //clear
+        {
+            _dbContext.Remove(existAnswer);
+        }
+        test.PossibleAnswers = new List<SimpleAnswer>(); 
 
         foreach (var answer in testModel.PossibleAnswers)
         {
@@ -127,6 +132,12 @@ public class TestService : ITestService
             await _dbContext.SaveChangesAsync();
         }
         else {
+
+            foreach (var existAnswer in existingUserAnswerTest.UserAnswers) //clear
+            {
+                _dbContext.Remove(existAnswer);
+            }
+
             existingUserAnswerTest.UserAnswers = new List<UserAnswer>();
             var newSimpleUserAnswer = new SimpleUserAnswer
             {
@@ -189,7 +200,12 @@ public class TestService : ITestService
 
         test.Question = testModel.Question;
         test.Files = testModel.FileIds; //files
-        test.PossibleAnswers = new List<CorrectSequenceAnswer>(); //clear
+        foreach (var existAnswer in test.PossibleAnswers) //clear
+        {
+            _dbContext.Remove(existAnswer);
+        }
+        test.PossibleAnswers = new List<CorrectSequenceAnswer>();
+
         foreach (var answer in testModel.PossibleAnswers) 
         {
             var newAnswer = new CorrectSequenceAnswer
@@ -250,6 +266,10 @@ public class TestService : ITestService
             await _dbContext.SaveChangesAsync();
         }
         else {
+            foreach (var existAnswer in existingUserAnswerTest.UserAnswers) //clear
+            {
+                _dbContext.Remove(existAnswer);
+            }
             existingUserAnswerTest.UserAnswers = new List<UserAnswer>();
             foreach (var userAnswer in userAnswers)
             {
