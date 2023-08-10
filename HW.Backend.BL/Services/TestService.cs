@@ -11,6 +11,7 @@ using System.Text;
 using System.Threading.Tasks;
 using HW.Common.Exceptions;
 using HW.Backend.DAL.Data.Entities;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace HW.Backend.BL.Services;
 
@@ -153,9 +154,32 @@ public class TestService : ITestService
         }
     }
 
-    public async Task AnswerSimpleTest(Guid testId, UserAnswerSimpleDto userAnswer, Guid userId)
+    public async Task AnswerSimpleTest(Guid testId, Guid userId)
     {
-        throw new NotImplementedException();
+        var student = await _dbContext.Students
+            .FirstOrDefaultAsync(n => n.Id == userId);
+        if (student == null)
+            throw new NotFoundException("Student with this id not found");
+
+        var test = await _dbContext.SimpleAnswerTests
+            .Include(n => n.PossibleAnswers)
+            .FirstOrDefaultAsync(n => n.Id == testId);
+        if (test == null)
+            throw new NotFoundException("Test not found");
+
+        if (test.ArchivedAt.HasValue)
+            throw new NotFoundException("Test was deleted");
+
+        var existingUserAnswerTest = await _dbContext.UserAnswerTests
+            .Include(n => n.UserAnswers)!
+            .FirstOrDefaultAsync(n => n.Test == test && n.Student == student);
+
+        if (existingUserAnswerTest == null)
+            throw new NotFoundException("User Answer not found");
+        existingUserAnswerTest.IsAnswered = true;
+
+        _dbContext.Update(existingUserAnswerTest);
+        await _dbContext.SaveChangesAsync();
     }
 
     public async Task AddCorrectSequenceTestToChapter(Guid chapterId, TestCorrectSequenceCreateDto testModel)
@@ -287,9 +311,32 @@ public class TestService : ITestService
         }
     }
 
-    public async Task AnswerCorrectSequenceTest(Guid testId, List<UserAnswerCorrectSequenceDto> userAnswers, Guid userId)
+    public async Task AnswerCorrectSequenceTest(Guid testId, Guid userId)
     {
-        throw new NotImplementedException();
+        var student = await _dbContext.Students
+            .FirstOrDefaultAsync(n => n.Id == userId);
+        if (student == null)
+            throw new NotFoundException("Student with this id not found");
+
+        var test = await _dbContext.SimpleAnswerTests
+            .Include(n => n.PossibleAnswers)
+            .FirstOrDefaultAsync(n => n.Id == testId);
+        if (test == null)
+            throw new NotFoundException("Test not found");
+
+        if (test.ArchivedAt.HasValue)
+            throw new NotFoundException("Test was deleted");
+
+        var existingUserAnswerTest = await _dbContext.UserAnswerTests
+            .Include(n => n.UserAnswers)!
+            .FirstOrDefaultAsync(n => n.Test == test && n.Student == student);
+
+        if (existingUserAnswerTest == null)
+            throw new NotFoundException("User Answer not found");
+        existingUserAnswerTest.IsAnswered = true;
+
+        _dbContext.Update(existingUserAnswerTest);
+        await _dbContext.SaveChangesAsync();
     }
 
     public async Task AddDetailedTestToChapter(Guid chapterId, TestDetailedCreateDto testModel)

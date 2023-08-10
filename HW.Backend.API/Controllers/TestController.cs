@@ -1,6 +1,7 @@
 using HW.Backend.DAL.Data.Entities;
 using HW.Common.DataTransferObjects;
 using HW.Common.Enums;
+using HW.Common.Exceptions;
 using HW.Common.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -36,9 +37,13 @@ public class TestController : ControllerBase {
     /// Add simple test to chapter
     /// </summary>
     [HttpPost]
+    [Authorize(AuthenticationSchemes = "Bearer", Roles = ApplicationRoleNames.Teacher + "," + ApplicationRoleNames.Administrator)]
     [Route("chapter/{chapterId}/simple")]
-    //[Authorize(AuthenticationSchemes = "Bearer", Roles = ApplicationRoleNames.Teacher)]
     public async Task<ActionResult> AddSimpleTestToChapter(Guid chapterId, [FromBody] TestSimpleCreateDto testModel) {
+        if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false)
+        {
+            throw new UnauthorizedException("User is not authorized");
+        }
 
         await _testService.AddSimpleTestToChapter(chapterId, testModel);
         return Ok();
@@ -47,9 +52,14 @@ public class TestController : ControllerBase {
     /// <summary>
     /// Edit simple test 
     /// </summary>
-    [HttpPut] 
+    [HttpPut]
+    [Authorize(AuthenticationSchemes = "Bearer", Roles = ApplicationRoleNames.Teacher + "," + ApplicationRoleNames.Administrator)]
     [Route("{testId}/simple")]
     public async Task<ActionResult> EditSimpleTest(Guid testId, [FromBody] TestSimpleCreateDto testModel) {
+        if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false)
+        {
+            throw new UnauthorizedException("User is not authorized");
+        }
 
         await _testService.EditSimpleTest(testId, testModel);
         return Ok();
@@ -60,8 +70,11 @@ public class TestController : ControllerBase {
     /// </summary>
     [HttpPut]
     [Route("{testId}/simple/save")]
-    public async Task<ActionResult> SaveAnswerSimpleTest(Guid testId, [FromBody] List<UserAnswerSimpleDto> userAnswers) {
-
+    public async Task<ActionResult> SaveAnswerSimpleTest(Guid testId, [FromBody] UserAnswerSimpleDto userAnswers) {
+        if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false)
+        {
+            throw new UnauthorizedException("User is not authorized");
+        }
 
         await _testService.SaveAnswerSimpleTest(testId, userAnswers, userId);
         return Ok();
@@ -72,9 +85,14 @@ public class TestController : ControllerBase {
     /// </summary>
     [HttpPost]
     [Route("{testId}/simple")]
-    public async Task<ActionResult> AnswerSimpleTest(Guid testId, [FromBody] List<UserAnswerSimpleDto> userAnswers) {
-        
-        await _testService.AnswerSimpleTest(testId, userAnswers, userId);
+    public async Task<ActionResult> AnswerSimpleTest(Guid testId, [FromBody] UserAnswerSimpleDto userAnswers) {
+        if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false)
+        {
+            throw new UnauthorizedException("User is not authorized");
+        }
+
+        await _testService.SaveAnswerSimpleTest(testId, userAnswers, userId);
+        await _testService.AnswerSimpleTest(testId, userId);
         return Ok();
     }
     
@@ -82,8 +100,13 @@ public class TestController : ControllerBase {
     /// Add correct sequence test to chapter
     /// </summary>
     [HttpPost]
+    [Authorize(AuthenticationSchemes = "Bearer", Roles = ApplicationRoleNames.Teacher + "," + ApplicationRoleNames.Administrator)]
     [Route("chapter/{chapterId}/correct-sequence")]
     public async Task<ActionResult> AddCorrectSequenceTestToChapter(Guid chapterId, [FromBody] TestCorrectSequenceCreateDto model) {
+        if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false)
+        {
+            throw new UnauthorizedException("User is not authorized");
+        }
 
         await _testService.AddCorrectSequenceTestToChapter(chapterId, model);
         return Ok();
@@ -93,9 +116,16 @@ public class TestController : ControllerBase {
     /// Edit correct sequence test(save changes)
     /// </summary>
     [HttpPut]
+    [Authorize(AuthenticationSchemes = "Bearer", Roles = ApplicationRoleNames.Teacher + "," + ApplicationRoleNames.Administrator)]
     [Route("{testId}/correct-sequence")]
     public async Task<ActionResult> EditCorrectSequenceTest(Guid testId, [FromBody] TestCorrectSequenceCreateDto model) {
-        throw new NotImplementedException();
+        if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false)
+        {
+            throw new UnauthorizedException("User is not authorized");
+        }
+
+        await _testService.EditCorrectSequenceTest(testId, model);
+        return Ok();
     }
 
     /// <summary>
@@ -105,6 +135,11 @@ public class TestController : ControllerBase {
     [Route("{testId}/correct-sequence/save")]
     public async Task<ActionResult> SaveAnswerCorrectSequenceTest(Guid testId, List<UserAnswerCorrectSequenceDto> userAnswers)
     {
+        if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false)
+        {
+            throw new UnauthorizedException("User is not authorized");
+        }
+
         await _testService.SaveAnswerCorrectSequenceTest(testId, userAnswers, userId);
         return Ok();
     }
@@ -115,28 +150,48 @@ public class TestController : ControllerBase {
     [HttpPost]
     [Route("{testId}/correct-sequence")]
     public async Task<ActionResult> AnswerCorrectSequenceTest(Guid testId, List<UserAnswerCorrectSequenceDto> userAnswers) {
-        throw new NotImplementedException();
+        if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false)
+        {
+            throw new UnauthorizedException("User is not authorized");
+        }
+
+        await _testService.SaveAnswerCorrectSequenceTest(testId, userAnswers, userId);
+        await _testService.AnswerCorrectSequenceTest(testId, userId);
+        return Ok();
     }
 
     /// <summary>
     /// Add detailed test to chapter
     /// </summary>
     [HttpPost]
+    [Authorize(AuthenticationSchemes = "Bearer", Roles = ApplicationRoleNames.Teacher + "," + ApplicationRoleNames.Administrator)]
     [Route("chapter/{chapterId}/detailed")]
     public async Task<ActionResult> AddDetailedTestToChapter(Guid chapterId)
     {
-
-        throw new NotImplementedException();
+        if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false)
+        {
+            throw new UnauthorizedException("User is not authorized");
+        }
+        
+        await _testService.AddDetailedTestToChapter(chapterId, testModel);
+        return Ok();
     }
 
     /// <summary>
     /// Edit detailed test(save changes)
     /// </summary>
     [HttpPut]
+    [Authorize(AuthenticationSchemes = "Bearer", Roles = ApplicationRoleNames.Teacher + "," + ApplicationRoleNames.Administrator)]
     [Route("{testId}/detailed")]
     public async Task<ActionResult> EditDetailedTest(Guid testId)
     {
-        throw new NotImplementedException();
+        if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false)
+        {
+            throw new UnauthorizedException("User is not authorized");
+        }
+
+        await _testService.EditDetailedTest(testId, testModel);
+        return Ok();
     }
 
     /// <summary>
@@ -146,7 +201,14 @@ public class TestController : ControllerBase {
     [Route("{testId}/detailed")]
     public async Task<ActionResult> AnswerDetailedTest(Guid testId)
     {
-        throw new NotImplementedException();
+        if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false)
+        {
+            throw new UnauthorizedException("User is not authorized");
+        }
+
+        await _testService.SaveAnswerDetailedTest(testId);
+        await _testService.AnswerDetailedTest(testId);
+        return Ok();
     }
 
 
@@ -157,14 +219,25 @@ public class TestController : ControllerBase {
     [Route("{testId}/detailed/save")]
     public async Task<ActionResult> SaveAnswerDetailedTest(Guid testId)
     {
-        throw new NotImplementedException();
+        if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false)
+        {
+            throw new UnauthorizedException("User is not authorized");
+        }
+
+        await _testService.SaveAnswerDetailedTest(testId);
+        return Ok();
     }
     /// <summary>
     /// Archive test 
     /// </summary>
-    [HttpDelete] 
+    [HttpDelete]
+    [Authorize(AuthenticationSchemes = "Bearer", Roles = ApplicationRoleNames.Teacher + "," + ApplicationRoleNames.Administrator)]
     [Route("{testId}")]
     public async Task<ActionResult> ArchiveTest(Guid testId) {
+        if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false)
+        {
+            throw new UnauthorizedException("User is not authorized");
+        }
 
         await _testService.ArchiveTest(testId);
         return Ok();

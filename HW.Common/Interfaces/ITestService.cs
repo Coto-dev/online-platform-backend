@@ -13,10 +13,10 @@ namespace HW.Common.Interfaces
         public Task AddSimpleTestToChapter(Guid chapterId, TestSimpleCreateDto testModel); //done
         public Task EditSimpleTest(Guid testId, TestSimpleCreateDto testModel); //done
         public Task SaveAnswerSimpleTest(Guid testId, UserAnswerSimpleDto userAnswer, Guid userId); //done
-        public Task AnswerSimpleTest(Guid testId, UserAnswerSimpleDto userAnswer, Guid userId);
+        public Task AnswerSimpleTest(Guid testId, Guid userId); //done (saveAnswer and IsAnswered to true)
         public Task AddCorrectSequenceTestToChapter(Guid chapterId, TestCorrectSequenceCreateDto model); //done
         public Task EditCorrectSequenceTest(Guid testId, TestCorrectSequenceCreateDto model); //done
-        public Task AnswerCorrectSequenceTest(Guid testId, List<UserAnswerCorrectSequenceDto> userAnswers, Guid userId);
+        public Task AnswerCorrectSequenceTest(Guid testId, Guid userId); //done (saveAnswer and IsAnswered to true)
         public Task SaveAnswerCorrectSequenceTest(Guid testId, List<UserAnswerCorrectSequenceDto> userAnswers, Guid userId); //done
         public Task AddDetailedTestToChapter(Guid chapterId, TestDetailedCreateDto testModel);
         public Task EditDetailedTest(Guid testId, TestDetailedCreateDto testModel);
