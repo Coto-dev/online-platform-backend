@@ -1,4 +1,5 @@
 using HW.Account.BLL.Extensions;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -7,6 +8,13 @@ builder.Services.AddControllersWithViews();
 
 builder.Services.AddAccountBlServiceDependencies(builder.Configuration);
 builder.Services.AddIdentityManagers();
+
+var logger = new LoggerConfiguration()
+    .ReadFrom.Configuration(builder.Configuration)
+    .Enrich.FromLogContext()
+    .CreateLogger();
+builder.Logging.ClearProviders();
+builder.Logging.AddSerilog(logger);
 
 var app = builder.Build();
 

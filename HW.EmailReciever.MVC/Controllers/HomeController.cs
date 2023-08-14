@@ -31,8 +31,10 @@ public class HomeController : Controller {
         var encode = HttpUtility.UrlEncode(code);
         var config = _configuration.GetSection("ConfirmUrl");
         var result = await client.GetAsync(config.GetValue<string>("Url")+$"?code={encode}&userId={userId}");
-        if (result.StatusCode == HttpStatusCode.OK)
+        if (result.StatusCode == HttpStatusCode.OK) {
+            _logger.LogInformation("Successfully confirmed "+ userId);
             return View();
+        }
         else
             return View("Error");
     }

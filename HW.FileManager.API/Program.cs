@@ -4,6 +4,7 @@ using HW.Common.Extennsions;
 using HW.Common.Middlewares;
 using HW.FileManager.BL.Extensions;
 using Microsoft.OpenApi.Models;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -49,7 +50,13 @@ builder.Services.AddJwtAuthentication(builder.Configuration);
 
 var app = builder.Build();
 
-//await app.MigrateDbAsync();
+var logger = new LoggerConfiguration()
+    .ReadFrom.Configuration(builder.Configuration)
+    .Enrich.FromLogContext()
+    .CreateLogger();
+builder.Logging.ClearProviders();
+builder.Logging.AddSerilog(logger);
+
 await app.CreateBuckets();
 
 // Configure the HTTP request pipeline.

@@ -4,6 +4,7 @@ using HW.Account.BLL.Extensions;
 using HW.Common.Extennsions;
 using HW.Common.Middlewares;
 using Microsoft.OpenApi.Models;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -48,6 +49,12 @@ builder.Services.AddSwaggerGen(option => {
 builder.Services.AddAuthorization();
 builder.Services.AddJwtAuthentication(builder.Configuration);
 
+var logger = new LoggerConfiguration()
+    .ReadFrom.Configuration(builder.Configuration)
+    .Enrich.FromLogContext()
+    .CreateLogger();
+builder.Logging.ClearProviders();
+builder.Logging.AddSerilog(logger);
 
 var app = builder.Build();
 
