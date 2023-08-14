@@ -1,4 +1,5 @@
 using HW.Backend.DAL.Data;
+using HW.Backend.DAL.Data.Entities;
 using HW.Common.Exceptions;
 using HW.Common.Interfaces;
 using Microsoft.EntityFrameworkCore;
@@ -158,4 +159,62 @@ public class CheckPermissionService: ICheckPermissionService {
             throw new ForbiddenException("User do not have permission");
         
     }
+
+    public async Task CheckCreatorTestPermission(Guid creatorId, Guid testId)
+    {
+        var user = await _dbContext.Teachers
+            .FirstOrDefaultAsync(u => u.Id == creatorId);
+        if (user == null)
+            throw new NotFoundException("User not found");
+        var test = await _dbContext.Tests
+            .Include(c => c.Chapter)
+            .ThenInclude(f => f.SubModule)
+            .ThenInclude(s => s.Module)
+            .ThenInclude(m => m.UserModules)!                                  //<------------------------
+            .ThenInclude(u => u.Student)
+            .FirstOrDefaultAsync(u => u.Id == testId);
+        if (test == null)
+            throw new NotFoundException("Test not found");
+        if (test.Chapter.SubModule.Module.Creators != null && !test.Chapter.SubModule.Module.Creators.Contains(user))
+            throw new ForbiddenException("User do not have permission");
+
+    }
+
+    public async Task CheckTeacherTestPermission(Guid teacherId, Guid testId)
+    {
+        var user = await _dbContext.Teachers
+            .FirstOrDefaultAsync(u => u.Id == teacherId);
+        if (user == null)
+            throw new NotFoundException("User not found");
+        var test = await _dbContext.Tests
+            .Include(c => c.Chapter)
+            .ThenInclude(c => c.SubModule)
+            .ThenInclude(s => s.Module)
+            .ThenInclude(m => m.Teachers)
+            .FirstOrDefaultAsync(u => u.Id == testId);
+        if (test == null)
+            throw new NotFoundException("Chapter not found");
+        if (test.Chapter.SubModule.Module.Teachers == null || !test.Chapter.SubModule.Module.Teachers.Contains(user))
+            throw new ForbiddenException("User do not have permission");
+    }
+
+    public async Task CheckStudentTestPermission(Guid studentId, Guid testId)
+    {
+        var user = await _dbContext.Students
+            .FirstOrDefaultAsync(u => u.Id == studentId);
+        if (user == null)
+            throw new NotFoundException("User not found");
+        var test = await _dbContext.Tests
+            .Include(c => c.Chapter)
+            .ThenInclude(c => c.SubModule)
+            .ThenInclude(s => s.Module)
+            .ThenInclude(m => m.UserModules)!                             //<---------------------
+            .ThenInclude(u => u.Student)
+            .FirstOrDefaultAsync(u => u.Id == testId);
+        if (test == null)
+            throw new NotFoundException("Chapter not found");
+        if (test.Chapter.SubModule.Module.UserModules!.Any(u => u.Student == user))
+            throw new ForbiddenException("User do not have permission");
+    }
+
 }

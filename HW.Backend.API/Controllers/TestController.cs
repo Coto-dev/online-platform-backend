@@ -45,6 +45,7 @@ public class TestController : ControllerBase {
             throw new UnauthorizedException("User is not authorized");
         }
 
+        await _checkPermissionService.CheckCreatorChapterPermission(chapterId, userId);
         await _testService.AddSimpleTestToChapter(chapterId, testModel);
         return Ok();
     }
@@ -55,13 +56,14 @@ public class TestController : ControllerBase {
     [HttpPut]
     [Authorize(AuthenticationSchemes = "Bearer", Roles = ApplicationRoleNames.Teacher + "," + ApplicationRoleNames.Administrator)]
     [Route("{testId}/simple")]
-    public async Task<ActionResult> EditSimpleTest(Guid testId, [FromBody] TestSimpleCreateDto testModel) {
+    public async Task<ActionResult> EditTest(Guid testId, [FromBody] EditTestDto testModel) {
         if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false)
         {
             throw new UnauthorizedException("User is not authorized");
         }
 
-        await _testService.EditSimpleTest(testId, testModel);
+        await _checkPermissionService.CheckCreatorTestPermission(userId, testId);
+        await _testService.EditTest(testId, testModel);
         return Ok();
     }
     
@@ -76,6 +78,7 @@ public class TestController : ControllerBase {
             throw new UnauthorizedException("User is not authorized");
         }
 
+        await _checkPermissionService.CheckStudentTestPermission(userId, testId);
         await _testService.SaveAnswerSimpleTest(testId, userAnswers, userId);
         return Ok();
     }
@@ -91,6 +94,7 @@ public class TestController : ControllerBase {
             throw new UnauthorizedException("User is not authorized");
         }
 
+        await _checkPermissionService.CheckStudentTestPermission(userId, testId);
         await _testService.SaveAnswerSimpleTest(testId, userAnswers, userId);
         await _testService.AnswerSimpleTest(testId, userId);
         return Ok();
@@ -109,6 +113,7 @@ public class TestController : ControllerBase {
             throw new UnauthorizedException("User is not authorized");
         }
 
+        await _checkPermissionService.CheckCreatorTestPermission(userId, testId);
         await _testService.AddAnswerToSimpleTest(testId, newAnswer);
         return Ok();
     }
@@ -119,13 +124,14 @@ public class TestController : ControllerBase {
     [HttpPost]
     [Authorize(AuthenticationSchemes = "Bearer", Roles = ApplicationRoleNames.Teacher + "," + ApplicationRoleNames.Administrator)]
     [Route("chapter/{chapterId}/correct-sequence")]
-    public async Task<ActionResult> EditAnswerInSimpleTest(Guid answerId, [FromBody] SimpleAnswerDto answer)
+    public async Task<ActionResult> EditAnswerInSimpleTest(Guid testId, Guid answerId, [FromBody] SimpleAnswerDto answer)
     {
         if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false)
         {
             throw new UnauthorizedException("User is not authorized");
         }
 
+        await _checkPermissionService.CheckCreatorTestPermission(userId, testId);
         await _testService.EditAnswerInSimpleTest(answerId, answer);
         return Ok();
     }
@@ -143,6 +149,7 @@ public class TestController : ControllerBase {
             throw new UnauthorizedException("User is not authorized");
         }
 
+        await _checkPermissionService.CheckCreatorTestPermission(userId, testId);
         await _testService.DeleteAnswerFromSimpleTest(testId, answerId);
         return Ok();
     }
@@ -160,23 +167,8 @@ public class TestController : ControllerBase {
             throw new UnauthorizedException("User is not authorized");
         }
 
+        await _checkPermissionService.CheckCreatorChapterPermission(chapterId, userId);
         await _testService.AddCorrectSequenceTestToChapter(chapterId, model);
-        return Ok();
-    }
-    
-    /// <summary>
-    /// Edit correct sequence test(save changes)
-    /// </summary>
-    [HttpPut]
-    [Authorize(AuthenticationSchemes = "Bearer", Roles = ApplicationRoleNames.Teacher + "," + ApplicationRoleNames.Administrator)]
-    [Route("{testId}/correct-sequence")]
-    public async Task<ActionResult> EditCorrectSequenceTest(Guid testId, [FromBody] TestCorrectSequenceCreateDto model) {
-        if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false)
-        {
-            throw new UnauthorizedException("User is not authorized");
-        }
-
-        await _testService.EditCorrectSequenceTest(testId, model);
         return Ok();
     }
 
@@ -192,6 +184,7 @@ public class TestController : ControllerBase {
             throw new UnauthorizedException("User is not authorized");
         }
 
+        await _checkPermissionService.CheckStudentTestPermission(userId, testId);
         await _testService.SaveAnswerCorrectSequenceTest(testId, userAnswers, userId);
         return Ok();
     }
@@ -207,6 +200,7 @@ public class TestController : ControllerBase {
             throw new UnauthorizedException("User is not authorized");
         }
 
+        await _checkPermissionService.CheckStudentTestPermission(userId, testId);
         await _testService.SaveAnswerCorrectSequenceTest(testId, userAnswers, userId);
         await _testService.AnswerCorrectSequenceTest(testId, userId);
         return Ok();
@@ -225,6 +219,7 @@ public class TestController : ControllerBase {
             throw new UnauthorizedException("User is not authorized");
         }
 
+        await _checkPermissionService.CheckCreatorTestPermission(userId, testId);
         await _testService.AddAnswerToSequenceTest(testId, newAnswerModel);
         return Ok();
     }
@@ -242,6 +237,7 @@ public class TestController : ControllerBase {
             throw new UnauthorizedException("User is not authorized");
         }
 
+        await _checkPermissionService.CheckCreatorTestPermission(userId, testId);
         await _testService.AddAnswerToSequenceTest(testId, answerModel);
         return Ok();
     }
@@ -259,6 +255,7 @@ public class TestController : ControllerBase {
             throw new UnauthorizedException("User is not authorized");
         }
 
+        await _checkPermissionService.CheckCreatorTestPermission(userId, testId);
         await _testService.DeleteAnswerFromSequenceTest(testId, answerId);
         return Ok();
     }
@@ -275,25 +272,9 @@ public class TestController : ControllerBase {
         {
             throw new UnauthorizedException("User is not authorized");
         }
-        
+
+        await _checkPermissionService.CheckCreatorChapterPermission(chapterId, userId);
         await _testService.AddDetailedTestToChapter(chapterId, testModel);
-        return Ok();
-    }
-
-    /// <summary>
-    /// Edit detailed test(save changes)
-    /// </summary>
-    [HttpPut]
-    [Authorize(AuthenticationSchemes = "Bearer", Roles = ApplicationRoleNames.Teacher + "," + ApplicationRoleNames.Administrator)]
-    [Route("{testId}/detailed")]
-    public async Task<ActionResult> EditDetailedTest(Guid testId, [FromBody] TestDetailedCreateDto testModel)
-    {
-        if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false)
-        {
-            throw new UnauthorizedException("User is not authorized");
-        }
-
-        await _testService.EditDetailedTest(testId, testModel);
         return Ok();
     }
 
@@ -309,11 +290,11 @@ public class TestController : ControllerBase {
             throw new UnauthorizedException("User is not authorized");
         }
 
+        await _checkPermissionService.CheckStudentTestPermission(userId, testId);
         await _testService.SaveAnswerDetailedTest(testId, userAnswer, userId);
         await _testService.AnswerDetailedTest(testId, userId);
         return Ok();
     }
-
 
     /// <summary>
     /// Save answer for detailed test
@@ -327,9 +308,11 @@ public class TestController : ControllerBase {
             throw new UnauthorizedException("User is not authorized");
         }
 
+        await _checkPermissionService.CheckStudentTestPermission(userId, testId);
         await _testService.SaveAnswerDetailedTest(testId, userAnswer, userId);
         return Ok();
     }
+
     /// <summary>
     /// Archive test 
     /// </summary>
@@ -342,6 +325,7 @@ public class TestController : ControllerBase {
             throw new UnauthorizedException("User is not authorized");
         }
 
+        await _checkPermissionService.CheckCreatorTestPermission(userId, testId);
         await _testService.ArchiveTest(testId);
         return Ok();
     }

@@ -40,36 +40,10 @@ public class TestService : ITestService
             Chapter = chapter,
             Question = testModel.Question ?? throw new BadRequestException("Test has no question"),
             Files = testModel.FileIds,
-            TestType = (Common.Enums.TestType)testModel.TestType, 
             PossibleAnswers = new List<SimpleAnswer>()
         };
 
-        foreach (var answer in testModel.PossibleAnswers) {
-            var newAnswer = new SimpleAnswer
-            {
-                AnswerContent = answer.AnswerContent,
-                IsRight = answer.isRight,
-                SimpleAnswerTest = newTest
-            };
-
-            newTest.PossibleAnswers.Add(newAnswer);
-        }
-
         await _dbContext.AddAsync(newTest);
-        await _dbContext.SaveChangesAsync();
-    }
-
-    public async Task EditSimpleTest(Guid testId, TestSimpleCreateDto testModel)
-    {
-        var test = await _dbContext.SimpleAnswerTests
-            .FirstOrDefaultAsync(n => n.Id == testId && !n.ArchivedAt.HasValue);
-        if (test == null)
-            throw new NotFoundException("Test not found");
-
-        test.Question = testModel.Question;
-        test.Files = testModel.FileIds; //files
-
-        _dbContext.Update(test);
         await _dbContext.SaveChangesAsync();
     }
 
@@ -89,18 +63,19 @@ public class TestService : ITestService
         if (test.ArchivedAt.HasValue)
             throw new NotFoundException("Test was deleted");
 
-        var existingUserAnswerTest = await _dbContext.UserAnswerTests
+        var existingUserAnswerTest = _dbContext.UserAnswerTests
             .Include(n => n.UserAnswers)!
-            .FirstOrDefaultAsync(n => n.Test == test && n.Student == student);
+            .Where(n => n.Test == test && n.Student == student)
+            .MaxBy(n => n.NumberOfAttempt);
 
         if (existingUserAnswerTest == null) {
             var newUserAnswerTest = new UserAnswerTest
             {
                 Test = test,
                 Student = student,
-                IsAnswered = false,
+                IsAnswered = null,
                 NumberOfAttempt = 0,
-                UserAnswers = new List<UserAnswer>() // <--- SimpleUserAnswer
+                UserAnswers = new List<UserAnswer>()
             };
 
             var newSimpleUserAnswer = new SimpleUserAnswer
@@ -117,10 +92,10 @@ public class TestService : ITestService
         }
         else {
 
-            foreach (var existAnswer in existingUserAnswerTest.UserAnswers) //clear
-            {
-                _dbContext.Remove(existAnswer);
-            }
+            //foreach (var existAnswer in existingUserAnswerTest.UserAnswers) //clear
+            //{
+            //    _dbContext.Remove(existAnswer);
+            //}
 
             existingUserAnswerTest.UserAnswers = new List<UserAnswer>();
             var newSimpleUserAnswer = new SimpleUserAnswer
@@ -159,7 +134,7 @@ public class TestService : ITestService
 
         if (existingUserAnswerTest == null)
             throw new NotFoundException("User Answer not found");
-        existingUserAnswerTest.IsAnswered = true;
+        existingUserAnswerTest.IsAnswered = DateTime.UtcNow;
 
         _dbContext.Update(existingUserAnswerTest);
         await _dbContext.SaveChangesAsync();
@@ -178,37 +153,10 @@ public class TestService : ITestService
             Chapter = chapter,
             Question = testModel.Question,
             Files = testModel.FileIds, 
-            //TestType = testModel.TestType,
             PossibleAnswers = new List<CorrectSequenceAnswer>()
         };
 
-        foreach (var answer in testModel.PossibleAnswers)
-        {
-            var newAnswer = new CorrectSequenceAnswer
-            {
-                AnswerContent = answer.AnswerContent,
-                RightOrder = answer.RightOrder,
-                CorrectSequenceTest = newTest
-            };
-
-            newTest.PossibleAnswers.Add(newAnswer);
-        }
-
         await _dbContext.AddAsync(newTest);
-        await _dbContext.SaveChangesAsync();
-    }
-
-    public async Task EditCorrectSequenceTest(Guid testId, TestCorrectSequenceCreateDto testModel)
-    {
-        var test = await _dbContext.CorrectSequenceTest
-            .FirstOrDefaultAsync(n => n.Id == testId && !n.ArchivedAt.HasValue);
-        if (test == null)
-            throw new NotFoundException("Test not found");
-
-        test.Question = testModel.Question;
-        test.Files = testModel.FileIds; //files
-        
-        _dbContext.Update(test);
         await _dbContext.SaveChangesAsync();
     }
 
@@ -228,18 +176,19 @@ public class TestService : ITestService
         if (test.ArchivedAt.HasValue)
             throw new NotFoundException("Test was deleted");
 
-        var existingUserAnswerTest = await _dbContext.UserAnswerTests
+        var existingUserAnswerTest = _dbContext.UserAnswerTests
             .Include(n => n.UserAnswers)!
-            .FirstOrDefaultAsync(n => n.Test == test && n.Student == student);
+            .Where(n => n.Test == test && n.Student == student)
+            .MaxBy(n => n.NumberOfAttempt);
 
         if (existingUserAnswerTest == null) {
             var newUserAnswerTest = new UserAnswerTest
             {
                 Test = test,
                 Student = student,
-                IsAnswered = false,
+                IsAnswered = null,
                 NumberOfAttempt = 0,
-                UserAnswers = new List<UserAnswer>() // <--- CorrectSequenceUserAnswer
+                UserAnswers = new List<UserAnswer>() 
             };
 
             foreach (var userAnswer in userAnswers) {
@@ -257,10 +206,10 @@ public class TestService : ITestService
             await _dbContext.SaveChangesAsync();
         }
         else {
-            foreach (var existAnswer in existingUserAnswerTest.UserAnswers) //clear
-            {
-                _dbContext.Remove(existAnswer);
-            }
+            //foreach (var existAnswer in existingUserAnswerTest.UserAnswers) //clear
+            //{
+            //    _dbContext.Remove(existAnswer);
+            //}
             existingUserAnswerTest.UserAnswers = new List<UserAnswer>();
             foreach (var userAnswer in userAnswers)
             {
@@ -300,7 +249,7 @@ public class TestService : ITestService
 
         if (existingUserAnswerTest == null)
             throw new NotFoundException("User Answer not found");
-        existingUserAnswerTest.IsAnswered = true;
+        existingUserAnswerTest.IsAnswered = DateTime.UtcNow;
 
         _dbContext.Update(existingUserAnswerTest);
         await _dbContext.SaveChangesAsync();
@@ -323,20 +272,6 @@ public class TestService : ITestService
         };
 
         await _dbContext.AddAsync(newTest);
-        await _dbContext.SaveChangesAsync();
-    }
-
-    public async Task EditDetailedTest(Guid testId, TestDetailedCreateDto testModel)
-    {
-        var test = await _dbContext.Tests
-            .FirstOrDefaultAsync(n => n.Id == testId && !n.ArchivedAt.HasValue);
-        if (test == null)
-            throw new NotFoundException("Test not found");
-
-        test.Question = testModel.Question;
-        test.Files = testModel.FileIds; //files
-
-        _dbContext.Update(test);
         await _dbContext.SaveChangesAsync();
     }
 
@@ -365,7 +300,7 @@ public class TestService : ITestService
             {
                 Test = test,
                 Student = student,
-                IsAnswered = false,
+                IsAnswered = null,
                 NumberOfAttempt = 0,
                 UserAnswers = new List<UserAnswer>() // <--- DetailedAnswer
             };
@@ -386,10 +321,10 @@ public class TestService : ITestService
         else
         {
 
-            foreach (var existAnswer in existingUserAnswerTest.UserAnswers) //clear
-            {
-                _dbContext.Remove(existAnswer);
-            }
+            //foreach (var existAnswer in existingUserAnswerTest.UserAnswers) //clear
+            //{
+            //    _dbContext.Remove(existAnswer);
+            //}
 
             existingUserAnswerTest.UserAnswers = new List<UserAnswer>();
             var newDetailedAnswer = new DetailedAnswer
@@ -428,7 +363,7 @@ public class TestService : ITestService
 
         if (existingUserAnswerTest == null)
             throw new NotFoundException("User Answer not found");
-        existingUserAnswerTest.IsAnswered = true;
+        existingUserAnswerTest.IsAnswered = DateTime.UtcNow;
 
         _dbContext.Update(existingUserAnswerTest);
         await _dbContext.SaveChangesAsync();
@@ -443,6 +378,20 @@ public class TestService : ITestService
         if (test.ArchivedAt.HasValue)
             throw new ConflictException("Test already archived");
         test.ArchivedAt = DateTime.UtcNow;
+        _dbContext.Update(test);
+        await _dbContext.SaveChangesAsync();
+    }
+
+    public async Task EditTest(Guid testId, EditTestDto testModel)
+    {
+        var test = await _dbContext.Tests
+            .FirstOrDefaultAsync(n => n.Id == testId && !n.ArchivedAt.HasValue);
+        if (test == null)
+            throw new NotFoundException("Test not found");
+
+        test.Question = testModel.Question;
+        test.Files = testModel.FileIds;
+
         _dbContext.Update(test);
         await _dbContext.SaveChangesAsync();
     }

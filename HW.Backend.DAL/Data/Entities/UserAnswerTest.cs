@@ -24,7 +24,7 @@ public class UserAnswerTest
     /// <summary>
     /// Bool check resolve
     /// </summary>
-    public required bool IsAnswered { get; set; }
+    public DateTime? IsAnswered { get; set; }
     /// <summary>
     /// User identifier
     /// </summary>
