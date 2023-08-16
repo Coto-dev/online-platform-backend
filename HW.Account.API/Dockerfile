@@ -9,6 +9,7 @@ COPY ["HW.Account.API/HW.Account.API.csproj", "HW.Account.API/"]
 COPY ["HW.Common/HW.Common.csproj", "HW.Common/"]
 COPY ["HW.Account.BLL/HW.Account.BLL.csproj", "HW.Account.BLL/"]
 COPY ["HW.Account.DAL/HW.Account.DAL.csproj", "HW.Account.DAL/"]
+COPY ["HW.FileManager.BL/HW.FileManager.BL.csproj", "HW.FileManager.BL/"]
 RUN dotnet restore "HW.Account.API/HW.Account.API.csproj"
 COPY . .
 WORKDIR "/src/HW.Account.API"

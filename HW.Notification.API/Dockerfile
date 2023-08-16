@@ -6,6 +6,10 @@ EXPOSE 443
 FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build
 WORKDIR /src
 COPY ["HW.Notification.API/HW.Notification.API.csproj", "HW.Notification.API/"]
+COPY ["HW.FileManager.BL/HW.FileManager.BL.csproj", "HW.FileManager.BL/"]
+COPY ["HW.Common/HW.Common.csproj", "HW.Common/"]
+COPY ["HW.Account.DAL/HW.Account.DAL.csproj", "HW.Account.DAL/"]
+COPY ["HW.Account.BLL/HW.Account.BLL.csproj", "HW.Account.BLL/"]
 RUN dotnet restore "HW.Notification.API/HW.Notification.API.csproj"
 COPY . .
 WORKDIR "/src/HW.Notification.API"
