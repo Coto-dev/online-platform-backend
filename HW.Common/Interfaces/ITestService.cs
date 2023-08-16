@@ -15,7 +15,7 @@ namespace HW.Common.Interfaces
         public Task AddAnswerToSimpleTest(Guid testId, SimpleAnswerDto newAnswer); 
         public Task EditAnswerInSimpleTest(Guid answerId, SimpleAnswerDto answer); 
         public Task DeleteAnswerFromSimpleTest(Guid testId, Guid answerId); 
-        public Task SaveAnswerSimpleTest(Guid testId, UserAnswerSimpleDto userAnswer, Guid userId); 
+        public Task SaveAnswerSimpleTest(Guid testId, List<UserAnswerSimpleDto> userAnswers, Guid userId); 
         public Task AnswerSimpleTest(Guid testId, Guid userId); 
         public Task AddCorrectSequenceTestToChapter(Guid chapterId, TestCorrectSequenceCreateDto model); 
         public Task AnswerCorrectSequenceTest(Guid testId, Guid userId); 

@@ -47,8 +47,8 @@ public class TestService : ITestService
         await _dbContext.SaveChangesAsync();
     }
 
-    public async Task SaveAnswerSimpleTest(Guid testId, UserAnswerSimpleDto userAnswer, Guid userId)
-    {
+    public async Task SaveAnswerSimpleTest(Guid testId, List<UserAnswerSimpleDto> userAnswers, Guid userId)
+    { 
         var student = await _dbContext.Students
             .FirstOrDefaultAsync(n => n.Id == userId);
         if (student == null)
@@ -68,6 +68,10 @@ public class TestService : ITestService
             .Where(n => n.Test == test && n.Student == student)
             .MaxBy(n => n.NumberOfAttempt);
 
+        if (test.TestType == TestType.SingleAnswer && (userAnswers.Count != 1))
+            throw new ConflictException("The number of answers is more than 1");
+        
+
         if (existingUserAnswerTest == null) {
             var newUserAnswerTest = new UserAnswerTest
             {
@@ -78,14 +82,17 @@ public class TestService : ITestService
                 UserAnswers = new List<UserAnswer>()
             };
 
-            var newSimpleUserAnswer = new SimpleUserAnswer
+            foreach (var userAnswer in userAnswers)
             {
-                SimpleAnswer = test.PossibleAnswers.FirstOrDefault(n => n.Id == userAnswer.Id)
-                     ?? throw new NotFoundException("Answer not found"),
-                UserAnswerTest = newUserAnswerTest
-            };
+                var newSimpleUserAnswer = new SimpleUserAnswer
+                {
+                    SimpleAnswer = test.PossibleAnswers.FirstOrDefault(n => n.Id == userAnswer.Id)
+                          ?? throw new NotFoundException("Answer not found"),
+                    UserAnswerTest = newUserAnswerTest
+                };
 
-            newUserAnswerTest.UserAnswers.Add(newSimpleUserAnswer);
+                newUserAnswerTest.UserAnswers.Add(newSimpleUserAnswer);
+            }
 
             await _dbContext.UserAnswerTests.AddAsync(newUserAnswerTest);
             await _dbContext.SaveChangesAsync();
@@ -98,14 +105,18 @@ public class TestService : ITestService
             //}
 
             existingUserAnswerTest.UserAnswers = new List<UserAnswer>();
-            var newSimpleUserAnswer = new SimpleUserAnswer
-            {
-                SimpleAnswer = test.PossibleAnswers.FirstOrDefault(n => n.Id == userAnswer.Id)
-                     ?? throw new NotFoundException("Answer not found"),
-                UserAnswerTest = existingUserAnswerTest
-            };
 
-            existingUserAnswerTest.UserAnswers.Add(newSimpleUserAnswer);
+            foreach (var userAnswer in userAnswers)
+            {
+                var newSimpleUserAnswer = new SimpleUserAnswer
+                {
+                    SimpleAnswer = test.PossibleAnswers.FirstOrDefault(n => n.Id == userAnswer.Id)
+                        ?? throw new NotFoundException("Answer not found"),
+                    UserAnswerTest = existingUserAnswerTest
+                };
+
+                existingUserAnswerTest.UserAnswers.Add(newSimpleUserAnswer);
+            }
 
             _dbContext.Update(existingUserAnswerTest);
             await _dbContext.SaveChangesAsync();
@@ -176,11 +187,14 @@ public class TestService : ITestService
         if (test.ArchivedAt.HasValue)
             throw new NotFoundException("Test was deleted");
 
+        if (test.PossibleAnswers.Count < userAnswers.Count)
+            throw new ConflictException("The number of answers is more then maximum");
+
         var existingUserAnswerTest = _dbContext.UserAnswerTests
             .Include(n => n.UserAnswers)!
             .Where(n => n.Test == test && n.Student == student)
             .MaxBy(n => n.NumberOfAttempt);
-
+        
         if (existingUserAnswerTest == null) {
             var newUserAnswerTest = new UserAnswerTest
             {

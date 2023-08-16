@@ -72,7 +72,7 @@ public class TestController : ControllerBase {
     /// </summary>
     [HttpPut]
     [Route("{testId}/simple/save")]
-    public async Task<ActionResult> SaveAnswerSimpleTest(Guid testId, [FromBody] UserAnswerSimpleDto userAnswers) {
+    public async Task<ActionResult> SaveAnswerSimpleTest(Guid testId, [FromBody] List<UserAnswerSimpleDto> userAnswers) {
         if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false)
         {
             throw new UnauthorizedException("User is not authorized");
@@ -88,7 +88,7 @@ public class TestController : ControllerBase {
     /// </summary>
     [HttpPost]
     [Route("{testId}/simple")]
-    public async Task<ActionResult> AnswerSimpleTest(Guid testId, [FromBody] UserAnswerSimpleDto userAnswers) {
+    public async Task<ActionResult> AnswerSimpleTest(Guid testId, [FromBody] List<UserAnswerSimpleDto> userAnswers) {
         if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false)
         {
             throw new UnauthorizedException("User is not authorized");
