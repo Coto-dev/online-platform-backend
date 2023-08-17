@@ -1,0 +1,29 @@
+name: CD
+on:
+  push: branches: [master]
+
+  workflow_dispatch:
+
+env:
+  SERVER_HOST: 92.63.64.241
+  SERVER_USER: laborant
+  SERVER_PATH: hw-back
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+  steps:
+    - uses: actions/checkout@v3
+    - name: Build
+      run: docker-compose up -d
+      
+    # Setup key
+    - run: set -eu
+    - run: mkdir "$HOME/.ssh"
+    - run: echo "${{ secrets.KEY }}" > "$HOME/.ssh/key" 
+    - run: chmod 600 "$HOME/.ssh/key"
+
+    # Deploy
+    - run: rsync -e "ssh -i $HOME/.ssh/key -o StrictHostKeyChecking=no" --archive --compress --delete . ${{env.SERVER_USER}}@${{env.SERVER_HOST}}:${{env.SERVER_PATH}}
+
+    - run: ssh -t ${{env.SERVER_USER}}@${{env.SERVER_HOST}} 'sudo docker-compose up -d'
