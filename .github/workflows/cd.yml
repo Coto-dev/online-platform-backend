@@ -26,4 +26,4 @@ jobs:
       # Deploy
       - run: rsync -e "ssh -i $HOME/.ssh/key -o StrictHostKeyChecking=no" --archive --compress --delete . ${{env.SERVER_USER}}@${{env.SERVER_HOST}}:${{env.SERVER_PATH}}
   
-      - run: ssh -i $HOME/.ssh/key -o StrictHostKeyChecking=no -t ${{env.SERVER_USER}}@${{env.SERVER_HOST}} 'sudo docker-compose up -d'
+      - run: ssh -i $HOME/.ssh/key -o StrictHostKeyChecking=no ${{env.SERVER_USER}}@${{env.SERVER_HOST}} 'docker-compose up -d'
