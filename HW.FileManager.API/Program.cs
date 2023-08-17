@@ -47,15 +47,16 @@ builder.Services.AddSwaggerGen(option => {
 builder.Services.AddAuthorization();
 builder.Services.AddJwtAuthentication(builder.Configuration);
 
-
-var app = builder.Build();
-
 var logger = new LoggerConfiguration()
     .ReadFrom.Configuration(builder.Configuration)
     .Enrich.FromLogContext()
     .CreateLogger();
 builder.Logging.ClearProviders();
 builder.Logging.AddSerilog(logger);
+
+var app = builder.Build();
+
+
 
 await app.CreateBuckets();
 

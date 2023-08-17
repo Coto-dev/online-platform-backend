@@ -1,0 +1,53 @@
+version: '3'
+services:
+
+  hw-account:
+    build:
+      context: .
+      dockerfile: HW.Account.API/Dockerfile
+    ports:
+      - "7000:80"
+    restart: always
+    volumes:
+      - /var/log/hw-online/hw-account:/app/logs
+
+  hw-backend:
+    build:
+      context: .
+      dockerfile: HW.Backend.API/Dockerfile
+    ports:
+      - "8000:80"
+    restart: always
+    volumes:
+      - /var/log/hw-online/hw-backend:/app/logs
+
+  hw-email-reciever:
+    build:
+      context: .
+      dockerfile: HW.EmailReciever.MVC/Dockerfile
+    ports:
+      - "9050:80"
+    restart: always
+    volumes:
+      - /var/log/hw-online/hw-email-reciever:/app/logs
+
+  hw-file-manager:
+    build:
+      context: .
+      dockerfile: HW.FileManager.API/Dockerfile
+    ports:
+      - "10000:80"
+    restart: always
+    volumes:
+      - /var/log/hw-online/hw-file-manager:/app/logs
+
+  hw-notification:
+    build:
+      context: .
+      dockerfile: HW.Notification.API/Dockerfile
+    ports:
+      - "11000:80"
+    restart: always
+    volumes:
+      - /var/log/hw-online/hw-notification:/app/logs
+
