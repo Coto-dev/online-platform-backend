@@ -77,7 +77,7 @@ public class TestService : ITestService
             {
                 Test = test,
                 Student = student,
-                IsAnswered = null,
+                AnsweredAt = null,
                 NumberOfAttempt = 0,
                 UserAnswers = new List<UserAnswer>()
             };
@@ -145,7 +145,7 @@ public class TestService : ITestService
 
         if (existingUserAnswerTest == null)
             throw new NotFoundException("User Answer not found");
-        existingUserAnswerTest.IsAnswered = DateTime.UtcNow;
+        existingUserAnswerTest.AnsweredAt = DateTime.UtcNow;
 
         _dbContext.Update(existingUserAnswerTest);
         await _dbContext.SaveChangesAsync();
@@ -200,7 +200,7 @@ public class TestService : ITestService
             {
                 Test = test,
                 Student = student,
-                IsAnswered = null,
+                AnsweredAt = null,
                 NumberOfAttempt = 0,
                 UserAnswers = new List<UserAnswer>() 
             };
@@ -263,7 +263,7 @@ public class TestService : ITestService
 
         if (existingUserAnswerTest == null)
             throw new NotFoundException("User Answer not found");
-        existingUserAnswerTest.IsAnswered = DateTime.UtcNow;
+        existingUserAnswerTest.AnsweredAt = DateTime.UtcNow;
 
         _dbContext.Update(existingUserAnswerTest);
         await _dbContext.SaveChangesAsync();
@@ -314,7 +314,7 @@ public class TestService : ITestService
             {
                 Test = test,
                 Student = student,
-                IsAnswered = null,
+                AnsweredAt = null,
                 NumberOfAttempt = 0,
                 UserAnswers = new List<UserAnswer>() // <--- DetailedAnswer
             };
@@ -377,7 +377,7 @@ public class TestService : ITestService
 
         if (existingUserAnswerTest == null)
             throw new NotFoundException("User Answer not found");
-        existingUserAnswerTest.IsAnswered = DateTime.UtcNow;
+        existingUserAnswerTest.AnsweredAt = DateTime.UtcNow;
 
         _dbContext.Update(existingUserAnswerTest);
         await _dbContext.SaveChangesAsync();

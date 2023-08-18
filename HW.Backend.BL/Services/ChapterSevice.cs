@@ -21,7 +21,7 @@ public class ChapterService : IChapterService
 
     public async Task LearnChapter(Guid chapterId, Guid userId)
     {
-        var user = await _dbContext.UserBackends
+        var user = await _dbContext.Students
             .FirstOrDefaultAsync(c => c.Id == userId);
 
         if (user == null) 

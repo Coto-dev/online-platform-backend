@@ -22,9 +22,9 @@ public class UserAnswerTest
     /// </summary>
     public required int NumberOfAttempt { get; set; }
     /// <summary>
-    /// Bool check resolve
+    /// Datetime check resolve
     /// </summary>
-    public DateTime? IsAnswered { get; set; }
+    public DateTime? AnsweredAt { get; set; }
     /// <summary>
     /// User identifier
     /// </summary>

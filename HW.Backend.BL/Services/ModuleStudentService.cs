@@ -193,7 +193,7 @@ public class ModuleStudentService : IModuleStudentService {
                             }).ToList(),
                         IsAnswered =  _dbContext.UserAnswerTests
                             .Where(uat=>uat.Student == user && uat.Test == t)
-                            .MaxBy(uat=>uat.NumberOfAttempt)!.IsAnswered 
+                            .MaxBy(uat=>uat.NumberOfAttempt)!.AnsweredAt.HasValue 
                     } : t.TestType is TestType.CorrectSequenceAnswer ? new UserAnswerFullDto {
                                 UserAnswerCorrectSequences = _dbContext.UserAnswers.OfType<CorrectSequenceUserAnswer>()
                                 .Where(u=>u.UserAnswerTest.Test == t && u.UserAnswerTest.Student == user)
@@ -203,14 +203,14 @@ public class ModuleStudentService : IModuleStudentService {
                                 }).ToList(),
                                 IsAnswered = _dbContext.UserAnswerTests
                                     .Where(uat=>uat.Student == user && uat.Test == t)
-                                    .MaxBy(uat=>uat.NumberOfAttempt)!.IsAnswered 
+                                    .MaxBy(uat=>uat.NumberOfAttempt)!.AnsweredAt.HasValue 
                             } : t.TestType is TestType.DetailedAnswer ? new UserAnswerFullDto {
                                 DetailedAnswer = _dbContext.UserAnswers.OfType<DetailedAnswer>()
                                     .FirstOrDefault(u=>u.UserAnswerTest.Test == t && u.UserAnswerTest.Student == user)!
                                     .AnswerContent,
                                 IsAnswered = _dbContext.UserAnswerTests
                                     .Where(uat=>uat.Student == user && uat.Test == t)
-                                    .MaxBy(uat=>uat.NumberOfAttempt)!.IsAnswered
+                                    .MaxBy(uat=>uat.NumberOfAttempt)!.AnsweredAt.HasValue
                             } : null : null,
                     Type = t.TestType,
                 }).ToList()

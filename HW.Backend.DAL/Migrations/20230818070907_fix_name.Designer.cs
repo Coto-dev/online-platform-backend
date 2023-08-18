@@ -13,8 +13,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace HW.Backend.DAL.Migrations
 {
     [DbContext(typeof(BackendDbContext))]
-    [Migration("20230730082633_Initial")]
-    partial class Initial
+    [Migration("20230818070907_fix_name")]
+    partial class fix_name
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -159,6 +159,9 @@ namespace HW.Backend.DAL.Migrations
                     b.Property<DateTime?>("ArchivedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<string>("AvatarId")
+                        .HasColumnType("text");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -190,7 +193,7 @@ namespace HW.Backend.DAL.Migrations
                     b.Property<Guid>("ChapterId")
                         .HasColumnType("uuid");
 
-                    b.Property<DateTime>("LearnDate")
+                    b.Property<DateTime?>("LearnDate")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<Guid>("LearnedById")
@@ -213,6 +216,9 @@ namespace HW.Backend.DAL.Migrations
 
                     b.Property<DateTime?>("ArchivedAt")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("AvatarId")
+                        .HasColumnType("text");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -472,8 +478,8 @@ namespace HW.Backend.DAL.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<bool>("IsAnswered")
-                        .HasColumnType("boolean");
+                    b.Property<DateTime?>("AnsweredAt")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<int>("NumberOfAttempt")
                         .HasColumnType("integer");
@@ -598,7 +604,7 @@ namespace HW.Backend.DAL.Migrations
                 {
                     b.HasBaseType("HW.Backend.DAL.Data.Entities.UserAnswer");
 
-                    b.Property<int>("Accuracy")
+                    b.Property<int?>("Accuracy")
                         .HasColumnType("integer");
 
                     b.Property<string>("AnswerContent")

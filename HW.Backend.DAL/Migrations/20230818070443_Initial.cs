@@ -20,6 +20,7 @@ namespace HW.Backend.DAL.Migrations
                     Name = table.Column<string>(type: "text", nullable: false),
                     Description = table.Column<string>(type: "text", nullable: false),
                     Price = table.Column<int>(type: "integer", nullable: false),
+                    AvatarId = table.Column<string>(type: "text", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     EditedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     ArchivedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
@@ -37,6 +38,7 @@ namespace HW.Backend.DAL.Migrations
                     Name = table.Column<string>(type: "text", nullable: false),
                     Description = table.Column<string>(type: "text", nullable: false),
                     Price = table.Column<int>(type: "integer", nullable: false),
+                    AvatarId = table.Column<string>(type: "text", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     EditedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     ArchivedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
@@ -378,7 +380,7 @@ namespace HW.Backend.DAL.Migrations
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     LearnedById = table.Column<Guid>(type: "uuid", nullable: false),
                     ChapterId = table.Column<Guid>(type: "uuid", nullable: false),
-                    LearnDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                    LearnDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -469,7 +471,7 @@ namespace HW.Backend.DAL.Migrations
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     TestId = table.Column<Guid>(type: "uuid", nullable: false),
                     NumberOfAttempt = table.Column<int>(type: "integer", nullable: false),
-                    IsAnswered = table.Column<bool>(type: "boolean", nullable: false),
+                    IsAnswered = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     StudentId = table.Column<Guid>(type: "uuid", nullable: false)
                 },
                 constraints: table =>
