@@ -25,7 +25,7 @@ public class FileService : IFileService {
                 .WithCredentials(
                 _configuration.GetSection("MinioCredentials")["Access"],
                 _configuration.GetSection("MinioCredentials")["Secret"])
-                .WithSSL(true)
+                .WithSSL(_configuration.GetSection("MinioCredentials")["SSL"] == "True")
                 .Build();
     }
 
