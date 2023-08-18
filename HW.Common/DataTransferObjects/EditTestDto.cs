@@ -1,11 +1,12 @@
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using HW.Common.Enums;
 
-namespace HW.Common.DataTransferObjects; 
+namespace HW.Common.DataTransferObjects;
 /// <summary>
 /// Моделька, чтобы преподаватель создавал тест
 /// </summary>
-public class TestSimpleCreateDto {
+public class EditTestDto
+{
     [Required]
     public string Question { get; set; }
     [Required]

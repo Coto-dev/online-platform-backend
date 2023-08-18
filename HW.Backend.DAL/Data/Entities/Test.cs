@@ -9,7 +9,7 @@ public class Test
     /// <summary>
     /// Test's id
     /// </summary>
-    public Guid Id { get; set; }
+    public Guid Id { get; set; } = Guid.NewGuid();
     /// <summary>
     /// Date and time the test was created
     /// </summary>
