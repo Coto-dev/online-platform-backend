@@ -8,6 +8,15 @@ using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddCors(options => {
+    options.AddDefaultPolicy(
+        policy => {
+            policy.AllowAnyOrigin()
+                .AllowAnyHeader()
+                .AllowAnyMethod();
+        });
+});
+
 // Add services to the container.
 builder.Services.AddFileServiceDependencies();
 
@@ -47,15 +56,16 @@ builder.Services.AddSwaggerGen(option => {
 builder.Services.AddAuthorization();
 builder.Services.AddJwtAuthentication(builder.Configuration);
 
-
-var app = builder.Build();
-
 var logger = new LoggerConfiguration()
     .ReadFrom.Configuration(builder.Configuration)
     .Enrich.FromLogContext()
     .CreateLogger();
 builder.Logging.ClearProviders();
 builder.Logging.AddSerilog(logger);
+
+var app = builder.Build();
+
+
 
 await app.CreateBuckets();
 
@@ -65,6 +75,8 @@ app.UseSwaggerUI();
 
 
 app.UseHttpsRedirection();
+
+app.UseCors();
 
 app.UseAuthorization();
 app.UseErrorHandleMiddleware();
