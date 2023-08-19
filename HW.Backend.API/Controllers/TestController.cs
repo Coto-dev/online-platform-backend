@@ -20,7 +20,7 @@ public class TestController : ControllerBase {
     private readonly ITestService _testService;
     private readonly ICheckPermissionService _checkPermissionService;
 
-    /// <summary>
+    /*/// <summary>
     /// Constructor
     /// </summary>
     /// <param name="logger"></param>
@@ -328,5 +328,5 @@ public class TestController : ControllerBase {
         await _checkPermissionService.CheckCreatorTestPermission(userId, testId);
         await _testService.ArchiveTest(testId);
         return Ok();
-    }
+    }*/
 }
