@@ -244,7 +244,7 @@ public class ModuleStudentService : IModuleStudentService {
             Status = user?.Modules != null && user.Modules.Any(m => m.Module == module)
                 ? user.Modules.FirstOrDefault(m => m.Module == module)!.ModuleStatus
                 : ModuleStatusType.NotPurchased,
-            Type = ModuleType.StreamingModule,
+            Type = streamingModule == null ? ModuleType.SelfStudyModule : ModuleType.StreamingModule,
             RequiredModules = module.RecommendedModules != null
                 ? module.RecommendedModules.Select(m => new RequiredModulesDto {
                     Id = m.Id,
