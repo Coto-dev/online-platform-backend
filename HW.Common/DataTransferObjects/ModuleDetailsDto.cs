@@ -11,6 +11,7 @@ public class ModuleDetailsDto {
     public ModuleStatusType Status { get; set; }
     public ModuleType Type { get; set; }
     public List<RequiredModulesDto> RequiredModules { get; set; } = new();
+    public ModuleVisibilityType? VisibilityType { get; set; }
     public DateTime? StartDate { get; set; }
     public DateTime? ExpirationDate { get; set; }
     public int? MaxStudents { get; set; }

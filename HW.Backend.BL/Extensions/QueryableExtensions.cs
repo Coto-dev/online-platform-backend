@@ -36,7 +36,7 @@ public static  class QueryableExtensions {
                            || (filter.ModuleTypes!.Contains(ModuleType.SelfStudyModule) 
                                && x.GetType() == typeof(Module)))
                            && (section == null || (section == ModuleFilterTeacherType.Draft 
-                                                   && x.ModuleVisibility == ModuleVisibilityType.OnlyMe)
+                                                   && x.ModuleVisibility == ModuleVisibilityType.OnlyCreators)
                            || (section == ModuleFilterTeacherType.Published 
                                && x.ModuleVisibility == ModuleVisibilityType.Everyone)
                            || (section == ModuleFilterTeacherType.Taught && x.Teachers!.Any(t=>t.Id == userId)))

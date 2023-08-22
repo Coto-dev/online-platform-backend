@@ -1,7 +1,7 @@
 namespace HW.Common.Enums; 
 
 public enum ModuleVisibilityType {
-    OnlyMe,
+    OnlyCreators,
     OnlyTeachers,
     Everyone
 }

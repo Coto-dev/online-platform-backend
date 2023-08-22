@@ -68,8 +68,13 @@ public class FileService : IFileService {
             .WithBucket(_configuration.GetSection("MinioCredentials")["ImageBucketName"])
             .WithObject(avatarId)
             .WithExpiry(1000);
-        var presignedUrl = await _minioClient.PresignedGetObjectAsync(args).ConfigureAwait(false);
-        return presignedUrl;
+        try {
+            var presignedUrl = await _minioClient.PresignedGetObjectAsync(args).ConfigureAwait(false);
+            return presignedUrl;
+        }
+        catch (Exception e) {
+            return null;
+        }
     }
 
     public async Task<string> GetFileLink(string fileId) {

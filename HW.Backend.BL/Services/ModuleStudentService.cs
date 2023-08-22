@@ -34,7 +34,7 @@ public class ModuleStudentService : IModuleStudentService {
             throw new BadRequestException("Wrong page");
         
         var modules = _dbContext.Modules
-            .Where(m => !m.ArchivedAt.HasValue)
+            .Where(m => !m.ArchivedAt.HasValue && m.ModuleVisibility == ModuleVisibilityType.Everyone)
             .ModuleAvailableFilter(filter,sortByNameFilter)
             .ModuleOrderBy(sortModuleType)
             .AsQueryable()
@@ -227,6 +227,10 @@ public class ModuleStudentService : IModuleStudentService {
             .Include(u=>u.Modules)!
             .ThenInclude(m=>m.Module)
             .FirstOrDefaultAsync(u => u.Id == userId);
+
+        if (module.Creators.IsNullOrEmpty() || (module.Creators!.All(c => c.Id != userId) &&
+                                                module.ModuleVisibility == ModuleVisibilityType.OnlyCreators))
+            throw new ForbiddenException("Module is private");
         
         var streamingModule = module as StreamingModule; 
         
@@ -249,13 +253,14 @@ public class ModuleStudentService : IModuleStudentService {
                 ? module.RecommendedModules.Select(m => new RequiredModulesDto {
                     Id = m.Id,
                     Avatar = new FileLinkDto{
-                        FileId = !module.Creators.IsNullOrEmpty() ? module.Creators!.Any(c=>c.Id == userId) ? m.AvatarId : null : null,
+                        FileId = !module.Creators.IsNullOrEmpty() && module.Creators!.Any(c=>c.Id == userId) ? m.AvatarId : null,
                         Url = m.AvatarId
                         },
                     Name = m.Name
                 }).ToList()
                 : new List<RequiredModulesDto>(),
-            StartDate = streamingModule?.StartAt ,
+            VisibilityType = !module.Creators.IsNullOrEmpty() && module.Creators!.Any(c=>c.Id == userId) ? module.ModuleVisibility : null,
+            StartDate = streamingModule?.StartAt,
             ExpirationDate = streamingModule?.ExpiredAt,
             MaxStudents = streamingModule?.MaxStudents,
         };
