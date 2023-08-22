@@ -24,15 +24,19 @@ jobs:
           dotnet-version: ${{ matrix.dotnet-version }}
           
       - name: Restore
-        run: cd HW.Account.API && dotnet restore "HW.Account.API.csproj"
+        working-directory: ./HW.Account.API
+        run: dotnet restore "HW.Account.API.csproj"
 
       - name: Build
+        working-directory: ./HW.Account.API
         run: dotnet build "HW.Account.API.csproj" -c Release -o /app/build
 
       - name: Publish
+        working-directory: ./HW.Account.API
         run: dotnet publish "HW.Account.API.csproj" -c Release -o /app/publish /p:UseAppHost=false
 
       - name: Run
+        working-directory: ./HW.Account.API
         run: dotnet HW.Account.API.dll
         
       # Setup key
