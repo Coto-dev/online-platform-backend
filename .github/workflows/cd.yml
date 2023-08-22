@@ -13,6 +13,10 @@ env:
 jobs:
   build-account-api:
     runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        dotnet-version: [ '6.0.x', '7.0.x' ]
     
     steps:
       - name: Checkout code
