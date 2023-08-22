@@ -24,7 +24,7 @@ jobs:
           dotnet-version: ${{ matrix.dotnet-version }}
           
       - name: Restore
-        run: dotnet restore "HW.Account.API/HW.Account.API.csproj"
+        run: cd HW.Account.API && dotnet restore "HW.Account.API.csproj"
 
       - name: Build
         run: dotnet build "HW.Account.API.csproj" -c Release -o /app/build
