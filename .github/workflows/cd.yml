@@ -16,7 +16,7 @@ jobs:
 
     strategy:
       matrix:
-        dotnet-version: [ '6.0.x', '7.0.x' ]
+        dotnet-version: [ '7.0.x' ]
     
     steps:
       - name: Checkout code
@@ -31,12 +31,12 @@ jobs:
         working-directory: ./HW.Account.API
         run: dotnet restore "HW.Account.API.csproj"
 
+      - name: Create App folder
+        run: mkdir app
+        
       - name: Build
         working-directory: ./HW.Account.API
         run: dotnet build "HW.Account.API.csproj" -c Release -o /app/build
-
-      - name: Create App folder
-        run: mkdir app
         
       - name: Publish
         working-directory: ./HW.Account.API
