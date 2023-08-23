@@ -30,17 +30,14 @@ jobs:
       - name: Restore
         working-directory: ./HW.Account.API
         run: dotnet restore "HW.Account.API.csproj"
-
-      - name: Create App folder
-        run: mkdir app
         
       - name: Build
         working-directory: ./HW.Account.API
-        run: dotnet build "HW.Account.API.csproj" -c Release -o /app/build
+        run: dotnet build "HW.Account.API.csproj"
         
       - name: Publish
         working-directory: ./HW.Account.API
-        run: dotnet publish "HW.Account.API.csproj" -c Release -o /app/publish /p:UseAppHost=false
+        run: dotnet publish "HW.Account.API.csproj"
 
       - name: Run
         working-directory: ./HW.Account.API
