@@ -20,7 +20,7 @@ public class StudentModule
     /// </summary>
     public required Module Module { get; set; }
     /// <summary>
-    /// Module status type
+    /// Relationship between module and student
     /// </summary>
     public ModuleStatusType ModuleStatus { get; set; }
 

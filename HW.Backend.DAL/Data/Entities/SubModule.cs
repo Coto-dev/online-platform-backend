@@ -29,6 +29,11 @@ public class SubModule
     public required string Name { get; set; }
     
     /// <summary>
+    /// Number of order for sorting
+    /// </summary>
+    public string? Order { get; set; }
+
+    /// <summary>
     /// Module 
     /// </summary>
     public required Module Module { get; set; }

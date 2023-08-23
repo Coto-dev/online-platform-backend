@@ -23,6 +23,10 @@ public class Test
     /// </summary>
     public DateTime? ArchivedAt { get; set; }
     /// <summary>
+    /// Number of order for sorting
+    /// </summary>
+    public string? Order { get; set; }
+    /// <summary>
     /// Chapter identifier
     /// </summary>
     public required Chapter Chapter { get; set; }
