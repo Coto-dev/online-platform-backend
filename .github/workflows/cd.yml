@@ -35,6 +35,9 @@ jobs:
         working-directory: ./HW.Account.API
         run: dotnet build "HW.Account.API.csproj" -c Release -o /app/build
 
+      - name: Create App folder
+        run: mkdir app
+        
       - name: Publish
         working-directory: ./HW.Account.API
         run: dotnet publish "HW.Account.API.csproj" -c Release -o /app/publish /p:UseAppHost=false
