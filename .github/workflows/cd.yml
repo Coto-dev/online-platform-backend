@@ -33,14 +33,14 @@ jobs:
         
       - name: Build
         working-directory: ./HW.Account.API
-        run: dotnet build "HW.Account.API.csproj"
+        run: dotnet build "HW.Account.API.csproj" Release
         
       - name: Publish
         working-directory: ./HW.Account.API
-        run: dotnet publish "HW.Account.API.csproj"
+        run: dotnet publish "HW.Account.API.csproj" Release
 
       - name: Run
-        working-directory: ./HW.Account.API
+        working-directory: ./HW.Account.API/bin/Release/net7.0
         run: dotnet HW.Account.API.dll
         
       # Setup key
