@@ -131,6 +131,16 @@ jobs:
         working-directory: ./HW.Notification.API
         run: dotnet build "HW.Notification.API.csproj" -c Release
         
+  deploy:
+    needs:
+      - build-account-api
+      - build-backend-api
+      - build-email-reciever-mvc
+      - build-file-manager-api
+      - build-notification-api
+    
+    runs-on: ubuntu-latest
+    steps:
       # Setup key
       - run: set -eu
       - run: mkdir "$HOME/.ssh"
