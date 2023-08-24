@@ -23,7 +23,7 @@ public class TestController : ControllerBase {
     /// Add simple test to chapter
     /// </summary>
     [HttpPost]
-    [Route("chapter/{chapterId}/simple")]
+    [Route("chapter/{chapterId}/simpleeeeeeeee")]
     public async Task<ActionResult> AddTestToChapter(Guid chapterId, [FromBody] TestSimpleCreateDto model) {
         throw new NotImplementedException();
     }
