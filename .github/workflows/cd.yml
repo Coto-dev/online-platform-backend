@@ -34,14 +34,102 @@ jobs:
       - name: Build
         working-directory: ./HW.Account.API
         run: dotnet build "HW.Account.API.csproj" -c Release
-        
-      - name: Publish
-        working-directory: ./HW.Account.API
-        run: dotnet publish "HW.Account.API.csproj" -c Release
 
-      - name: Run
-        working-directory: ./HW.Account.API/bin/Release/net7.0
-        run: dotnet HW.Account.API.dll
+  build-backend-api:
+    runs-on: ubuntu-latest
+  
+    strategy:
+      matrix:
+        dotnet-version: [ '7.0.x' ]
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        
+      - name: Setup .NET Core SDK ${{ matrix.dotnet-version }}
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: ${{ matrix.dotnet-version }}
+          
+      - name: Restore
+        working-directory: ./HW.Backend.API
+        run: dotnet restore "HW.Backend.API.csproj"
+        
+      - name: Build
+        working-directory: ./HW.Backend.API
+        run: dotnet build "HW.Backend.API.csproj" -c Release
+
+  build-email-reciever-mvc:
+    runs-on: ubuntu-latest
+  
+    strategy:
+      matrix:
+        dotnet-version: [ '7.0.x' ]
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        
+      - name: Setup .NET Core SDK ${{ matrix.dotnet-version }}
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: ${{ matrix.dotnet-version }}
+          
+      - name: Restore
+        working-directory: ./HW.EmailReciever.MVC
+        run: dotnet restore "HW.EmailReciever.MVC.csproj"
+        
+      - name: Build
+        working-directory: ./HW.EmailReciever.MVC
+        run: dotnet build "HW.EmailReciever.MVC.csproj" -c Release
+
+  build-file-manager-api:
+    runs-on: ubuntu-latest
+  
+    strategy:
+      matrix:
+        dotnet-version: [ '7.0.x' ]
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        
+      - name: Setup .NET Core SDK ${{ matrix.dotnet-version }}
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: ${{ matrix.dotnet-version }}
+          
+      - name: Restore
+        working-directory: ./HW.FileManager.API
+        run: dotnet restore "HW.FileManager.API.csproj"
+        
+      - name: Build
+        working-directory: ./HW.FileManager.API
+        run: dotnet build "HW.FileManager.API.csproj" -c Release
+
+  build-notification-api:
+    runs-on: ubuntu-latest
+  
+    strategy:
+      matrix:
+        dotnet-version: [ '7.0.x' ]
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        
+      - name: Setup .NET Core SDK ${{ matrix.dotnet-version }}
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: ${{ matrix.dotnet-version }}
+          
+      - name: Restore
+        working-directory: ./HW.Notification.API
+        run: dotnet restore "HW.Notification.API.csproj"
+        
+      - name: Build
+        working-directory: ./HW.Notification.API
+        run: dotnet build "HW.Notification.API.csproj" -c Release
         
       # Setup key
       - run: set -eu
