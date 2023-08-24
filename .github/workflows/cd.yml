@@ -158,6 +158,12 @@ jobs:
       - run:  docker context use remote
 
       - run: docker-compose --context remote down
+
+      - run: docker image rm hw-backend_hw-account
+      - run: docker image rm hw-backend_hw-backend
+      - run: docker image rm hw-backend_hw-email-reciever
+      - run: docker image rm hw-backend_hw-file-manager
+      - run: docker image rm hw-backend_hw-notification
       
       - name: docker-compose run
         run: docker-compose --context remote up -d --force-recreate
