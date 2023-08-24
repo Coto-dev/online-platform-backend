@@ -143,18 +143,12 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-
-      - name: Setup Python 3.8
-        uses: actions/setup-python@v2
         
       - name: Using a trusted host
         uses: kielabokkie/ssh-key-and-known-hosts-action@v1
         with:
           ssh-private-key: ${{ secrets.KEY }}
           ssh-host: ${{env.SERVER_HOST}}
-
-      - name: Upgrade docker-compose
-        run: pip install docker-compose
         
       - run: touch .env
 
