@@ -141,13 +141,30 @@ jobs:
     
     runs-on: ubuntu-latest
     steps:
-      # Setup key
-      - run: set -eu
-      - run: mkdir "$HOME/.ssh"
-      - run: echo "${{ secrets.KEY }}" > "$HOME/.ssh/key" 
-      - run: chmod 600 "$HOME/.ssh/key"
-  
-      # Deploy
-      - run: rsync -e "ssh -i $HOME/.ssh/key -o StrictHostKeyChecking=no" --archive --compress --delete . ${{env.SERVER_USER}}@${{env.SERVER_HOST}}:${{env.SERVER_PATH}}
-  
-      - run: ssh -p ${{ secrets.PASSWORD }} ${{env.SERVER_USER}}@${{env.SERVER_HOST}} 'sudo docker-compose up -d'
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Python 3.8
+        uses: actions/setup-python@v2
+        
+      - name: Using a trusted host
+        uses: kielabokkie/ssh-key-and-known-hosts-action@v1
+        with:
+          ssh-private-key: ${{ secrets.KEY }}
+          ssh-host: ${{env.SERVER_HOST}}
+
+      - name: Upgrade docker-compose
+        run: pip install docker-compose
+        
+      - run: touch .env
+
+      - name: Create docker contaxt
+        run: docker context create remote --docker "host=ssh://"${{env.SERVER_USER}}@${{env.SERVER_HOST}}
+
+      - run:  docker context use remote
+
+      - run: docker-compose --context remote down
+      
+      - name: docker-compose run
+        run: docker-compose --context remote up -d --force-recreate
+          
