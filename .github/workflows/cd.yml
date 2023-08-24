@@ -153,7 +153,7 @@ jobs:
       - run: touch .env
 
       - name: Create docker contaxt
-        run: docker context create remote --docker "host=ssh://"${{env.SERVER_USER}}@${{env.SERVER_HOST}}
+        run: docker context create remote --docker "host=ssh://${{env.SERVER_USER}}@${{env.SERVER_HOST}}"
 
       - run:  docker context use remote
 
