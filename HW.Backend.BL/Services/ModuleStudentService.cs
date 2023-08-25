@@ -77,6 +77,7 @@ public class ModuleStudentService : IModuleStudentService {
             Id = x.Id,
             Name = x.Name,
             Price = x.Price,
+            AvatarId = x.AvatarId,
             Status = typeof(Module) == x.GetType()? ModuleType.SelfStudyModule : ModuleType.StreamingModule,
         });
         var response = await PagedList<ModuleShortDto>.ToPagedList(shortModules, pagination.PageNumber, pagination.PageSize);
