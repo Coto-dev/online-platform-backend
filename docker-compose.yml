@@ -6,7 +6,7 @@ services:
       context: .
       dockerfile: HW.Account.API/Dockerfile
     ports:
-      - "7000:80"
+      - "7000:5224"
     restart: always
     volumes:
       - /var/log/hw-online/hw-account:/app/logs
@@ -16,7 +16,7 @@ services:
       context: .
       dockerfile: HW.Backend.API/Dockerfile
     ports:
-      - "8000:80"
+      - "8000:5015"
     restart: always
     volumes:
       - /var/log/hw-online/hw-backend:/app/logs
@@ -26,7 +26,7 @@ services:
       context: .
       dockerfile: HW.EmailReciever.MVC/Dockerfile
     ports:
-      - "9050:80"
+      - "9050:5115"
     restart: always
     volumes:
       - /var/log/hw-online/hw-email-reciever:/app/logs
@@ -36,7 +36,7 @@ services:
       context: .
       dockerfile: HW.FileManager.API/Dockerfile
     ports:
-      - "10000:80"
+      - "10000:5025"
     restart: always
     volumes:
       - /var/log/hw-online/hw-file-manager:/app/logs
@@ -46,7 +46,7 @@ services:
       context: .
       dockerfile: HW.Notification.API/Dockerfile
     ports:
-      - "11000:80"
+      - "11000:5235"
     restart: always
     volumes:
       - /var/log/hw-online/hw-notification:/app/logs
