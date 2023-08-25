@@ -20,6 +20,9 @@ namespace HW.Backend.DAL.Migrations
                     Name = table.Column<string>(type: "text", nullable: false),
                     Description = table.Column<string>(type: "text", nullable: false),
                     Price = table.Column<int>(type: "integer", nullable: false),
+                    AvatarId = table.Column<string>(type: "text", nullable: true),
+                    StartTime = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    TimeDuration = table.Column<string>(type: "text", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     EditedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     ArchivedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
@@ -37,6 +40,8 @@ namespace HW.Backend.DAL.Migrations
                     Name = table.Column<string>(type: "text", nullable: false),
                     Description = table.Column<string>(type: "text", nullable: false),
                     Price = table.Column<int>(type: "integer", nullable: false),
+                    AvatarId = table.Column<string>(type: "text", nullable: true),
+                    TimeDuration = table.Column<string>(type: "text", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     EditedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     ArchivedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
@@ -119,6 +124,7 @@ namespace HW.Backend.DAL.Migrations
                     EditedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     ArchivedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     Name = table.Column<string>(type: "text", nullable: false),
+                    Order = table.Column<string>(type: "text", nullable: true),
                     ModuleId = table.Column<Guid>(type: "uuid", nullable: false),
                     SubModuleType = table.Column<int>(type: "integer", nullable: false)
                 },
@@ -205,6 +211,7 @@ namespace HW.Backend.DAL.Migrations
                     EditedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     ArchivedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     Name = table.Column<string>(type: "text", nullable: false),
+                    Order = table.Column<string>(type: "text", nullable: true),
                     Content = table.Column<string>(type: "text", nullable: true),
                     SubModuleId = table.Column<Guid>(type: "uuid", nullable: false),
                     Files = table.Column<List<string>>(type: "text[]", nullable: true),
@@ -223,30 +230,6 @@ namespace HW.Backend.DAL.Migrations
                         name: "FK_Chapters_SubModules_SubModuleId",
                         column: x => x.SubModuleId,
                         principalTable: "SubModules",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "EducationalProgramStudent",
-                columns: table => new
-                {
-                    EducationalProgramsId = table.Column<Guid>(type: "uuid", nullable: false),
-                    StudentsId = table.Column<Guid>(type: "uuid", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_EducationalProgramStudent", x => new { x.EducationalProgramsId, x.StudentsId });
-                    table.ForeignKey(
-                        name: "FK_EducationalProgramStudent_EducationalPrograms_EducationalPr~",
-                        column: x => x.EducationalProgramsId,
-                        principalTable: "EducationalPrograms",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_EducationalProgramStudent_Students_StudentsId",
-                        column: x => x.StudentsId,
-                        principalTable: "Students",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -292,6 +275,56 @@ namespace HW.Backend.DAL.Migrations
                         name: "FK_UserModules_Students_StudentId",
                         column: x => x.StudentId,
                         principalTable: "Students",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "UserPrograms",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    EducationalProgramId = table.Column<Guid>(type: "uuid", nullable: false),
+                    StudentId = table.Column<Guid>(type: "uuid", nullable: false),
+                    ProgramVisibilityType = table.Column<int>(type: "integer", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_UserPrograms", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_UserPrograms_EducationalPrograms_EducationalProgramId",
+                        column: x => x.EducationalProgramId,
+                        principalTable: "EducationalPrograms",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_UserPrograms_Students_StudentId",
+                        column: x => x.StudentId,
+                        principalTable: "Students",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "EducationalProgramTeacher",
+                columns: table => new
+                {
+                    CreatedProgramsId = table.Column<Guid>(type: "uuid", nullable: false),
+                    CreatorsId = table.Column<Guid>(type: "uuid", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_EducationalProgramTeacher", x => new { x.CreatedProgramsId, x.CreatorsId });
+                    table.ForeignKey(
+                        name: "FK_EducationalProgramTeacher_EducationalPrograms_CreatedProgra~",
+                        column: x => x.CreatedProgramsId,
+                        principalTable: "EducationalPrograms",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_EducationalProgramTeacher_Teachers_CreatorsId",
+                        column: x => x.CreatorsId,
+                        principalTable: "Teachers",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -378,7 +411,7 @@ namespace HW.Backend.DAL.Migrations
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     LearnedById = table.Column<Guid>(type: "uuid", nullable: false),
                     ChapterId = table.Column<Guid>(type: "uuid", nullable: false),
-                    LearnDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                    LearnDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -405,6 +438,7 @@ namespace HW.Backend.DAL.Migrations
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     EditedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     ArchivedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    Order = table.Column<string>(type: "text", nullable: true),
                     ChapterId = table.Column<Guid>(type: "uuid", nullable: false),
                     Question = table.Column<string>(type: "text", nullable: false),
                     Files = table.Column<List<string>>(type: "text[]", nullable: true),
@@ -469,7 +503,7 @@ namespace HW.Backend.DAL.Migrations
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     TestId = table.Column<Guid>(type: "uuid", nullable: false),
                     NumberOfAttempt = table.Column<int>(type: "integer", nullable: false),
-                    IsAnswered = table.Column<bool>(type: "boolean", nullable: false),
+                    AnsweredAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     StudentId = table.Column<Guid>(type: "uuid", nullable: false)
                 },
                 constraints: table =>
@@ -557,9 +591,9 @@ namespace HW.Backend.DAL.Migrations
                 column: "ProgramsId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_EducationalProgramStudent_StudentsId",
-                table: "EducationalProgramStudent",
-                column: "StudentsId");
+                name: "IX_EducationalProgramTeacher_CreatorsId",
+                table: "EducationalProgramTeacher",
+                column: "CreatorsId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Learned_ChapterId",
@@ -650,6 +684,16 @@ namespace HW.Backend.DAL.Migrations
                 name: "IX_UserModules_StudentId",
                 table: "UserModules",
                 column: "StudentId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_UserPrograms_EducationalProgramId",
+                table: "UserPrograms",
+                column: "EducationalProgramId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_UserPrograms_StudentId",
+                table: "UserPrograms",
+                column: "StudentId");
         }
 
         /// <inheritdoc />
@@ -662,7 +706,7 @@ namespace HW.Backend.DAL.Migrations
                 name: "EducationalProgramModule");
 
             migrationBuilder.DropTable(
-                name: "EducationalProgramStudent");
+                name: "EducationalProgramTeacher");
 
             migrationBuilder.DropTable(
                 name: "Learned");
@@ -689,7 +733,7 @@ namespace HW.Backend.DAL.Migrations
                 name: "UserModules");
 
             migrationBuilder.DropTable(
-                name: "EducationalPrograms");
+                name: "UserPrograms");
 
             migrationBuilder.DropTable(
                 name: "Teachers");
@@ -702,6 +746,9 @@ namespace HW.Backend.DAL.Migrations
 
             migrationBuilder.DropTable(
                 name: "UserAnswerTests");
+
+            migrationBuilder.DropTable(
+                name: "EducationalPrograms");
 
             migrationBuilder.DropTable(
                 name: "Tests");

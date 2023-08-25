@@ -13,7 +13,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace HW.Backend.DAL.Migrations
 {
     [DbContext(typeof(BackendDbContext))]
-    [Migration("20230730082633_Initial")]
+    [Migration("20230823133931_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -41,19 +41,19 @@ namespace HW.Backend.DAL.Migrations
                     b.ToTable("EducationalProgramModule");
                 });
 
-            modelBuilder.Entity("EducationalProgramStudent", b =>
+            modelBuilder.Entity("EducationalProgramTeacher", b =>
                 {
-                    b.Property<Guid>("EducationalProgramsId")
+                    b.Property<Guid>("CreatedProgramsId")
                         .HasColumnType("uuid");
 
-                    b.Property<Guid>("StudentsId")
+                    b.Property<Guid>("CreatorsId")
                         .HasColumnType("uuid");
 
-                    b.HasKey("EducationalProgramsId", "StudentsId");
+                    b.HasKey("CreatedProgramsId", "CreatorsId");
 
-                    b.HasIndex("StudentsId");
+                    b.HasIndex("CreatorsId");
 
-                    b.ToTable("EducationalProgramStudent");
+                    b.ToTable("EducationalProgramTeacher");
                 });
 
             modelBuilder.Entity("HW.Backend.DAL.Data.Entities.Chapter", b =>
@@ -82,6 +82,9 @@ namespace HW.Backend.DAL.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Order")
                         .HasColumnType("text");
 
                     b.Property<Guid?>("StudentId")
@@ -159,6 +162,9 @@ namespace HW.Backend.DAL.Migrations
                     b.Property<DateTime?>("ArchivedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<string>("AvatarId")
+                        .HasColumnType("text");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -176,6 +182,12 @@ namespace HW.Backend.DAL.Migrations
                     b.Property<int>("Price")
                         .HasColumnType("integer");
 
+                    b.Property<DateTime?>("StartTime")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("TimeDuration")
+                        .HasColumnType("text");
+
                     b.HasKey("Id");
 
                     b.ToTable("EducationalPrograms");
@@ -190,7 +202,7 @@ namespace HW.Backend.DAL.Migrations
                     b.Property<Guid>("ChapterId")
                         .HasColumnType("uuid");
 
-                    b.Property<DateTime>("LearnDate")
+                    b.Property<DateTime?>("LearnDate")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<Guid>("LearnedById")
@@ -213,6 +225,9 @@ namespace HW.Backend.DAL.Migrations
 
                     b.Property<DateTime?>("ArchivedAt")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("AvatarId")
+                        .HasColumnType("text");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -237,6 +252,9 @@ namespace HW.Backend.DAL.Migrations
 
                     b.Property<int>("Price")
                         .HasColumnType("integer");
+
+                    b.Property<string>("TimeDuration")
+                        .HasColumnType("text");
 
                     b.HasKey("Id");
 
@@ -314,6 +332,30 @@ namespace HW.Backend.DAL.Migrations
                     b.ToTable("Students");
                 });
 
+            modelBuilder.Entity("HW.Backend.DAL.Data.Entities.StudentEducationalProgram", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("EducationalProgramId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("ProgramVisibilityType")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("StudentId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EducationalProgramId");
+
+                    b.HasIndex("StudentId");
+
+                    b.ToTable("UserPrograms");
+                });
+
             modelBuilder.Entity("HW.Backend.DAL.Data.Entities.StudentModule", b =>
                 {
                     b.Property<Guid>("Id")
@@ -360,6 +402,9 @@ namespace HW.Backend.DAL.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<string>("Order")
+                        .HasColumnType("text");
+
                     b.Property<int>("SubModuleType")
                         .HasColumnType("integer");
 
@@ -404,6 +449,9 @@ namespace HW.Backend.DAL.Migrations
 
                     b.Property<List<string>>("Files")
                         .HasColumnType("text[]");
+
+                    b.Property<string>("Order")
+                        .HasColumnType("text");
 
                     b.Property<string>("Question")
                         .IsRequired()
@@ -472,8 +520,8 @@ namespace HW.Backend.DAL.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<bool>("IsAnswered")
-                        .HasColumnType("boolean");
+                    b.Property<DateTime?>("AnsweredAt")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<int>("NumberOfAttempt")
                         .HasColumnType("integer");
@@ -598,7 +646,7 @@ namespace HW.Backend.DAL.Migrations
                 {
                     b.HasBaseType("HW.Backend.DAL.Data.Entities.UserAnswer");
 
-                    b.Property<int>("Accuracy")
+                    b.Property<int?>("Accuracy")
                         .HasColumnType("integer");
 
                     b.Property<string>("AnswerContent")
@@ -637,17 +685,17 @@ namespace HW.Backend.DAL.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("EducationalProgramStudent", b =>
+            modelBuilder.Entity("EducationalProgramTeacher", b =>
                 {
                     b.HasOne("HW.Backend.DAL.Data.Entities.EducationalProgram", null)
                         .WithMany()
-                        .HasForeignKey("EducationalProgramsId")
+                        .HasForeignKey("CreatedProgramsId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("HW.Backend.DAL.Data.Entities.Student", null)
+                    b.HasOne("HW.Backend.DAL.Data.Entities.Teacher", null)
                         .WithMany()
-                        .HasForeignKey("StudentsId")
+                        .HasForeignKey("CreatorsId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
@@ -755,6 +803,25 @@ namespace HW.Backend.DAL.Migrations
                         .IsRequired();
 
                     b.Navigation("UserBackend");
+                });
+
+            modelBuilder.Entity("HW.Backend.DAL.Data.Entities.StudentEducationalProgram", b =>
+                {
+                    b.HasOne("HW.Backend.DAL.Data.Entities.EducationalProgram", "EducationalProgram")
+                        .WithMany("UserPrograms")
+                        .HasForeignKey("EducationalProgramId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("HW.Backend.DAL.Data.Entities.Student", "Student")
+                        .WithMany("EducationalPrograms")
+                        .HasForeignKey("StudentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("EducationalProgram");
+
+                    b.Navigation("Student");
                 });
 
             modelBuilder.Entity("HW.Backend.DAL.Data.Entities.StudentModule", b =>
@@ -924,6 +991,11 @@ namespace HW.Backend.DAL.Migrations
                     b.Navigation("ChapterTests");
                 });
 
+            modelBuilder.Entity("HW.Backend.DAL.Data.Entities.EducationalProgram", b =>
+                {
+                    b.Navigation("UserPrograms");
+                });
+
             modelBuilder.Entity("HW.Backend.DAL.Data.Entities.Module", b =>
                 {
                     b.Navigation("SubModules");
@@ -933,6 +1005,8 @@ namespace HW.Backend.DAL.Migrations
 
             modelBuilder.Entity("HW.Backend.DAL.Data.Entities.Student", b =>
                 {
+                    b.Navigation("EducationalPrograms");
+
                     b.Navigation("LearnedChapters");
 
                     b.Navigation("Modules");

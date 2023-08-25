@@ -27,6 +27,12 @@ public class Chapter
     /// Chapter's name
     /// </summary>
     public required string Name { get; set; }
+    
+    /// <summary>
+    /// Number of order for sorting
+    /// </summary>
+    public string? Order { get; set; }
+    
     /// <summary>
     /// Chapter's content
     /// </summary>

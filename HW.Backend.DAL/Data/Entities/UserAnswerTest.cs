@@ -8,7 +8,7 @@ public class UserAnswerTest
     /// <summary>
     /// UserAnswerTest's id
     /// </summary>
-    public Guid Id { get; set; }
+    public Guid Id { get; set; } = Guid.NewGuid();
     /// <summary>
     /// Test identifier
     /// </summary>
@@ -22,9 +22,9 @@ public class UserAnswerTest
     /// </summary>
     public required int NumberOfAttempt { get; set; }
     /// <summary>
-    /// Bool check resolve
+    /// Datetime check resolve
     /// </summary>
-    public required bool IsAnswered { get; set; }
+    public DateTime? AnsweredAt { get; set; }
     /// <summary>
     /// User identifier
     /// </summary>

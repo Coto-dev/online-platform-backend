@@ -31,6 +31,7 @@ public class BackendDbContext : DbContext {
     public DbSet<UserAnswerTest> UserAnswerTests { get; set; }
     public DbSet<UserBackend> UserBackends { get; set; }
     public DbSet<StudentModule> UserModules { get; set; }
+    public DbSet<StudentEducationalProgram> UserPrograms { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder) {
         modelBuilder.Entity<Module>()

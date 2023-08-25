@@ -15,13 +15,17 @@ public class Teacher {
     /// </summary>
     public required UserBackend UserBackend { get; set; }
     /// <summary>
-    /// List of teacher's controlled modules
+    /// List of modules where teacher is teacher :)
     /// </summary>
     public List<Module>? ControlledModules { get; set; } = new();
     /// <summary>
-    /// List of teacher's created modules
+    /// List of modules where teacher is creator
     /// </summary>
     public List<Module>? CreatedModules { get; set; } = new();
+    /// <summary>
+    /// List of programs where teacher is creator
+    /// </summary>
+    public List<EducationalProgram>? CreatedPrograms { get; set; } = new();
 
 
 }

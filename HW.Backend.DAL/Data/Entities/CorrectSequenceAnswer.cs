@@ -8,7 +8,7 @@ public class CorrectSequenceAnswer
     /// <summary>
     /// CorrectSequenceAnswer identifier
     /// </summary>
-    public Guid Id { get; set; }
+    public Guid Id { get; set; } = Guid.NewGuid();
     /// <summary>
     /// Answer content
     /// </summary>

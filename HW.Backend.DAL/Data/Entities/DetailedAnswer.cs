@@ -12,7 +12,7 @@ public class DetailedAnswer : UserAnswer
     /// <summary>
     /// Accuracy of answer
     /// </summary>
-    public int Accuracy { get; set; }
+    public int? Accuracy { get; set; }
     /// <summary>
     /// Files which user attach to answer
     /// </summary>

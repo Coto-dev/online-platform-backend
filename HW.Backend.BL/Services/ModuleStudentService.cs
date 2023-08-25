@@ -34,7 +34,7 @@ public class ModuleStudentService : IModuleStudentService {
             throw new BadRequestException("Wrong page");
         
         var modules = _dbContext.Modules
-            .Where(m => !m.ArchivedAt.HasValue)
+            .Where(m => !m.ArchivedAt.HasValue && m.ModuleVisibility == ModuleVisibilityType.Everyone)
             .ModuleAvailableFilter(filter,sortByNameFilter)
             .ModuleOrderBy(sortModuleType)
             .AsQueryable()
@@ -193,7 +193,7 @@ public class ModuleStudentService : IModuleStudentService {
                             }).ToList(),
                         IsAnswered =  _dbContext.UserAnswerTests
                             .Where(uat=>uat.Student == user && uat.Test == t)
-                            .MaxBy(uat=>uat.NumberOfAttempt)!.IsAnswered 
+                            .MaxBy(uat=>uat.NumberOfAttempt)!.AnsweredAt.HasValue 
                     } : t.TestType is TestType.CorrectSequenceAnswer ? new UserAnswerFullDto {
                                 UserAnswerCorrectSequences = _dbContext.UserAnswers.OfType<CorrectSequenceUserAnswer>()
                                 .Where(u=>u.UserAnswerTest.Test == t && u.UserAnswerTest.Student == user)
@@ -203,14 +203,14 @@ public class ModuleStudentService : IModuleStudentService {
                                 }).ToList(),
                                 IsAnswered = _dbContext.UserAnswerTests
                                     .Where(uat=>uat.Student == user && uat.Test == t)
-                                    .MaxBy(uat=>uat.NumberOfAttempt)!.IsAnswered 
+                                    .MaxBy(uat=>uat.NumberOfAttempt)!.AnsweredAt.HasValue 
                             } : t.TestType is TestType.DetailedAnswer ? new UserAnswerFullDto {
                                 DetailedAnswer = _dbContext.UserAnswers.OfType<DetailedAnswer>()
                                     .FirstOrDefault(u=>u.UserAnswerTest.Test == t && u.UserAnswerTest.Student == user)!
                                     .AnswerContent,
                                 IsAnswered = _dbContext.UserAnswerTests
                                     .Where(uat=>uat.Student == user && uat.Test == t)
-                                    .MaxBy(uat=>uat.NumberOfAttempt)!.IsAnswered
+                                    .MaxBy(uat=>uat.NumberOfAttempt)!.AnsweredAt.HasValue
                             } : null : null,
                     Type = t.TestType,
                 }).ToList()
@@ -227,6 +227,10 @@ public class ModuleStudentService : IModuleStudentService {
             .Include(u=>u.Modules)!
             .ThenInclude(m=>m.Module)
             .FirstOrDefaultAsync(u => u.Id == userId);
+
+        if (module.Creators.IsNullOrEmpty() || (module.Creators!.All(c => c.Id != userId) &&
+                                                module.ModuleVisibility == ModuleVisibilityType.OnlyCreators))
+            throw new ForbiddenException("Module is private");
         
         var streamingModule = module as StreamingModule; 
         
@@ -244,18 +248,19 @@ public class ModuleStudentService : IModuleStudentService {
             Status = user?.Modules != null && user.Modules.Any(m => m.Module == module)
                 ? user.Modules.FirstOrDefault(m => m.Module == module)!.ModuleStatus
                 : ModuleStatusType.NotPurchased,
-            Type = ModuleType.StreamingModule,
+            Type = streamingModule == null ? ModuleType.SelfStudyModule : ModuleType.StreamingModule,
             RequiredModules = module.RecommendedModules != null
                 ? module.RecommendedModules.Select(m => new RequiredModulesDto {
                     Id = m.Id,
                     Avatar = new FileLinkDto{
-                        FileId = !module.Creators.IsNullOrEmpty() ? module.Creators!.Any(c=>c.Id == userId) ? m.AvatarId : null : null,
+                        FileId = !module.Creators.IsNullOrEmpty() && module.Creators!.Any(c=>c.Id == userId) ? m.AvatarId : null,
                         Url = m.AvatarId
                         },
                     Name = m.Name
                 }).ToList()
                 : new List<RequiredModulesDto>(),
-            StartDate = streamingModule?.StartAt ,
+            VisibilityType = !module.Creators.IsNullOrEmpty() && module.Creators!.Any(c=>c.Id == userId) ? module.ModuleVisibility : null,
+            StartDate = streamingModule?.StartAt,
             ExpirationDate = streamingModule?.ExpiredAt,
             MaxStudents = streamingModule?.MaxStudents,
         };

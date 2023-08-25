@@ -159,7 +159,7 @@ public class ModuleManagerService : IModuleManagerService {
             Name = model.Name,
             Description = model.Description ?? "",
             Price = model.Price ?? 0,
-            ModuleVisibility = ModuleVisibilityType.OnlyMe,
+            ModuleVisibility = ModuleVisibilityType.OnlyCreators,
             AvatarId = model.AvatarId,
             Creators = creators,
             Teachers = teachers
@@ -177,7 +177,7 @@ public class ModuleManagerService : IModuleManagerService {
             : await _dbContext.Teachers.Where(t => model.Teachers.Contains(t.Id)).ToListAsync();
         var module = await _dbContext.Modules
             .FirstOrDefaultAsync(m => m.Id == moduleId && !m.ArchivedAt.HasValue);
-        if (module == null) 
+        if (module is null or StreamingModule) 
             throw new NotFoundException("Module not found");
         module.Name = model.Name;
         module.Description = model.Description;
@@ -219,7 +219,7 @@ public class ModuleManagerService : IModuleManagerService {
             Name = model.Name,
             Description = model.Description ?? "",
             Price = model.Price ?? 0,
-            ModuleVisibility = ModuleVisibilityType.OnlyMe,
+            ModuleVisibility = ModuleVisibilityType.OnlyCreators,
             AvatarId = model.AvatarId,
             Creators = creators,
             Teachers = teachers,

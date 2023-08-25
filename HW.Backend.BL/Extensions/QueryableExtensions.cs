@@ -36,11 +36,11 @@ public static  class QueryableExtensions {
                            || (filter.ModuleTypes!.Contains(ModuleType.SelfStudyModule) 
                                && x.GetType() == typeof(Module)))
                            && (section == null || (section == ModuleFilterTeacherType.Draft 
-                                                   && x.ModuleVisibility == ModuleVisibilityType.OnlyMe)
+                                                   && x.ModuleVisibility == ModuleVisibilityType.OnlyCreators)
                            || (section == ModuleFilterTeacherType.Published 
                                && x.ModuleVisibility == ModuleVisibilityType.Everyone)
                            || (section == ModuleFilterTeacherType.Taught && x.Teachers!.Any(t=>t.Id == userId)))
-                           && (sortByNameFilter == null || x.Name.Contains(sortByNameFilter)));
+                           && (sortByNameFilter == null || x.Name.ToLower().Contains(sortByNameFilter.ToLower())));
     }
     
     public static IQueryable<Module> ModuleStudentFilter(this IQueryable<Module> source, FilterModuleType? filter,
@@ -62,7 +62,7 @@ public static  class QueryableExtensions {
                                     && x.UserModules!.Any(u=>u.Student.Id == userId && u.ModuleStatus == ModuleStatusType.InCart))
                                 || (section == ModuleFilterStudentType.Purchased 
                                     && x.UserModules!.Any(u=>u.Student.Id == userId && u.ModuleStatus == ModuleStatusType.Purchased)))
-            && (sortByNameFilter == null || x.Name.Contains(sortByNameFilter)));        
+            && (sortByNameFilter == null || x.Name.ToLower().Contains(sortByNameFilter.ToLower())));        
     }
     
     public static IQueryable<Module> ModuleAvailableFilter(this IQueryable<Module> source, FilterModuleType? filter,
@@ -72,7 +72,7 @@ public static  class QueryableExtensions {
                                 && x.GetType() == typeof(StreamingModule)) 
                             || (filter.ModuleTypes!.Contains(ModuleType.SelfStudyModule) 
                                 && x.GetType() == typeof(Module)))
-            && (sortByNameFilter == null || x.Name.Contains(sortByNameFilter)));
+            && (sortByNameFilter == null || x.Name.ToLower().Contains(sortByNameFilter.ToLower())));
             
     }
 }

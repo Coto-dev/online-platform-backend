@@ -1,6 +1,6 @@
 namespace HW.Common.Enums; 
 
-public enum ModuleVisibilityType {
+public enum ProgramVisibilityType {
     OnlyCreators,
     OnlyTeachers,
     OnlyInProgram,

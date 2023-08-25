@@ -9,7 +9,7 @@ public class Test
     /// <summary>
     /// Test's id
     /// </summary>
-    public Guid Id { get; set; }
+    public Guid Id { get; set; } = Guid.NewGuid();
     /// <summary>
     /// Date and time the test was created
     /// </summary>
@@ -22,6 +22,10 @@ public class Test
     /// Date and time the test was archived
     /// </summary>
     public DateTime? ArchivedAt { get; set; }
+    /// <summary>
+    /// Number of order for sorting
+    /// </summary>
+    public string? Order { get; set; }
     /// <summary>
     /// Chapter identifier
     /// </summary>

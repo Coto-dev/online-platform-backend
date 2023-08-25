@@ -28,6 +28,10 @@ public class Module
     /// </summary>
     public string? AvatarId { get; set; }
     /// <summary>
+    /// Required time to finish program
+    /// </summary>
+    public string? TimeDuration { get; set; }
+    /// <summary>
     /// Date and time the module was created
     /// </summary>
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
