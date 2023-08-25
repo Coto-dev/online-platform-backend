@@ -20,6 +20,13 @@ services:
     restart: always
     volumes:
       - /var/log/hw-online/hw-backend:/app/logs
+    depends_on:
+      - fluent-bit
+    logging:
+      driver: "fluentd"
+      options:
+        fluentd-address: 127.0.0.1:24224
+        tag: hw_backend.logs
 
   hw-email-reciever:
     build:
@@ -50,4 +57,94 @@ services:
     restart: always
     volumes:
       - /var/log/hw-online/hw-notification:/app/logs
+
+  elasticsearch:
+    image: elasticsearch:6.8.23
+    container_name: elasticsearch
+    hostname: elasticsearch
+    restart: always
+    environment:
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ports:
+      - 9200:9200
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    cap_drop:
+      - NET_ADMIN
+      - SYS_ADMIN
+    volumes:
+      - ./elasticsearch:/usr/share/elasticsearch/data
+    networks:
+      - graylog
+
+  mongo:
+    image: mongo:5.0.11
+    container_name: mongodb
+    hostname: mongodb
+    restart: always
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    cap_drop:
+      - NET_ADMIN
+      - SYS_ADMIN
+    volumes:
+      - ./mongodb:/data/db
+    networks:
+      - graylog
+
+  graylog:
+    image: graylog/graylog:4.2
+    container_name: graylog
+    hostname: graylog
+    entrypoint: /usr/bin/tini -- wait-for-it elasticsearch:9200 --  /docker-entrypoint.sh
+    restart: always
+    depends_on:
+      - mongo
+      - elasticsearch
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    cap_drop:
+      - NET_ADMIN
+      - SYS_ADMIN
+    volumes:
+      - ./src/graylog/graylog.conf:/usr/share/graylog/data/config/graylog.conf
+    ports:
+      - 9100:9000
+      - 1514:1514
+      - 1514:1514/udp
+      - 12201:12201
+      - 12201:12201/udp
+    networks:
+      - graylog
+
+  fluent-bit:
+    image: fluent/fluent-bit
+    container_name: fluent-bit
+    hostname: fluent-bit
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    cap_drop:
+      - NET_ADMIN
+      - SYS_ADMIN
+    ports:
+      - 127.0.0.1:24224:24224
+      - 127.0.0.1:24224:24224/udp
+    volumes:
+      - ./src/fluentbit/fluent-bit.conf:/fluent-bit/etc/fluent-bit.conf
+      - ./src/fluentbit/parsers.conf:/fluent-bit/etc/parsers.conf
+    networks:
+      - graylog
+
+networks:
+    graylog:
+      driver: bridge
+
 
