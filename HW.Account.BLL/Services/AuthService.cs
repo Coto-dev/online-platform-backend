@@ -123,7 +123,7 @@ public class AuthService : IAuthService {
         var userAgent = httpContext.Request.Headers["User-Agent"].ToString();
         
         var device =
-            user.Devices.FirstOrDefault(x => x.IpAddress == ipAddress || x.UserAgent == userAgent);
+            user.Devices.FirstOrDefault(x => x.IpAddress == ipAddress && x.UserAgent == userAgent);
 
         if (device == null) {
             device = new Device() {
@@ -209,8 +209,11 @@ public class AuthService : IAuthService {
             throw new UnauthorizedException("User is banned");
         }
 
+        var ipAddress = httpContext.Connection.RemoteIpAddress?.ToString() ?? "";
+        var userAgent = httpContext.Request.Headers["User-Agent"].ToString();
+        
         var device =
-            user.Devices.FirstOrDefault(x => x.UserAgent == httpContext.Request.Headers["User-Agent"]);
+            user.Devices.FirstOrDefault(x => x.IpAddress == ipAddress && x.UserAgent == userAgent);
 
         if (device == null) {
             throw new MethodNotAllowedException("You can't refresh token from another device. Re-login needed");
