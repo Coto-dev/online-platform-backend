@@ -176,7 +176,11 @@ public class AuthService : IAuthService {
             throw new NotFoundException("User not found");
         }
 
-        var device = user.Devices.FirstOrDefault(x => x.UserAgent == httpContext.Request.Headers["User-Agent"]);
+        var ipAddress = httpContext.Connection.RemoteIpAddress?.ToString() ?? "";
+        var userAgent = httpContext.Request.Headers["User-Agent"].ToString();
+        
+        var device =
+            user.Devices.FirstOrDefault(x => x.IpAddress == ipAddress && x.UserAgent == userAgent);
 
         if (device == null) {
             throw new MethodNotAllowedException("You can`t logout from this device");
