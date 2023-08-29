@@ -14,6 +14,9 @@ public class ModuleDetailsDto {
     public ModuleVisibilityType? VisibilityType { get; set; }
     public DateTime? StartDate { get; set; }
     public DateTime? ExpirationDate { get; set; }
+    public int AmountOfStudents { get; set; }
+    public Guid Creator { get; set;}
     public int? MaxStudents { get; set; }
     public string? TimeDuration { get; set; }
+    
 }

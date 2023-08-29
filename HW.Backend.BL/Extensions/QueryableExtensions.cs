@@ -35,9 +35,11 @@ public static  class QueryableExtensions {
                                && x.GetType() == typeof(StreamingModule)) 
                            || (filter.ModuleTypes!.Contains(ModuleType.SelfStudyModule) 
                                && x.GetType() == typeof(Module)))
-                           && (section == null || (section == ModuleFilterTeacherType.Draft 
-                                                   && x.ModuleVisibility == ModuleVisibilityType.OnlyCreators)
-                           || (section == ModuleFilterTeacherType.Published 
+                           && (section == null || (section == ModuleFilterTeacherType.Draft
+                                                   && x.ModuleVisibility == ModuleVisibilityType.OnlyCreators
+                                                   && x.Creators!.Any(c=>c.Id == userId))
+                           || (section == ModuleFilterTeacherType.Published
+                               && x.Creators!.Any(c=>c.Id == userId)
                                && x.ModuleVisibility == ModuleVisibilityType.Everyone)
                            || (section == ModuleFilterTeacherType.Taught && x.Teachers!.Any(t=>t.Id == userId)))
                            && (sortByNameFilter == null || x.Name.ToLower().Contains(sortByNameFilter.ToLower())));

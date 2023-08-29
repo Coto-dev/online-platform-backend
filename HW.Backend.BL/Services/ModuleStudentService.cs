@@ -220,6 +220,7 @@ public class ModuleStudentService : IModuleStudentService {
     public async Task<ModuleDetailsDto> GetModuleDetails(Guid moduleId, Guid? userId) {
         var module = await _dbContext.Modules
             .Include(m=>m.Creators)
+            .Include(m=>m.UserModules)
             .FirstOrDefaultAsync(m => m.Id == moduleId);
         if (module == null)
             throw new NotFoundException("Module not found");
@@ -242,7 +243,9 @@ public class ModuleStudentService : IModuleStudentService {
             Avatar = module.AvatarId == null 
                 ? null 
                 : new FileLinkDto {
-                    FileId = _dbContext.Teachers.Any(t=>t.Id == userId) ? module.AvatarId : null,
+                    FileId = _dbContext.Teachers.Any(t=>t.Id == userId) 
+                        ? module.AvatarId 
+                        : null,
                     Url = await _fileService.GetAvatarLink(module.AvatarId) 
                 },
             Status = user?.Modules != null && user.Modules.Any(m => m.Module == module)
@@ -253,16 +256,29 @@ public class ModuleStudentService : IModuleStudentService {
                 ? module.RecommendedModules.Select(m => new RequiredModulesDto {
                     Id = m.Id,
                     Avatar = new FileLinkDto{
-                        FileId = !module.Creators.IsNullOrEmpty() && module.Creators!.Any(c=>c.Id == userId) ? m.AvatarId : null,
+                        FileId = !module.Creators.IsNullOrEmpty() && module.Creators!.Any(c=>c.Id == userId) 
+                            ? m.AvatarId 
+                            : null,
                         Url = m.AvatarId
                         },
-                    Name = m.Name
+                    Name = m.Name,
+                    Status = user?.Modules != null && user.Modules.Any(sm => sm.Module == m)
+                        ? user.Modules.FirstOrDefault(sm => sm.Module == m)!.ModuleStatus
+                        : ModuleStatusType.NotPurchased
                 }).ToList()
                 : new List<RequiredModulesDto>(),
-            VisibilityType = !module.Creators.IsNullOrEmpty() && module.Creators!.Any(c=>c.Id == userId) ? module.ModuleVisibility : null,
+            VisibilityType = !module.Creators.IsNullOrEmpty() && module.Creators!
+                .Any(c=>c.Id == userId) ? module.ModuleVisibility : null,
+            AmountOfStudents = module.UserModules.IsNullOrEmpty() 
+                ? 0 
+                : module.UserModules!.Count(um => um.ModuleStatus 
+                is ModuleStatusType.Purchased or ModuleStatusType.InProcess),
+            Creator = module.Creators.IsNullOrEmpty() 
+                ? Guid.Empty 
+                : module.Creators!.FirstOrDefault()!.Id,
             StartDate = streamingModule?.StartAt,
             ExpirationDate = streamingModule?.ExpiredAt,
-            MaxStudents = streamingModule?.MaxStudents,
+            MaxStudents = streamingModule?.MaxStudents
         };
         
         foreach (var responseRequiredModule in response.RequiredModules) {

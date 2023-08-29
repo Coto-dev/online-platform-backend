@@ -161,8 +161,8 @@ public class ModuleManagerService : IModuleManagerService {
             Price = model.Price ?? 0,
             ModuleVisibility = ModuleVisibilityType.OnlyCreators,
             AvatarId = model.AvatarId,
-            Creators = creators,
-            Teachers = teachers
+            Creators = creators.IsNullOrEmpty() ? new List<Teacher>() { user.Teacher } : creators,
+            Teachers = teachers.IsNullOrEmpty() ? new List<Teacher>() { user.Teacher } : teachers
         };
         await _dbContext.AddAsync(module);
         await _dbContext.SaveChangesAsync();
@@ -221,8 +221,8 @@ public class ModuleManagerService : IModuleManagerService {
             Price = model.Price ?? 0,
             ModuleVisibility = ModuleVisibilityType.OnlyCreators,
             AvatarId = model.AvatarId,
-            Creators = creators,
-            Teachers = teachers,
+            Creators = creators.IsNullOrEmpty() ? new List<Teacher>() { user.Teacher } : creators,
+            Teachers = teachers.IsNullOrEmpty() ? new List<Teacher>() { user.Teacher } : teachers,
             StartAt = model.StartTime ?? DateTime.UtcNow.AddMonths(1),
             ExpiredAt = model.ExpirationTime,
             MaxStudents = model.MaxStudents ?? 0
