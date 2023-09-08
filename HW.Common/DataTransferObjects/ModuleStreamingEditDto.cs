@@ -22,12 +22,14 @@ public class ModuleStreamingEditDto {
     [Required]
     public ModuleVisibilityType VisibilityType { get; set; }
     [Required]
+    [DataType(DataType.DateTime)]
     public DateTime StartTime { get; set; }
     [Required]
+    [DataType(DataType.DateTime)]
     public DateTime ExpirationTime { get; set; }
     [Required]
     public int MaxStudents { get; set; }
     [Required]
     public List<Guid> Teachers { get; set; } = new();
-    public List<Guid>? Creators { get; set; } = new();
+    public List<Guid>? Editors { get; set; } = new();
 }

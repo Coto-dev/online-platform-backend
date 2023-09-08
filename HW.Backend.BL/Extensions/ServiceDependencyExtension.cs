@@ -14,6 +14,7 @@ public static class ServiceDependencyExtension {
         services.AddDbContext<BackendDbContext>(options => 
             options.UseNpgsql(configuration.GetConnectionString("BackendDatabase")));
         services.AddScoped<IModuleManagerService, ModuleManagerService>();
+        services.AddScoped<IChapterService, ChapterService>();
         services.AddScoped<ICheckPermissionService, CheckPermissionService>();
         services.AddScoped<IModuleStudentService, ModuleStudentService>();
         services.AddScoped<IFileService, FileService>();

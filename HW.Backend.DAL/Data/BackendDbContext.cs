@@ -35,8 +35,11 @@ public class BackendDbContext : DbContext {
 
     protected override void OnModelCreating(ModelBuilder modelBuilder) {
         modelBuilder.Entity<Module>()
-            .HasMany(m => m.Creators)
-            .WithMany(t => t.CreatedModules);
+            .HasOne(u => u.Author)
+            .WithMany(c => c.CreatedModules);
+        modelBuilder.Entity<Module>()
+            .HasMany(m => m.Editors)
+            .WithMany(t => t.EditorModules);
         modelBuilder.Entity<Module>()
             .HasMany(m => m.Teachers)
             .WithMany(t => t.ControlledModules);
@@ -45,6 +48,7 @@ public class BackendDbContext : DbContext {
             .HasMany(m => m.RecommendedModules)
             .WithMany() 
             .UsingEntity(j => j.ToTable("RecommendedModules")); 
+        
         modelBuilder.Entity<UserBackend>()
             .HasOne(u => u.Student)
             .WithOne(c => c.UserBackend)
@@ -53,8 +57,10 @@ public class BackendDbContext : DbContext {
             .HasOne(u => u.Teacher)
             .WithOne(c => c.UserBackend)
             .HasForeignKey<Teacher>();
-
         
+        modelBuilder.Entity<EducationalProgram>()
+            .HasOne(u => u.Author)
+            .WithMany(c => c.CreatedPrograms);
     }
 
     public BackendDbContext(DbContextOptions<BackendDbContext> options) : base(options) {

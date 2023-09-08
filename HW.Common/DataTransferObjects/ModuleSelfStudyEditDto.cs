@@ -14,13 +14,13 @@ public class ModuleSelfStudyEditDto {
     [Required]
     public int Price { get; set; }
     [Required]
-    public List<RequiredModulesDto>? RequiredModules { get; set; } = new();
+    public List<Guid>? RequiredModules { get; set; } = new();
     [Required]
     public string? TimeDuration { get; set; }
     [Required]
     public ModuleVisibilityType VisibilityType { get; set; }
     [Required]
     public List<Guid> Teachers { get; set; } = new();
-    public List<Guid>? Creators { get; set; } = new();
+    public List<Guid>? Editors { get; set; } = new();
 
 }

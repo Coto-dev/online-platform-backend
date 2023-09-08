@@ -57,15 +57,25 @@ public class Module
     /// Module's visibility
     /// </summary>
     public required ModuleVisibilityType ModuleVisibility { get; set; }
+    
+     /// <summary>
+     /// Module author
+     /// </summary>
+    public required Teacher Author { get; set; }
 
     /// <summary>
     /// List of teachers who teach this module
     /// </summary>
     public List<Teacher>? Teachers { get; set; } = new();
+
+    /// <summary>
+    /// List of sorted sub Modules
+    /// </summary>
+    public List<Guid>? OrderedSubModules { get; set; } = new();
     /// <summary>
     /// List of creators
     /// </summary>
-    public List<Teacher>? Creators { get; set; } = new();
+    public List<Teacher>? Editors { get; set; } = new();
     /// <summary>
     /// List of educational programs
     /// </summary>

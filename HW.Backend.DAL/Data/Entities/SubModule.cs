@@ -10,7 +10,7 @@ public class SubModule
     /// <summary>
     /// Sub module id
     /// </summary>
-    public Guid Id { get; set; }
+    public Guid Id { get; set; } = Guid.NewGuid();
     /// <summary>
     /// Date and time the sub module was created
     /// </summary>
@@ -27,22 +27,18 @@ public class SubModule
     /// Submodule's name
     /// </summary>
     public required string Name { get; set; }
-    
-    /// <summary>
-    /// Number of order for sorting
-    /// </summary>
-    public string? Order { get; set; }
-
     /// <summary>
     /// Module 
     /// </summary>
     public required Module Module { get; set; }
-
+    /// <summary>
+    /// List of sorted chapters
+    /// </summary>
+    public List<Guid>? OrderedChapters { get; set; } = new();
     /// <summary>
     /// Sub module type
     /// </summary>
     public SubModuleType SubModuleType { get; set; }
-
     /// <summary>
     /// List of chapters in submodule
     /// </summary>

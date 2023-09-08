@@ -24,15 +24,21 @@ public class Chapter
     /// </summary>
     public DateTime? ArchivedAt { get; set; }
     /// <summary>
+    /// List of sorted tests
+    /// </summary>
+    public List<Guid>? OrderedTests { get; set; } = new();
+    /// <summary>
     /// Chapter's name
     /// </summary>
     public required string Name { get; set; }
-    
-    /// <summary>
-    /// Number of order for sorting
-    /// </summary>
-    public string? Order { get; set; }
-    
+    // /// <summary>
+    // /// Previous chapter (for sorting)
+    // /// </summary>
+    // public Chapter? PreviousChapter { get; set; }
+    // /// <summary>
+    // /// Next chapter (for sorting)
+    // /// </summary>
+    // public Chapter? NextChapter { get; set; }
     /// <summary>
     /// Chapter's content
     /// </summary>

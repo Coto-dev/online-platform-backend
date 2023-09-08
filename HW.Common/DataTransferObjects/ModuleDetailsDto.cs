@@ -13,7 +13,14 @@ public class ModuleDetailsDto {
     public List<RequiredModulesDto> RequiredModules { get; set; } = new();
     public ModuleVisibilityType? VisibilityType { get; set; }
     public DateTime? StartDate { get; set; }
+    public DateTime? StartRegistrationDate { get; set; }
+    public DateTime? StopRegistrationDate { get; set; }
     public DateTime? ExpirationDate { get; set; }
+    public int AmountOfStudents { get; set; }
+    public Guid Author { get; set;}
+    public List<Guid>? Teachers { get; set; } = new();
+    public List<Guid>? Editors { get; set; } = new();
     public int? MaxStudents { get; set; }
     public string? TimeDuration { get; set; }
+    
 }

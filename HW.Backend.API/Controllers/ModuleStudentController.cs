@@ -61,7 +61,7 @@ public class ModuleStudentController : ControllerBase {
     public async Task<ActionResult<PagedList<ModuleShortDto>>> GetStudentModules([FromQuery] PaginationParamsDto pagination,
         [FromQuery] FilterModuleType? filter,
         [FromQuery] string? sortByNameFilter, 
-        [FromQuery] ModuleFilterStudentType? section = ModuleFilterStudentType.InProcess,
+        [FromQuery] ModuleStudentFilter? section,
         [FromQuery] SortModuleType? sortModuleType = SortModuleType.NameAsc) {
         if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false) {
             throw new UnauthorizedException("User is not authorized");
@@ -143,6 +143,19 @@ public class ModuleStudentController : ControllerBase {
             throw new UnauthorizedException("User is not authorized");
         }
         await _moduleStudentService.BuyModule(moduleId, userId);
+        return Ok();
+    }
+    /// <summary>
+    /// Start module [Student]
+    /// </summary>
+    [HttpPost]
+    [Route("{moduleId}/start")]
+    [Authorize(AuthenticationSchemes = "Bearer", Roles = ApplicationRoleNames.Student)]
+    public async Task<ActionResult> StartModule(Guid moduleId) {
+        if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false) {
+            throw new UnauthorizedException("User is not authorized");
+        }
+        await _moduleStudentService.StartModule(moduleId, userId);
         return Ok();
     }
     
