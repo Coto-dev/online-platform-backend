@@ -54,23 +54,15 @@ public class ModuleManagerService : IModuleManagerService {
     }
     public async Task<ModuleFullTeacherDto> GetModuleContent(Guid moduleId, Guid userId) {
         var module = await _dbContext.Modules
-            /*.Include(m=>m.SubModules)!
+            .Include(m=>m.SubModules)!
             .ThenInclude(s=>s.Chapters)
-            .AsNoTracking()*/
+            .AsNoTracking()
             .FirstOrDefaultAsync(m => m.Id == moduleId);
-        var subModules = await _dbContext.SubModules
-            .Where(s => s.Module.Id == moduleId)
-            .ToListAsync();
-        (subModules[4], subModules[3]) = (subModules[3], subModules[4]);
-        _dbContext.Update(subModules[3]);
-        _dbContext.Update(subModules[4]);
-        //_dbContext.UpdateRange(subModules);
-        await _dbContext.SaveChangesAsync();
         if (module == null)
             throw new NotFoundException("Module not found");
         return new ModuleFullTeacherDto {
             Id = module.Id,
-            SubModules = subModules.Select(s=> new SubModuleFullDto {
+            SubModules = module.SubModules!.Select(s=> new SubModuleFullDto {
                 Id = s.Id,
                 Name = s.Name,
                 Chapters = s.Chapters != null ? s.Chapters.Select(c=> new ChapterShrotDto {
