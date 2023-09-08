@@ -12,7 +12,7 @@ public class ModuleSelfStudyCreateDto {
     public string? AvatarId { get; set; }
     public int? Price { get; set; }
     public List<Guid>? RequiredModules { get; set; } = new();
-    public List<Guid>? Creators { get; set; } = new();
+    public List<Guid>? Editors { get; set; } = new();
     public List<Guid>? Teachers { get; set; } = new();
     public string? TimeDuration { get; set; }
 

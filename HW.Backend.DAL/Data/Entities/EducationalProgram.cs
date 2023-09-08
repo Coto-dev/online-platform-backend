@@ -28,7 +28,11 @@ public class EducationalProgram
     /// <summary>
     /// Date when program starts
     /// </summary>
-    public DateTime? StartTime { get; set; }
+    public DateTime? StartAt { get; set; }
+    /// <summary>
+    /// Date when user can register
+    /// </summary>
+    public DateTime? StartRegisterAt { get; set; }
     /// <summary>
     /// Required time to finish program
     /// </summary>
@@ -53,9 +57,15 @@ public class EducationalProgram
     /// List of students on educational program
     /// </summary>
     public List<StudentEducationalProgram>? UserPrograms { get; set; } = new();
+    
     /// <summary>
-    /// List of Creators in this EducationalProgram
+    /// Module author
     /// </summary>
-    public List<Teacher>? Creators { get; set; } = new();
+    public required Teacher Author { get; set; }
+    
+    /// <summary>
+    /// List of Editors in this EducationalProgram
+    /// </summary>
+    public List<Teacher>? Editors { get; set; } = new();
 
 }

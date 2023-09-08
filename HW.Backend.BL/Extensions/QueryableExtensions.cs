@@ -37,32 +37,32 @@ public static  class QueryableExtensions {
                                && x.GetType() == typeof(Module)))
                            && (section == null || (section == ModuleFilterTeacherType.Draft
                                                    && x.ModuleVisibility == ModuleVisibilityType.OnlyCreators
-                                                   && x.Creators!.Any(c=>c.Id == userId))
+                                                   && x.Editors!.Any(c=>c.Id == userId))
                            || (section == ModuleFilterTeacherType.Published
-                               && x.Creators!.Any(c=>c.Id == userId)
+                               && x.Editors!.Any(c=>c.Id == userId)
                                && x.ModuleVisibility == ModuleVisibilityType.Everyone)
                            || (section == ModuleFilterTeacherType.Taught && x.Teachers!.Any(t=>t.Id == userId)))
                            && (sortByNameFilter == null || x.Name.ToLower().Contains(sortByNameFilter.ToLower())));
     }
     
     public static IQueryable<Module> ModuleStudentFilter(this IQueryable<Module> source, FilterModuleType? filter,
-        ModuleFilterStudentType? section, string? sortByNameFilter, Guid userId) {
+        ModuleStudentFilter? section, string? sortByNameFilter, Guid userId) {
         return source.Where(x =>
             (filter == null || (filter.ModuleTypes!.Contains(ModuleType.StreamingModule) 
                                 && x.GetType() == typeof(StreamingModule)) 
                             || (filter.ModuleTypes!.Contains(ModuleType.SelfStudyModule) 
                                 && x.GetType() == typeof(Module)))
-            && (section == null || (section == ModuleFilterStudentType.Passed 
+            && (section == null || (section.ModuleStudentTypes!.Contains(ModuleFilterStudentType.Passed)
                                     && x.UserModules!.Any(u=>u.Student.Id == userId && u.ModuleStatus == ModuleStatusType.Passed))
-                                || (section == ModuleFilterStudentType.NotPassed 
+                                || (section.ModuleStudentTypes!.Contains(ModuleFilterStudentType.NotPassed) 
                                     && x.UserModules!.Any(u=>u.Student.Id == userId 
-                                        && (u.ModuleStatus == ModuleStatusType.NotPassedByExam 
-                                            || u.ModuleStatus == ModuleStatusType.NotPassedByExpiration)))
-                                || (section == ModuleFilterStudentType.InProcess 
-                                    && x.UserModules!.Any(u=>u.Student.Id == userId && u.ModuleStatus == ModuleStatusType.InProcess))
-                                || (section == ModuleFilterStudentType.InCart 
+                                                             && (u.ModuleStatus == ModuleStatusType.NotPassedByExam 
+                                                                 || u.ModuleStatus == ModuleStatusType.NotPassedByExpiration)))
+                                || (section.ModuleStudentTypes!.Contains(ModuleFilterStudentType.InProcess)
+                                                                  && x.UserModules!.Any(u=>u.Student.Id == userId && u.ModuleStatus == ModuleStatusType.InProcess))
+                                || (section.ModuleStudentTypes!.Contains(ModuleFilterStudentType.InCart)
                                     && x.UserModules!.Any(u=>u.Student.Id == userId && u.ModuleStatus == ModuleStatusType.InCart))
-                                || (section == ModuleFilterStudentType.Purchased 
+                                || (section.ModuleStudentTypes!.Contains(ModuleFilterStudentType.Purchased)
                                     && x.UserModules!.Any(u=>u.Student.Id == userId && u.ModuleStatus == ModuleStatusType.Purchased)))
             && (sortByNameFilter == null || x.Name.ToLower().Contains(sortByNameFilter.ToLower())));        
     }

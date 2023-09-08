@@ -23,9 +23,17 @@ public class Test
     /// </summary>
     public DateTime? ArchivedAt { get; set; }
     /// <summary>
-    /// Number of order for sorting
+    /// List of sorted tests
     /// </summary>
-    public string? Order { get; set; }
+    public List<Guid>? OrderedTests { get; set; }
+    // /// <summary>
+    // /// Previous test (for sorting)
+    // /// </summary>
+    // public Test? PreviousTest { get; set; }
+    // /// <summary>
+    // /// Next test (for sorting)
+    // /// </summary>
+    // public Test? NextTest { get; set; }
     /// <summary>
     /// Chapter identifier
     /// </summary>

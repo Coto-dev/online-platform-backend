@@ -40,15 +40,15 @@ namespace HW.Backend.DAL.Migrations
 
             modelBuilder.Entity("EducationalProgramTeacher", b =>
                 {
-                    b.Property<Guid>("CreatedProgramsId")
+                    b.Property<Guid>("EditorProgramsId")
                         .HasColumnType("uuid");
 
-                    b.Property<Guid>("CreatorsId")
+                    b.Property<Guid>("EditorsId")
                         .HasColumnType("uuid");
 
-                    b.HasKey("CreatedProgramsId", "CreatorsId");
+                    b.HasKey("EditorProgramsId", "EditorsId");
 
-                    b.HasIndex("CreatorsId");
+                    b.HasIndex("EditorsId");
 
                     b.ToTable("EducationalProgramTeacher");
                 });
@@ -81,8 +81,8 @@ namespace HW.Backend.DAL.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("Order")
-                        .HasColumnType("text");
+                    b.Property<List<Guid>>("OrderedTests")
+                        .HasColumnType("uuid[]");
 
                     b.Property<Guid?>("StudentId")
                         .HasColumnType("uuid");
@@ -159,6 +159,9 @@ namespace HW.Backend.DAL.Migrations
                     b.Property<DateTime?>("ArchivedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<Guid>("AuthorId")
+                        .HasColumnType("uuid");
+
                     b.Property<string>("AvatarId")
                         .HasColumnType("text");
 
@@ -179,13 +182,18 @@ namespace HW.Backend.DAL.Migrations
                     b.Property<int>("Price")
                         .HasColumnType("integer");
 
-                    b.Property<DateTime?>("StartTime")
+                    b.Property<DateTime?>("StartAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("StartRegisterAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("TimeDuration")
                         .HasColumnType("text");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("AuthorId");
 
                     b.ToTable("EducationalPrograms");
                 });
@@ -223,6 +231,9 @@ namespace HW.Backend.DAL.Migrations
                     b.Property<DateTime?>("ArchivedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<Guid>("AuthorId")
+                        .HasColumnType("uuid");
+
                     b.Property<string>("AvatarId")
                         .HasColumnType("text");
 
@@ -247,6 +258,9 @@ namespace HW.Backend.DAL.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<List<Guid>>("OrderedSubModules")
+                        .HasColumnType("uuid[]");
+
                     b.Property<int>("Price")
                         .HasColumnType("integer");
 
@@ -254,6 +268,8 @@ namespace HW.Backend.DAL.Migrations
                         .HasColumnType("text");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("AuthorId");
 
                     b.ToTable("Modules");
 
@@ -399,8 +415,8 @@ namespace HW.Backend.DAL.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("Order")
-                        .HasColumnType("text");
+                    b.Property<List<Guid>>("OrderedChapters")
+                        .HasColumnType("uuid[]");
 
                     b.Property<int>("SubModuleType")
                         .HasColumnType("integer");
@@ -447,8 +463,8 @@ namespace HW.Backend.DAL.Migrations
                     b.Property<List<string>>("Files")
                         .HasColumnType("text[]");
 
-                    b.Property<string>("Order")
-                        .HasColumnType("text");
+                    b.Property<List<Guid>>("OrderedTests")
+                        .HasColumnType("uuid[]");
 
                     b.Property<string>("Question")
                         .IsRequired()
@@ -566,15 +582,15 @@ namespace HW.Backend.DAL.Migrations
 
             modelBuilder.Entity("ModuleTeacher", b =>
                 {
-                    b.Property<Guid>("CreatedModulesId")
+                    b.Property<Guid>("EditorModulesId")
                         .HasColumnType("uuid");
 
-                    b.Property<Guid>("CreatorsId")
+                    b.Property<Guid>("EditorsId")
                         .HasColumnType("uuid");
 
-                    b.HasKey("CreatedModulesId", "CreatorsId");
+                    b.HasKey("EditorModulesId", "EditorsId");
 
-                    b.HasIndex("CreatorsId");
+                    b.HasIndex("EditorsId");
 
                     b.ToTable("ModuleTeacher");
                 });
@@ -604,7 +620,13 @@ namespace HW.Backend.DAL.Migrations
                     b.Property<int>("MaxStudents")
                         .HasColumnType("integer");
 
-                    b.Property<DateTime>("StartAt")
+                    b.Property<DateTime?>("StartAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("StartRegisterAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("StopRegisterAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.HasDiscriminator().HasValue("StreamingModule");
@@ -686,13 +708,13 @@ namespace HW.Backend.DAL.Migrations
                 {
                     b.HasOne("HW.Backend.DAL.Data.Entities.EducationalProgram", null)
                         .WithMany()
-                        .HasForeignKey("CreatedProgramsId")
+                        .HasForeignKey("EditorProgramsId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("HW.Backend.DAL.Data.Entities.Teacher", null)
                         .WithMany()
-                        .HasForeignKey("CreatorsId")
+                        .HasForeignKey("EditorsId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
@@ -742,6 +764,17 @@ namespace HW.Backend.DAL.Migrations
                     b.Navigation("CorrectSequenceTest");
                 });
 
+            modelBuilder.Entity("HW.Backend.DAL.Data.Entities.EducationalProgram", b =>
+                {
+                    b.HasOne("HW.Backend.DAL.Data.Entities.Teacher", "Author")
+                        .WithMany("CreatedPrograms")
+                        .HasForeignKey("AuthorId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Author");
+                });
+
             modelBuilder.Entity("HW.Backend.DAL.Data.Entities.Learned", b =>
                 {
                     b.HasOne("HW.Backend.DAL.Data.Entities.Chapter", "Chapter")
@@ -759,6 +792,17 @@ namespace HW.Backend.DAL.Migrations
                     b.Navigation("Chapter");
 
                     b.Navigation("LearnedBy");
+                });
+
+            modelBuilder.Entity("HW.Backend.DAL.Data.Entities.Module", b =>
+                {
+                    b.HasOne("HW.Backend.DAL.Data.Entities.Teacher", "Author")
+                        .WithMany("CreatedModules")
+                        .HasForeignKey("AuthorId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Author");
                 });
 
             modelBuilder.Entity("HW.Backend.DAL.Data.Entities.ModuleComment", b =>
@@ -933,13 +977,13 @@ namespace HW.Backend.DAL.Migrations
                 {
                     b.HasOne("HW.Backend.DAL.Data.Entities.Module", null)
                         .WithMany()
-                        .HasForeignKey("CreatedModulesId")
+                        .HasForeignKey("EditorModulesId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("HW.Backend.DAL.Data.Entities.Teacher", null)
                         .WithMany()
-                        .HasForeignKey("CreatorsId")
+                        .HasForeignKey("EditorsId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
@@ -1012,6 +1056,13 @@ namespace HW.Backend.DAL.Migrations
             modelBuilder.Entity("HW.Backend.DAL.Data.Entities.SubModule", b =>
                 {
                     b.Navigation("Chapters");
+                });
+
+            modelBuilder.Entity("HW.Backend.DAL.Data.Entities.Teacher", b =>
+                {
+                    b.Navigation("CreatedModules");
+
+                    b.Navigation("CreatedPrograms");
                 });
 
             modelBuilder.Entity("HW.Backend.DAL.Data.Entities.Test", b =>
