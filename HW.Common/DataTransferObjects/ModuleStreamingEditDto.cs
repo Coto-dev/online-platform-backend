@@ -28,6 +28,12 @@ public class ModuleStreamingEditDto {
     [DataType(DataType.DateTime)]
     public DateTime ExpirationTime { get; set; }
     [Required]
+    [DataType(DataType.DateTime)]
+    public DateTime StopRegistrationDate { get; set; }
+    [Required]
+    [DataType(DataType.DateTime)]
+    public DateTime StartRegistrationDate { get; set; }
+    [Required]
     public int MaxStudents { get; set; }
     [Required]
     public List<Guid> Teachers { get; set; } = new();

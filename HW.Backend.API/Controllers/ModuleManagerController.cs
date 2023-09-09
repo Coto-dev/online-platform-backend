@@ -39,10 +39,10 @@ public class ModuleManagerController : ControllerBase {
     /// </summary>
     [HttpGet]
     [Route("teacher/list")]
-    public async Task<ActionResult<PagedList<ModuleShortDto>>> GetMyModules([FromQuery] PaginationParamsDto pagination, 
+    public async Task<ActionResult<PagedList<ModuleShortDto>>> GetTeacherModules([FromQuery] PaginationParamsDto pagination, 
         [FromQuery] FilterModuleType? filter, 
         [FromQuery] string? sortByNameFilter, 
-        [FromQuery] ModuleFilterTeacherType? section = ModuleFilterTeacherType.Published,
+        [FromQuery] ModuleTeacherFilter? section,
         [FromQuery] SortModuleType? sortModuleType = SortModuleType.NameAsc) {
         if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false) {
             throw new UnauthorizedException("User is not authorized");
@@ -106,7 +106,7 @@ public class ModuleManagerController : ControllerBase {
         }
         
         await _checkPermissionService.CheckCreatorModulePermission(userId, moduleId);
-        await _moduleManagerService.EditSelfStudyModule(model, moduleId);
+        await _moduleManagerService.EditSelfStudyModule(model, moduleId, userId);
         return Ok();
     }
     
@@ -134,7 +134,7 @@ public class ModuleManagerController : ControllerBase {
             throw new UnauthorizedException("User is not authorized");
         }
         await _checkPermissionService.CheckCreatorModulePermission(userId, moduleId);
-        await _moduleManagerService.EditStreamingModule(model, moduleId);
+        await _moduleManagerService.EditStreamingModule(model, moduleId,userId);
         return Ok();    
     }
     

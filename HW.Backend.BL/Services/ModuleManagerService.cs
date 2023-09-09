@@ -25,7 +25,7 @@ public class ModuleManagerService : IModuleManagerService {
 
 
     public async Task<PagedList<ModuleShortDto>> GetTeacherModules(PaginationParamsDto pagination, FilterModuleType? filter,
-        ModuleFilterTeacherType? section, string? sortByNameFilter, SortModuleType? sortModuleType, Guid userId) {
+        ModuleTeacherFilter? section, string? sortByNameFilter, SortModuleType? sortModuleType, Guid userId) {
         if (pagination.PageNumber <= 0)
             throw new BadRequestException("Wrong page");
         
@@ -40,6 +40,7 @@ public class ModuleManagerService : IModuleManagerService {
             Id = x.Id,
             Name = x.Name,
             Price = x.Price,
+            TimeDuration = x.TimeDuration,
             Status = typeof(Module) == x.GetType()? ModuleType.SelfStudyModule : ModuleType.StreamingModule,
         });
         var response = await PagedList<ModuleShortDto>.ToPagedList(shortModules, pagination.PageNumber, pagination.PageSize);
@@ -53,23 +54,15 @@ public class ModuleManagerService : IModuleManagerService {
     }
     public async Task<ModuleFullTeacherDto> GetModuleContent(Guid moduleId, Guid userId) {
         var module = await _dbContext.Modules
-            /*.Include(m=>m.SubModules)!
+            .Include(m=>m.SubModules)!
             .ThenInclude(s=>s.Chapters)
-            .AsNoTracking()*/
+            .AsNoTracking()
             .FirstOrDefaultAsync(m => m.Id == moduleId);
-        var subModules = await _dbContext.SubModules
-            .Where(s => s.Module.Id == moduleId)
-            .ToListAsync();
-        (subModules[4], subModules[3]) = (subModules[3], subModules[4]);
-        _dbContext.Update(subModules[3]);
-        _dbContext.Update(subModules[4]);
-        //_dbContext.UpdateRange(subModules);
-        await _dbContext.SaveChangesAsync();
         if (module == null)
             throw new NotFoundException("Module not found");
         return new ModuleFullTeacherDto {
             Id = module.Id,
-            SubModules = subModules.Select(s=> new SubModuleFullDto {
+            SubModules = module.SubModules!.Select(s=> new SubModuleFullDto {
                 Id = s.Id,
                 Name = s.Name,
                 Chapters = s.Chapters != null ? s.Chapters.Select(c=> new ChapterShrotDto {
@@ -98,7 +91,7 @@ public class ModuleManagerService : IModuleManagerService {
                 ? new List<FileLinkDto>()
                 : chapter.Files.Select( f => new FileLinkDto {
                     FileId = f,
-                    Url = null //TODO 
+                    Url = null 
                 }).ToList(),
             Comments = chapter.ChapterComments == null
                 ? new List<ChapterCommentDto>()
@@ -118,7 +111,7 @@ public class ModuleManagerService : IModuleManagerService {
                         ? new List<FileLinkDto>()
                         : t.Files.Select( f => new FileLinkDto {
                             FileId = f,
-                            Url = null //TODO 
+                            Url = null 
                         }).ToList(),
                     PossibleSimpleAnswers = t is SimpleAnswerTest simpleAnswerTest ? simpleAnswerTest.PossibleAnswers
                         .Select(uat=> new SimpleAnswerDto {
@@ -178,7 +171,7 @@ public class ModuleManagerService : IModuleManagerService {
         await _dbContext.SaveChangesAsync();
     }
 
-    public async Task EditSelfStudyModule(ModuleSelfStudyEditDto model, Guid moduleId) {
+    public async Task EditSelfStudyModule(ModuleSelfStudyEditDto model, Guid moduleId, Guid userId) {
         var editors = model.Editors!.Count == 0
             ? new List<Teacher>()
             : await _dbContext.Teachers.Where(t => model.Editors.Contains(t.Id)).ToListAsync();
@@ -196,7 +189,7 @@ public class ModuleManagerService : IModuleManagerService {
         module.EditedAt = DateTime.UtcNow;
         module.AvatarId = model.AvatarId;
         module.ModuleVisibility = model.VisibilityType;
-        if (editors.Count != 0) module.Editors = editors;
+        if (editors.Count != 0 && module.Author.Id == userId) module.Editors = editors;
         if (teachers.Count != 0) module.Teachers = teachers;
         if (!editors.Contains(module.Author))
             editors.Add(module.Author); 
@@ -225,7 +218,7 @@ public class ModuleManagerService : IModuleManagerService {
             ? new List<Teacher>() { user.Teacher } 
             : await _dbContext.Teachers.Where(t => model.Editors.Contains(t.Id)).ToListAsync();
         var teachers = model.Teachers!.Count == 0
-            ? new List<Teacher>()
+            ? new List<Teacher>() {user.Teacher}
             : await _dbContext.Teachers.Where(t => model.Teachers.Contains(t.Id)).ToListAsync();
         
         var module = new StreamingModule() {
@@ -239,6 +232,8 @@ public class ModuleManagerService : IModuleManagerService {
             Editors = editors.IsNullOrEmpty() ? new List<Teacher>() { user.Teacher } : editors,
             Teachers = teachers.IsNullOrEmpty() ? new List<Teacher>() { user.Teacher } : teachers,
             StartAt = model.StartTime ?? DateTime.UtcNow.AddMonths(1),
+            StartRegisterAt = model.StartRegistrationDate,
+            StopRegisterAt = model.StopRegistrationDate,
             ExpiredAt = model.ExpirationTime,
             MaxStudents = model.MaxStudents ?? 0
         };
@@ -246,7 +241,7 @@ public class ModuleManagerService : IModuleManagerService {
         await _dbContext.SaveChangesAsync();    
     }
 
-    public async Task EditStreamingModule(ModuleStreamingEditDto model, Guid moduleId) {
+    public async Task EditStreamingModule(ModuleStreamingEditDto model, Guid moduleId, Guid userId) {
         var editors = model.Editors!.Count == 0
             ? new List<Teacher>()
             : await _dbContext.Teachers.Where(t => model.Editors.Contains(t.Id)).ToListAsync();
@@ -263,11 +258,13 @@ public class ModuleManagerService : IModuleManagerService {
         module.Price = model.Price;
         module.AvatarId = model.AvatarId;
         module.ModuleVisibility = model.VisibilityType;
-        if (editors.Count != 0) module.Editors = editors;
+        if (editors.Count != 0 && module.Author.Id == userId) module.Editors = editors;
         if (teachers.Count != 0) module.Teachers = teachers;
         module.StartAt = model.StartTime;
         module.ExpiredAt = model.ExpirationTime;
         module.MaxStudents = model.MaxStudents;
+        module.StartRegisterAt = model.StartRegistrationDate;
+        module.StopRegisterAt = model.StopRegistrationDate;
         module.EditedAt = DateTime.UtcNow;
         if (!editors.Contains(module.Author))
             editors.Add(module.Author); 

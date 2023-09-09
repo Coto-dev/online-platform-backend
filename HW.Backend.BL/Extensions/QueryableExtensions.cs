@@ -28,20 +28,21 @@ public static  class QueryableExtensions {
     }*/
     
     public static IQueryable<Module> ModuleTeacherFilter(this IQueryable<Module> source, FilterModuleType? filter,
-        ModuleFilterTeacherType? section, string? sortByNameFilter, Guid userId) {
+        ModuleTeacherFilter? section, string? sortByNameFilter, Guid userId) {
 
         return source.Where(x =>
             (filter == null || (filter.ModuleTypes!.Contains(ModuleType.StreamingModule) 
                                && x.GetType() == typeof(StreamingModule)) 
                            || (filter.ModuleTypes!.Contains(ModuleType.SelfStudyModule) 
                                && x.GetType() == typeof(Module)))
-                           && (section == null || (section == ModuleFilterTeacherType.Draft
+                           && (section == null || (section.Sections!.Contains(ModuleFilterTeacherType.Draft)
                                                    && x.ModuleVisibility == ModuleVisibilityType.OnlyCreators
                                                    && x.Editors!.Any(c=>c.Id == userId))
-                           || (section == ModuleFilterTeacherType.Published
+                           || (section.Sections.Contains(ModuleFilterTeacherType.Published)
                                && x.Editors!.Any(c=>c.Id == userId)
                                && x.ModuleVisibility == ModuleVisibilityType.Everyone)
-                           || (section == ModuleFilterTeacherType.Taught && x.Teachers!.Any(t=>t.Id == userId)))
+                           || (section.Sections.Contains(ModuleFilterTeacherType.Taught) 
+                               && x.Teachers!.Any(t=>t.Id == userId)))
                            && (sortByNameFilter == null || x.Name.ToLower().Contains(sortByNameFilter.ToLower())));
     }
     
@@ -52,17 +53,17 @@ public static  class QueryableExtensions {
                                 && x.GetType() == typeof(StreamingModule)) 
                             || (filter.ModuleTypes!.Contains(ModuleType.SelfStudyModule) 
                                 && x.GetType() == typeof(Module)))
-            && (section == null || (section.ModuleStudentTypes!.Contains(ModuleFilterStudentType.Passed)
+            && (section == null || (section.Sections!.Contains(ModuleFilterStudentType.Passed)
                                     && x.UserModules!.Any(u=>u.Student.Id == userId && u.ModuleStatus == ModuleStatusType.Passed))
-                                || (section.ModuleStudentTypes!.Contains(ModuleFilterStudentType.NotPassed) 
+                                || (section.Sections!.Contains(ModuleFilterStudentType.NotPassed) 
                                     && x.UserModules!.Any(u=>u.Student.Id == userId 
                                                              && (u.ModuleStatus == ModuleStatusType.NotPassedByExam 
                                                                  || u.ModuleStatus == ModuleStatusType.NotPassedByExpiration)))
-                                || (section.ModuleStudentTypes!.Contains(ModuleFilterStudentType.InProcess)
+                                || (section.Sections!.Contains(ModuleFilterStudentType.InProcess)
                                                                   && x.UserModules!.Any(u=>u.Student.Id == userId && u.ModuleStatus == ModuleStatusType.InProcess))
-                                || (section.ModuleStudentTypes!.Contains(ModuleFilterStudentType.InCart)
+                                || (section.Sections!.Contains(ModuleFilterStudentType.InCart)
                                     && x.UserModules!.Any(u=>u.Student.Id == userId && u.ModuleStatus == ModuleStatusType.InCart))
-                                || (section.ModuleStudentTypes!.Contains(ModuleFilterStudentType.Purchased)
+                                || (section.Sections!.Contains(ModuleFilterStudentType.Purchased)
                                     && x.UserModules!.Any(u=>u.Student.Id == userId && u.ModuleStatus == ModuleStatusType.Purchased)))
             && (sortByNameFilter == null || x.Name.ToLower().Contains(sortByNameFilter.ToLower())));        
     }

@@ -6,14 +6,13 @@ namespace HW.Common.Interfaces;
 
 public interface IModuleManagerService {
     Task<PagedList<ModuleShortDto>> GetTeacherModules(PaginationParamsDto pagination, FilterModuleType? filter,
-        ModuleFilterTeacherType? section, string? sortByNameFilter, SortModuleType? sortModuleType, Guid userId);
-
+        ModuleTeacherFilter? section, string? sortByNameFilter, SortModuleType? sortModuleType, Guid userId);
     public Task<ModuleFullTeacherDto> GetModuleContent(Guid moduleId, Guid userId);
     public Task<ChapterFullTeacherDto> GetChapterContent(Guid chapterId, Guid userId);
     Task CreateSelfStudyModule(ModuleSelfStudyCreateDto model, Guid userId);
-    Task EditSelfStudyModule(ModuleSelfStudyEditDto model, Guid moduleId);
+    Task EditSelfStudyModule(ModuleSelfStudyEditDto model, Guid moduleId, Guid userId);
     Task CreateStreamingModule(ModuleStreamingCreateDto model, Guid userId);
-    Task EditStreamingModule(ModuleStreamingEditDto model, Guid moduleId);
+    Task EditStreamingModule(ModuleStreamingEditDto model, Guid moduleId, Guid userId);
     Task ArchiveModule(Guid moduleId);
     Task AddSubModule(Guid moduleId, SubModuleCreateDto model);
     Task EditSubModule(Guid subModuleId, SubModuleEditDto model);

@@ -15,6 +15,7 @@ public class ModuleStreamingCreateDto {
     public int? MaxStudents { get; set; }
     public List<Guid>? Teachers { get; set; } = new();
     public List<Guid>? Editors { get; set; } = new();
-
+    public DateTime? StopRegistrationDate { get; set; }
+    public DateTime? StartRegistrationDate { get; set; }
     public string? TimeDuration { get; set; }
 }
