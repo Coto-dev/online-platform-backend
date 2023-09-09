@@ -45,6 +45,8 @@ public class ModuleStudentService : IModuleStudentService {
             Name = x.Name,
             Price = x.Price,
             AvatarId = x.AvatarId,
+            TimeDuration = x.TimeDuration,
+            StartDate = x is StreamingModule ?  ((StreamingModule)x).StartAt : null,
             Status = typeof(Module) == x.GetType()? ModuleType.SelfStudyModule : ModuleType.StreamingModule,
         });
         var response = await PagedList<ModuleShortDto>.ToPagedList(shortModules, pagination.PageNumber, pagination.PageSize);
@@ -81,6 +83,7 @@ public class ModuleStudentService : IModuleStudentService {
             Name = x.Name,
             Price = x.Price,
             AvatarId = x.AvatarId,
+            TimeDuration = x.TimeDuration,
             Status = typeof(Module) == x.GetType()? ModuleType.SelfStudyModule : ModuleType.StreamingModule,
         });
         var response = await PagedList<ModuleShortDto>.ToPagedList(shortModules, pagination.PageNumber, pagination.PageSize);
