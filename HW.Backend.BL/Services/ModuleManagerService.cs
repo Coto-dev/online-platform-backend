@@ -25,7 +25,7 @@ public class ModuleManagerService : IModuleManagerService {
 
 
     public async Task<PagedList<ModuleShortDto>> GetTeacherModules(PaginationParamsDto pagination, FilterModuleType? filter,
-        ModuleTeacherFilter? section, string? sortByNameFilter, SortModuleType? sortModuleType, Guid userId) {
+        ModuleFilterTeacherType? section, string? sortByNameFilter, SortModuleType? sortModuleType, Guid userId) {
         if (pagination.PageNumber <= 0)
             throw new BadRequestException("Wrong page");
         
@@ -189,13 +189,22 @@ public class ModuleManagerService : IModuleManagerService {
         module.Price = model.Price;
         module.EditedAt = DateTime.UtcNow;
         module.AvatarId = model.AvatarId;
-        module.ModuleVisibility = model.VisibilityType;
         if (editors.Count != 0 && module.Author.Id == userId) module.Editors = editors;
         if (teachers.Count != 0) module.Teachers = teachers;
         if (!editors.Contains(module.Author))
             editors.Add(module.Author); 
         _dbContext.Update(module);
         await _dbContext.SaveChangesAsync();    
+    }
+
+    public async Task EditVisibilityModule(ModuleVisibilityType visibilityType, Guid moduleId) {
+        var module = await _dbContext.StreamingModules
+            .FirstOrDefaultAsync(m => m.Id == moduleId && !m.ArchivedAt.HasValue);
+        if (module == null) 
+            throw new NotFoundException("Module not found");
+        module.ModuleVisibility = visibilityType;
+        _dbContext.Update(module);
+        await _dbContext.SaveChangesAsync();  
     }
 
     public async Task CreateStreamingModule(ModuleStreamingCreateDto model, Guid userId) {
@@ -258,7 +267,6 @@ public class ModuleManagerService : IModuleManagerService {
         module.Description = model.Description;
         module.Price = model.Price;
         module.AvatarId = model.AvatarId;
-        module.ModuleVisibility = model.VisibilityType;
         if (editors.Count != 0 && module.Author.Id == userId) module.Editors = editors;
         if (teachers.Count != 0) module.Teachers = teachers;
         module.StartAt = model.StartTime;

@@ -42,7 +42,7 @@ public class ModuleManagerController : ControllerBase {
     public async Task<ActionResult<PagedList<ModuleShortDto>>> GetTeacherModules([FromQuery] PaginationParamsDto pagination, 
         [FromQuery] FilterModuleType? filter, 
         [FromQuery] string? sortByNameFilter, 
-        [FromQuery] ModuleTeacherFilter? section,
+        [FromQuery] ModuleFilterTeacherType? section,
         [FromQuery] SortModuleType? sortModuleType = SortModuleType.NameAsc) {
         if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false) {
             throw new UnauthorizedException("User is not authorized");
@@ -107,6 +107,20 @@ public class ModuleManagerController : ControllerBase {
         
         await _checkPermissionService.CheckCreatorModulePermission(userId, moduleId);
         await _moduleManagerService.EditSelfStudyModule(model, moduleId, userId);
+        return Ok();
+    }
+    /// <summary>
+    /// Edit module visibility [Teacher]
+    /// </summary>
+    [HttpPatch]
+    [Route("{moduleId}/visibility")]
+    public async Task<ActionResult> EditVisibilityModule([FromQuery] ModuleVisibilityType visibilityType, Guid moduleId) {
+        if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false) {
+            throw new UnauthorizedException("User is not authorized");
+        }
+        
+        await _checkPermissionService.CheckCreatorModulePermission(userId, moduleId);
+        await _moduleManagerService.EditVisibilityModule(visibilityType, moduleId);
         return Ok();
     }
     
