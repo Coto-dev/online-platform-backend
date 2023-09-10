@@ -198,7 +198,7 @@ public class ModuleManagerService : IModuleManagerService {
     }
 
     public async Task EditVisibilityModule(ModuleVisibilityType visibilityType, Guid moduleId) {
-        var module = await _dbContext.StreamingModules
+        var module = await _dbContext.Modules
             .FirstOrDefaultAsync(m => m.Id == moduleId && !m.ArchivedAt.HasValue);
         if (module == null) 
             throw new NotFoundException("Module not found");
