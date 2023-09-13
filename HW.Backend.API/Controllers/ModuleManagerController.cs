@@ -42,7 +42,7 @@ public class ModuleManagerController : ControllerBase {
     public async Task<ActionResult<PagedList<ModuleShortDto>>> GetTeacherModules([FromQuery] PaginationParamsDto pagination, 
         [FromQuery] FilterModuleType? filter, 
         [FromQuery] string? sortByNameFilter, 
-        [FromQuery] ModuleFilterTeacherType? section,
+        [FromQuery] ModuleTeacherFilter? section,
         [FromQuery] SortModuleType? sortModuleType = SortModuleType.NameAsc) {
         if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false) {
             throw new UnauthorizedException("User is not authorized");
