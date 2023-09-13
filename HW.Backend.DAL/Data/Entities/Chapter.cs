@@ -10,7 +10,7 @@ public class Chapter
     /// <summary>
     /// Chapter id
     /// </summary>
-    public Guid Id { get; set; }
+    public Guid Id { get; set; } = Guid.NewGuid();
     /// <summary>
     /// Date and time the chapter was created
     /// </summary>

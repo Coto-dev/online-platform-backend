@@ -96,6 +96,20 @@ public class ModuleManagerController : ControllerBase {
     }
     
     /// <summary>
+    /// Edit order of sub modules[Teacher]
+    /// </summary>
+    [HttpPut]
+    [Route("{moduleId}/sub-modules/order")]
+    public async Task<ActionResult> EditSubModulesOrder([FromBody] List<Guid> orderedSubModules, Guid moduleId) {
+        if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false) {
+            throw new UnauthorizedException("User is not authorized");
+        }
+        await _checkPermissionService.CheckCreatorModulePermission(userId, moduleId);
+        await _moduleManagerService.EditSubModulesOrder(orderedSubModules , moduleId);
+        return Ok();
+    }
+    
+    /// <summary>
     /// Edit self-study module [Teacher]
     /// </summary>
     [HttpPut]
@@ -163,6 +177,20 @@ public class ModuleManagerController : ControllerBase {
         }
         await _checkPermissionService.CheckCreatorModulePermission(userId, moduleId);
         await _moduleManagerService.AddSubModule(moduleId, model);
+        return Ok();
+    }
+    
+    /// <summary>
+    /// Edit order of chapters[Teacher]
+    /// </summary>
+    [HttpPut]
+    [Route("sub-module/{subModuleId}/chapters/order")]
+    public async Task<ActionResult> EditChaptersOrder([FromBody] List<Guid> orderedChapters, Guid subModuleId) {
+        if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false) {
+            throw new UnauthorizedException("User is not authorized");
+        }
+        await _checkPermissionService.CheckCreatorSubModulePermission(userId, subModuleId);
+        await _moduleManagerService.EditChaptersOrder(orderedChapters , subModuleId);
         return Ok();
     }
     

@@ -9,6 +9,9 @@ public interface IModuleManagerService {
         ModuleTeacherFilter? section, string? sortByNameFilter, SortModuleType? sortModuleType, Guid userId);
     public Task<ModuleFullTeacherDto> GetModuleContent(Guid moduleId, Guid userId);
     public Task<ChapterFullTeacherDto> GetChapterContent(Guid chapterId, Guid userId);
+    Task EditSubModulesOrder(List<Guid> orderedSubModules, Guid moduleId);
+    Task EditChaptersOrder(List<Guid> orderedChapters, Guid subModuleId);
+
     Task CreateSelfStudyModule(ModuleSelfStudyCreateDto model, Guid userId);
     Task EditSelfStudyModule(ModuleSelfStudyEditDto model, Guid moduleId, Guid userId);
     Task CreateStreamingModule(ModuleStreamingCreateDto model, Guid userId);

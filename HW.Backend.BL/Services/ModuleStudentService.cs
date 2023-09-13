@@ -110,11 +110,12 @@ public class ModuleStudentService : IModuleStudentService {
             Id = module.Id,
             Progress = await CalculateProgress(moduleId, userId),
             SubModules = module.SubModules != null? module.SubModules
+                .OrderBy(x=> module.OrderedSubModules!.IndexOf(x.Id))
                 .Select(s=> new SubModuleFullDto {
                 Id = s.Id,
                 Name = s.Name,
                 Chapters = s.Chapters != null ? s.Chapters
-                    .OrderBy(c=>c.CreatedAt)
+                    .OrderBy(c=> s.OrderedChapters!.IndexOf(c.Id))
                     .Select(c=> new ChapterShrotDto {
                     Id = c.Id,
                     Name = c.Name,

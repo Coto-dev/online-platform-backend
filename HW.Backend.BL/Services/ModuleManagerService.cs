@@ -26,6 +26,9 @@ public class ModuleManagerService : IModuleManagerService {
 
     public async Task<PagedList<ModuleShortDto>> GetTeacherModules(PaginationParamsDto pagination, FilterModuleType? filter,
         ModuleTeacherFilter? section, string? sortByNameFilter, SortModuleType? sortModuleType, Guid userId) {
+        var user = await _dbContext.Teachers
+            .FirstOrDefaultAsync(u => u.Id == userId);
+        
         if (pagination.PageNumber <= 0)
             throw new BadRequestException("Wrong page");
         
@@ -41,6 +44,11 @@ public class ModuleManagerService : IModuleManagerService {
             Name = x.Name,
             Price = x.Price,
             TimeDuration = x.TimeDuration,
+            UserType = x.Author == user 
+                ? UserType.Author
+                : x.Editors!.Contains(user!)
+                ? UserType.Editor 
+                : null,
             Status = typeof(Module) == x.GetType()? ModuleType.SelfStudyModule : ModuleType.StreamingModule,
         });
         var response = await PagedList<ModuleShortDto>.ToPagedList(shortModules, pagination.PageNumber, pagination.PageSize);
@@ -50,7 +58,6 @@ public class ModuleManagerService : IModuleManagerService {
                 : await _fileService.GetAvatarLink(moduleShortDto.AvatarId);
         }
         return response;
-         
     }
     public async Task<ModuleFullTeacherDto> GetModuleContent(Guid moduleId, Guid userId) {
         var module = await _dbContext.Modules
@@ -62,10 +69,14 @@ public class ModuleManagerService : IModuleManagerService {
             throw new NotFoundException("Module not found");
         return new ModuleFullTeacherDto {
             Id = module.Id,
-            SubModules = module.SubModules!.Select(s=> new SubModuleFullDto {
+            SubModules = module.SubModules!
+                .OrderBy(x=> module.OrderedSubModules!.IndexOf(x.Id))
+                .Select(s=> new SubModuleFullDto {
                 Id = s.Id,
                 Name = s.Name,
-                Chapters = s.Chapters != null ? s.Chapters.Select(c=> new ChapterShrotDto {
+                Chapters = s.Chapters != null ? s.Chapters
+                    .OrderBy(c=> s.OrderedChapters!.IndexOf(c.Id))
+                    .Select(c=> new ChapterShrotDto {
                     Id = c.Id,
                     Name = c.Name,
                     ChapterType = c.ChapterType
@@ -134,6 +145,78 @@ public class ModuleManagerService : IModuleManagerService {
         }
         return response;
     }
+
+    public async Task EditSubModulesOrder(List<Guid> orderedSubModules, Guid moduleId) {
+        var duplicates = orderedSubModules.GroupBy(x => x)
+            .Where(g => g.Count() > 1)
+            .Select(y => y.Key)
+            .ToList();
+        if (duplicates.Count > 0)
+            throw new BadRequestException("There are duplicates: " + string.Join(", ", duplicates.Select(x => x)));
+        var module = await _dbContext.Modules
+            .Include(m=>m.SubModules)
+            .FirstOrDefaultAsync(m => m.Id == moduleId);
+        if (module == null)
+            throw new NotFoundException("Module not found");
+        if (module.SubModules.IsNullOrEmpty() || module.SubModules!.All(c => c.ArchivedAt.HasValue))
+            throw new ConflictException("There are no existing sub modules");
+        var missingSubs = module.SubModules!
+            .Where(s=>!s.ArchivedAt.HasValue)
+            .Select(o=>o.Id)
+            .Except(orderedSubModules)
+            .ToList();
+        if (missingSubs.Any())
+            throw new ConflictException("These sub modules are missing: " 
+                                        + string.Join(", ", missingSubs.Select(x => x)));
+        var notExistingSubs = orderedSubModules
+            .Except(module.SubModules!
+            .Where(s=>!s.ArchivedAt.HasValue)
+            .Select(o=>o.Id)
+            .ToList())
+            .ToList();
+        if (notExistingSubs.Any())
+            throw new ConflictException("These sub modules do not exist: " 
+                                        + string.Join(", ", notExistingSubs.Select(x => x)));
+        module.OrderedSubModules = orderedSubModules;
+        _dbContext.Update(module);
+        await _dbContext.SaveChangesAsync();
+    }
+
+    public async Task EditChaptersOrder(List<Guid> orderedChapters, Guid subModuleId) {
+       var duplicates = orderedChapters.GroupBy(x => x)
+            .Where(g => g.Count() > 1)
+            .Select(y => y.Key)
+            .ToList();
+       if (duplicates.Count > 0)
+           throw new BadRequestException("There are duplicates: " + string.Join(", ", duplicates.Select(x => x)));
+       var subModule = await _dbContext.SubModules
+            .Include(m=>m.Chapters)
+            .FirstOrDefaultAsync(m => m.Id == subModuleId);
+        if (subModule == null)
+            throw new NotFoundException("Sub module not found");
+        if (subModule.Chapters.IsNullOrEmpty() || subModule.Chapters!.All(c => c.ArchivedAt.HasValue))
+            throw new ConflictException("There are no existing chapters");
+        var missingChapters = subModule.Chapters!
+            .Where(c=>!c.ArchivedAt.HasValue)
+            .Select(c=>c.Id)
+            .Except(orderedChapters)
+            .ToList();
+        if (missingChapters.Any())
+            throw new ConflictException("These chapters are missing: " 
+                                        + string.Join(", ", missingChapters.Select(x => x)));
+        var notExistingChapters = orderedChapters.Except(subModule.Chapters!
+            .Where(c=>!c.ArchivedAt.HasValue)
+            .Select(c=>c.Id)
+            .ToList())
+            .ToList();
+        if (notExistingChapters.Any())
+            throw new ConflictException("These chapters do not exist: " 
+                                        + string.Join(", ", notExistingChapters.Select(x => x)));
+        subModule.OrderedChapters = orderedChapters;
+        _dbContext.Update(subModule);
+        await _dbContext.SaveChangesAsync();    
+    }
+
     public async Task CreateSelfStudyModule(ModuleSelfStudyCreateDto model, Guid userId) {
         var user = await _dbContext.UserBackends
             .Include(u=>u.Teacher)
