@@ -82,6 +82,7 @@ public class ModuleStudentService : IModuleStudentService {
             Id = x.Id,
             Name = x.Name,
             Price = x.Price,
+            AvatarId = x.AvatarId,
             TimeDuration = x.TimeDuration,
             Status = typeof(Module) == x.GetType()? ModuleType.SelfStudyModule : ModuleType.StreamingModule,
         });

@@ -50,4 +50,3 @@ services:
     restart: always
     volumes:
       - /var/log/hw-online/hw-notification:/app/logs
-

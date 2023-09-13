@@ -43,6 +43,7 @@ public class ModuleManagerService : IModuleManagerService {
             Id = x.Id,
             Name = x.Name,
             Price = x.Price,
+            AvatarId = x.AvatarId,
             TimeDuration = x.TimeDuration,
             UserType = x.Author == user 
                 ? UserType.Author
@@ -271,13 +272,22 @@ public class ModuleManagerService : IModuleManagerService {
         module.Price = model.Price;
         module.EditedAt = DateTime.UtcNow;
         module.AvatarId = model.AvatarId;
-        module.ModuleVisibility = model.VisibilityType;
         if (editors.Count != 0 && module.Author.Id == userId) module.Editors = editors;
         if (teachers.Count != 0) module.Teachers = teachers;
         if (!editors.Contains(module.Author))
             editors.Add(module.Author); 
         _dbContext.Update(module);
         await _dbContext.SaveChangesAsync();    
+    }
+
+    public async Task EditVisibilityModule(ModuleVisibilityType visibilityType, Guid moduleId) {
+        var module = await _dbContext.Modules
+            .FirstOrDefaultAsync(m => m.Id == moduleId && !m.ArchivedAt.HasValue);
+        if (module == null) 
+            throw new NotFoundException("Module not found");
+        module.ModuleVisibility = visibilityType;
+        _dbContext.Update(module);
+        await _dbContext.SaveChangesAsync();  
     }
 
     public async Task CreateStreamingModule(ModuleStreamingCreateDto model, Guid userId) {
@@ -340,7 +350,6 @@ public class ModuleManagerService : IModuleManagerService {
         module.Description = model.Description;
         module.Price = model.Price;
         module.AvatarId = model.AvatarId;
-        module.ModuleVisibility = model.VisibilityType;
         if (editors.Count != 0 && module.Author.Id == userId) module.Editors = editors;
         if (teachers.Count != 0) module.Teachers = teachers;
         module.StartAt = model.StartTime;
