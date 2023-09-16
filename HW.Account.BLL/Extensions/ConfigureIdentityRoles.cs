@@ -63,7 +63,7 @@ public static class ConfigureIdentityRoles {
         var adminUser = await userManager.FindByEmailAsync(config["AdminEmail"] ?? throw new ArgumentNullException(
             nameof(config), "AdminEmail is not defined"));
         if (adminUser == null) {
-            var userResult = await userManager.CreateAsync(new User {
+            var user = new User {
                 NickName = config["AdminFullName"] ??
                            throw new ArgumentNullException(
                                nameof(config),
@@ -77,14 +77,26 @@ public static class ConfigureIdentityRoles {
                             nameof(config),
                             "AdminEmail is not defined"),
                 JoinedAt = DateTime.Now.ToUniversalTime(),
-                WorkExperience = new WorkExperience(),
-                Location = new Location(),
-                Education = new Education(),
-                BirthDate = new BirthDate() {
-                    Value = DateTime.UtcNow
-                },
-            }, config["AdminPassword"] ?? throw new ArgumentNullException(
-                nameof(config), "AdminPassword is not defined"));
+            };
+            if (config["AdminPassword"] == null)
+                throw new ArgumentNullException(
+                    nameof(config),
+                    "AdminEmail is not defined");
+            user.BirthDate = new BirthDate {
+                Value = DateTime.UtcNow,
+                User = user
+            };
+            user.Location = new Location {
+                User = user
+            };
+            user.Education = new Education {
+                User = user
+            };
+            user.WorkExperience = new WorkExperience {
+                User = user
+            };
+            
+            var userResult = await userManager.CreateAsync(user, config["AdminPassword"]!);
             if (!userResult.Succeeded) {
                 throw new InvalidOperationException($"Unable to create administrator user");
             }

@@ -52,6 +52,16 @@ public class ProfileFullDto {
     /// Photo Identifier
     /// </summary>
     public FileLinkDto? Avatar { get; set; }
+    
+    /// <summary>
+    /// Myself description
+    /// </summary>
+    public string? AboutMe { get; set; }
+    
+    /// <summary>
+    /// User's post
+    /// </summary>
+    public string? Post { get; set; }
     /// <summary>
     /// User's roles
     /// </summary>
