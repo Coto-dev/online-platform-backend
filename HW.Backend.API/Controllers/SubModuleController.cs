@@ -36,7 +36,7 @@ public class SubModuleController : ControllerBase {
         if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false) {
             throw new UnauthorizedException("User is not authorized");
         }
-        await _checkPermissionService.CheckCreatorModulePermission(userId, moduleId);
+        await _checkPermissionService.CheckCreatorSubModulePermission(userId, moduleId);
         await _subModuleService.AddSubModule(moduleId, model);
         return Ok();
     }
