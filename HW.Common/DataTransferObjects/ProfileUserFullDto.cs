@@ -39,6 +39,17 @@ public class ProfileUserFullDto {
     /// Photo Identifier
     /// </summary>
     public string? AvatarUrl { get; set; }
+    
+    /// <summary>
+    /// Myself description
+    /// </summary>
+    public string? AboutMe { get; set; }
+    
+    /// <summary>
+    /// User's post
+    /// </summary>
+    public string? Post { get; set; }
+    
     /// <summary>
     /// User's roles
     /// </summary>

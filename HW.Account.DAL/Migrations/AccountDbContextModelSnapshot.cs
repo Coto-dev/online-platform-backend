@@ -25,7 +25,6 @@ namespace HW.Account.DAL.Migrations
             modelBuilder.Entity("HW.Account.DAL.Data.Entities.BirthDate", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
                     b.Property<DateTime?>("Value")
@@ -82,7 +81,6 @@ namespace HW.Account.DAL.Migrations
             modelBuilder.Entity("HW.Account.DAL.Data.Entities.Education", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
                     b.Property<int>("Visibility")
@@ -127,7 +125,6 @@ namespace HW.Account.DAL.Migrations
             modelBuilder.Entity("HW.Account.DAL.Data.Entities.Location", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
                     b.Property<string>("Place")
@@ -164,21 +161,18 @@ namespace HW.Account.DAL.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<string>("AboutMe")
+                        .HasColumnType("text");
+
                     b.Property<int>("AccessFailedCount")
                         .HasColumnType("integer");
 
                     b.Property<string>("AvatarId")
                         .HasColumnType("text");
 
-                    b.Property<Guid>("BirthDateId")
-                        .HasColumnType("uuid");
-
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
                         .HasColumnType("text");
-
-                    b.Property<Guid>("EducationId")
-                        .HasColumnType("uuid");
 
                     b.Property<string>("Email")
                         .HasMaxLength(256)
@@ -192,9 +186,6 @@ namespace HW.Account.DAL.Migrations
 
                     b.Property<DateTime>("JoinedAt")
                         .HasColumnType("timestamp with time zone");
-
-                    b.Property<Guid>("LocationId")
-                        .HasColumnType("uuid");
 
                     b.Property<bool>("LockoutEnabled")
                         .HasColumnType("boolean");
@@ -223,6 +214,9 @@ namespace HW.Account.DAL.Migrations
                     b.Property<bool>("PhoneNumberConfirmed")
                         .HasColumnType("boolean");
 
+                    b.Property<string>("Post")
+                        .HasColumnType("text");
+
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("text");
 
@@ -233,16 +227,7 @@ namespace HW.Account.DAL.Migrations
                         .HasMaxLength(256)
                         .HasColumnType("character varying(256)");
 
-                    b.Property<Guid>("WorkExperienceId")
-                        .HasColumnType("uuid");
-
                     b.HasKey("Id");
-
-                    b.HasIndex("BirthDateId");
-
-                    b.HasIndex("EducationId");
-
-                    b.HasIndex("LocationId");
 
                     b.HasIndex("NormalizedEmail")
                         .HasDatabaseName("EmailIndex");
@@ -251,15 +236,12 @@ namespace HW.Account.DAL.Migrations
                         .IsUnique()
                         .HasDatabaseName("UserNameIndex");
 
-                    b.HasIndex("WorkExperienceId");
-
                     b.ToTable("AspNetUsers", (string)null);
                 });
 
             modelBuilder.Entity("HW.Account.DAL.Data.Entities.WorkExperience", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
                     b.Property<int>("Visibility")
@@ -428,11 +410,33 @@ namespace HW.Account.DAL.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("HW.Account.DAL.Data.Entities.BirthDate", b =>
+                {
+                    b.HasOne("HW.Account.DAL.Data.Entities.User", "User")
+                        .WithOne("BirthDate")
+                        .HasForeignKey("HW.Account.DAL.Data.Entities.BirthDate", "Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("HW.Account.DAL.Data.Entities.Device", b =>
                 {
                     b.HasOne("HW.Account.DAL.Data.Entities.User", "User")
                         .WithMany("Devices")
                         .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("HW.Account.DAL.Data.Entities.Education", b =>
+                {
+                    b.HasOne("HW.Account.DAL.Data.Entities.User", "User")
+                        .WithOne("Education")
+                        .HasForeignKey("HW.Account.DAL.Data.Entities.Education", "Id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -450,39 +454,26 @@ namespace HW.Account.DAL.Migrations
                     b.Navigation("Education");
                 });
 
-            modelBuilder.Entity("HW.Account.DAL.Data.Entities.User", b =>
+            modelBuilder.Entity("HW.Account.DAL.Data.Entities.Location", b =>
                 {
-                    b.HasOne("HW.Account.DAL.Data.Entities.BirthDate", "BirthDate")
-                        .WithMany()
-                        .HasForeignKey("BirthDateId")
+                    b.HasOne("HW.Account.DAL.Data.Entities.User", "User")
+                        .WithOne("Location")
+                        .HasForeignKey("HW.Account.DAL.Data.Entities.Location", "Id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("HW.Account.DAL.Data.Entities.Education", "Education")
-                        .WithMany()
-                        .HasForeignKey("EducationId")
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("HW.Account.DAL.Data.Entities.WorkExperience", b =>
+                {
+                    b.HasOne("HW.Account.DAL.Data.Entities.User", "User")
+                        .WithOne("WorkExperience")
+                        .HasForeignKey("HW.Account.DAL.Data.Entities.WorkExperience", "Id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("HW.Account.DAL.Data.Entities.Location", "Location")
-                        .WithMany()
-                        .HasForeignKey("LocationId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("HW.Account.DAL.Data.Entities.WorkExperience", "WorkExperience")
-                        .WithMany()
-                        .HasForeignKey("WorkExperienceId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("BirthDate");
-
-                    b.Navigation("Education");
-
-                    b.Navigation("Location");
-
-                    b.Navigation("WorkExperience");
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("HW.Account.DAL.Data.Entities.WorkExperienceInfo", b =>
@@ -554,7 +545,19 @@ namespace HW.Account.DAL.Migrations
 
             modelBuilder.Entity("HW.Account.DAL.Data.Entities.User", b =>
                 {
+                    b.Navigation("BirthDate")
+                        .IsRequired();
+
                     b.Navigation("Devices");
+
+                    b.Navigation("Education")
+                        .IsRequired();
+
+                    b.Navigation("Location")
+                        .IsRequired();
+
+                    b.Navigation("WorkExperience")
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("HW.Account.DAL.Data.Entities.WorkExperience", b =>

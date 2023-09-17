@@ -2,6 +2,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Policy;
 using System.Text;
+using System.Transactions;
 using System.Web;
 using HW.Account.DAL.Data;
 using HW.Account.DAL.Data.Entities;
@@ -28,7 +29,7 @@ public class AuthService : IAuthService {
     private readonly SignInManager<User> _signInManager;
     private readonly AccountDbContext _accountDbContext;
     private readonly IConfiguration _configuration;
-    private IEmailService _emailService;
+    private readonly IEmailService _emailService;
 
     /// <summary>
     /// Constructor
@@ -47,6 +48,7 @@ public class AuthService : IAuthService {
         _accountDbContext = accountDbContext;
         _configuration = configuration;
         _emailService = emailService;
+        
     }
 
     /// <summary>
@@ -73,15 +75,20 @@ public class AuthService : IAuthService {
             NickName = accountRegisterDto.NickName,
             UserName = accountRegisterDto.Email,
             FullName = accountRegisterDto.FullName,
-            BirthDate = new BirthDate {
-                Value = accountRegisterDto.BirthDate,
-                Visibility = ProfileVisibility.All
-            },
-            Location = new Location(),
-            Education = new Education(),
-            WorkExperience = new WorkExperience()
         };
-
+        user.BirthDate = new BirthDate {
+            Value = accountRegisterDto.BirthDate,
+            User = user
+        };
+        user.Location = new Location {
+            User = user
+        };
+        user.Education = new Education {
+            User = user
+        };
+        user.WorkExperience = new WorkExperience {
+            User = user
+        };
         var result = await _userManager.CreateAsync(user, accountRegisterDto.Password);
 
         if (result.Succeeded) {
@@ -90,9 +97,15 @@ public class AuthService : IAuthService {
             
             var encode = HttpUtility.UrlEncode(code);
             var config = _configuration.GetSection("ConfirmMVCUrl");
-            await _emailService.SendEmailAsync(user.Email, "Confirm your account",
-                $"Подтвердите регистрацию, перейдя по ссылке: <a href='{config.GetValue<string>("Url")}?userId={user.Id}&code={encode}'>link</a>");
-          
+            try {
+                await _emailService.SendEmailAsync(user.Email, "Confirm your account",
+                    $"Подтвердите регистрацию, перейдя по ссылке: <a href='{config.GetValue<string>("Url")}?userId={user.Id}&code={encode}'>link</a>");
+            }
+            catch (Exception e) {
+                await _userManager.DeleteAsync(newUser);
+            }
+
+            await _userManager.AddToRoleAsync(newUser, ApplicationRoleNames.Student);
             _logger.LogInformation("Successful register");
             return await LoginAsync(new AccountLoginDto()
                 { Email = accountRegisterDto.Email, Password = accountRegisterDto.Password }, httpContext);
