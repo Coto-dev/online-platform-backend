@@ -86,136 +86,42 @@ public class ModuleManagerService : IModuleManagerService {
         };
     }
     
-    public async Task<ChapterFullTeacherDto> GetChapterContent(Guid chapterId, Guid userId) {
-        var chapter = await _dbContext.Chapters
-            .Include(c=>c.ChapterTests)
-            .Include(c=>c.ChapterComments)!
-            .ThenInclude(com=>com.User)
-            .FirstOrDefaultAsync(m => m.Id == chapterId);
-        var user = await _dbContext.Students
-            .Include(u=>u.LearnedChapters)
-            .FirstOrDefaultAsync(u => u.Id == userId);
-        var response = new ChapterFullTeacherDto {
-            Id = chapter!.Id,
-            Name = chapter.Name,
-            Content = chapter.Content ?? "",
-            FileIds = chapter.Files == null
-                ? new List<FileLinkDto>()
-                : chapter.Files.Select( f => new FileLinkDto {
-                    FileId = f,
-                    Url = null 
-                }).ToList(),
-            Comments = chapter.ChapterComments == null
-                ? new List<ChapterCommentDto>()
-                : chapter.ChapterComments.Select(com => new ChapterCommentDto {
-                    Id = com.Id,
-                    UserId = com.User.Id,
-                    IsTeacherComment = com.IsTeacherComment,
-                    Message = com.Comment
-                }).ToList(),
-            ChapterType = chapter.ChapterType,
-            Tests = chapter.ChapterTests == null
-                ? new List<TestTeacherDto>()
-                : chapter.ChapterTests.Select(t => new TestTeacherDto {
-                    Id = t.Id,
-                    Question = t.Question,
-                    FileIds = t.Files == null
-                        ? new List<FileLinkDto>()
-                        : t.Files.Select( f => new FileLinkDto {
-                            FileId = f,
-                            Url = null 
-                        }).ToList(),
-                    PossibleSimpleAnswers = t is SimpleAnswerTest simpleAnswerTest ? simpleAnswerTest.PossibleAnswers
-                        .Select(uat=> new SimpleAnswerDto {
-                            AnswerContent = uat.AnswerContent,
-                            isRight = uat.IsRight
-                        }).ToList():new List<SimpleAnswerDto>(),
-                    PossibleCorrectSequenceAnswers = t is CorrectSequenceTest correctSequenceTest ? correctSequenceTest.PossibleAnswers
-                        .Select(uat=> new CorrectSequenceAnswerDto {
-                            AnswerContent = uat.AnswerContent,
-                            RightOrder = uat.RightOrder
-                        }).ToList():new List<CorrectSequenceAnswerDto>(),
-                    Type = t.TestType,
-                }).ToList()
-        };
-        foreach (var responseFileId in response.FileIds) {
-            responseFileId.Url = (await _fileService.GetFileLink(responseFileId.FileId!) ?? null)!;
-        }
-        foreach (var fileLinkDto in response.Tests.SelectMany(testTeacherDto => testTeacherDto.FileIds!)) {
-            fileLinkDto.Url = (await _fileService.GetFileLink(fileLinkDto.FileId!) ?? null)!;
-        }
-        return response;
-    }
+    
 
-    public async Task EditSubModulesOrder(List<Guid> orderedSubModules, Guid moduleId) {
-        var duplicates = orderedSubModules.GroupBy(x => x)
+    public async Task EditChapterTestsOrder(List<Guid> orderedChapterTests, Guid chapterId) {
+        var duplicates = orderedChapterTests.GroupBy(x => x)
             .Where(g => g.Count() > 1)
             .Select(y => y.Key)
             .ToList();
         if (duplicates.Count > 0)
             throw new BadRequestException("There are duplicates: " + string.Join(", ", duplicates.Select(x => x)));
-        var module = await _dbContext.Modules
-            .Include(m=>m.SubModules)
-            .FirstOrDefaultAsync(m => m.Id == moduleId);
-        if (module == null)
-            throw new NotFoundException("Module not found");
-        if (module.SubModules.IsNullOrEmpty() || module.SubModules!.All(c => c.ArchivedAt.HasValue))
-            throw new ConflictException("There are no existing sub modules");
-        var missingSubs = module.SubModules!
-            .Where(s=>!s.ArchivedAt.HasValue)
-            .Select(o=>o.Id)
-            .Except(orderedSubModules)
+        var chapter = await _dbContext.Chapters
+            .Include(m=>m.ChapterTests)
+            .FirstOrDefaultAsync(m => m.Id == chapterId);
+        if (chapter == null)
+            throw new NotFoundException("Chapter not found");
+        if (chapter.ChapterTests.IsNullOrEmpty() || chapter.ChapterTests!.All(c => c.ArchivedAt.HasValue))
+            throw new ConflictException("There are no existing chapter tests");
+        var missingChapterTests = chapter.ChapterTests!
+            .Where(c=>!c.ArchivedAt.HasValue)
+            .Select(c=>c.Id)
+            .Except(orderedChapterTests)
             .ToList();
-        if (missingSubs.Any())
-            throw new ConflictException("These sub modules are missing: " 
-                                        + string.Join(", ", missingSubs.Select(x => x)));
-        var notExistingSubs = orderedSubModules
-            .Except(module.SubModules!
-            .Where(s=>!s.ArchivedAt.HasValue)
-            .Select(o=>o.Id)
-            .ToList())
+        if (missingChapterTests.Any())
+            throw new ConflictException("These chapter tests are missing: " 
+                                        + string.Join(", ", missingChapterTests.Select(x => x)));
+        var notExistingChapterTests = orderedChapterTests.Except(chapter.ChapterTests!
+                .Where(c=>!c.ArchivedAt.HasValue)
+                .Select(c=>c.Id)
+                .ToList())
             .ToList();
-        if (notExistingSubs.Any())
-            throw new ConflictException("These sub modules do not exist: " 
-                                        + string.Join(", ", notExistingSubs.Select(x => x)));
-        module.OrderedSubModules = orderedSubModules;
-        _dbContext.Update(module);
+        if (notExistingChapterTests.Any())
+            throw new ConflictException("These chapter tests do not exist: " 
+                                        + string.Join(", ", notExistingChapterTests.Select(x => x)));
+        chapter.OrderedTests = orderedChapterTests;
+        _dbContext.Update(chapter);
         await _dbContext.SaveChangesAsync();
-    }
-
-    public async Task EditChaptersOrder(List<Guid> orderedChapters, Guid subModuleId) {
-       var duplicates = orderedChapters.GroupBy(x => x)
-            .Where(g => g.Count() > 1)
-            .Select(y => y.Key)
-            .ToList();
-       if (duplicates.Count > 0)
-           throw new BadRequestException("There are duplicates: " + string.Join(", ", duplicates.Select(x => x)));
-       var subModule = await _dbContext.SubModules
-            .Include(m=>m.Chapters)
-            .FirstOrDefaultAsync(m => m.Id == subModuleId);
-        if (subModule == null)
-            throw new NotFoundException("Sub module not found");
-        if (subModule.Chapters.IsNullOrEmpty() || subModule.Chapters!.All(c => c.ArchivedAt.HasValue))
-            throw new ConflictException("There are no existing chapters");
-        var missingChapters = subModule.Chapters!
-            .Where(c=>!c.ArchivedAt.HasValue)
-            .Select(c=>c.Id)
-            .Except(orderedChapters)
-            .ToList();
-        if (missingChapters.Any())
-            throw new ConflictException("These chapters are missing: " 
-                                        + string.Join(", ", missingChapters.Select(x => x)));
-        var notExistingChapters = orderedChapters.Except(subModule.Chapters!
-            .Where(c=>!c.ArchivedAt.HasValue)
-            .Select(c=>c.Id)
-            .ToList())
-            .ToList();
-        if (notExistingChapters.Any())
-            throw new ConflictException("These chapters do not exist: " 
-                                        + string.Join(", ", notExistingChapters.Select(x => x)));
-        subModule.OrderedChapters = orderedChapters;
-        _dbContext.Update(subModule);
-        await _dbContext.SaveChangesAsync();    
+        
     }
 
     public async Task CreateSelfStudyModule(ModuleSelfStudyCreateDto model, Guid userId) {
@@ -375,87 +281,5 @@ public class ModuleManagerService : IModuleManagerService {
         _dbContext.Update(module);
         await _dbContext.SaveChangesAsync();
     }
-
-    public async Task AddSubModule(Guid moduleId, SubModuleCreateDto model) {
-        var module = await _dbContext.Modules
-            .FirstOrDefaultAsync(m => m.Id == moduleId && !m.ArchivedAt.HasValue);
-        if (module == null) 
-            throw new NotFoundException("Module not found");
-        var subModule = new SubModule {
-            Name = model.Name,
-            Module = module,
-            SubModuleType = model.SubModuleType,
-        };
-        module.OrderedSubModules!.Add(subModule.Id);
-        await _dbContext.AddAsync(subModule);
-        await _dbContext.SaveChangesAsync();
-    }
-
-    public async Task EditSubModule(Guid subModuleId, SubModuleEditDto model) {
-        var subModule = await _dbContext.SubModules
-            .FirstOrDefaultAsync(m => m.Id == subModuleId && !m.ArchivedAt.HasValue);
-        if (subModule == null) 
-            throw new NotFoundException("Sub module not found");
-        subModule.Name = model.Name;
-        _dbContext.Update(subModule);
-        await _dbContext.SaveChangesAsync();
-    }
-
-    public async Task ArchiveSubModule(Guid subModuleId) {
-        var subModule = await _dbContext.SubModules
-            .Include(s=>s.Module)
-            .FirstOrDefaultAsync(m => m.Id == subModuleId);
-        if (subModule == null) 
-            throw new NotFoundException("Sub module not found");
-        if (subModule.ArchivedAt.HasValue) 
-            throw new ConflictException("Already archived");
-        subModule.ArchivedAt = DateTime.UtcNow;
-        subModule.Module.OrderedSubModules!.Remove(subModuleId);
-        _dbContext.Update(subModule);
-        await _dbContext.SaveChangesAsync();
-    }
-
-    public async Task CreateChapter(Guid subModuleId, ChapterCreateDto model) {
-        var subModule = await _dbContext.SubModules
-            .FirstOrDefaultAsync(m => m.Id == subModuleId && !m.ArchivedAt.HasValue);
-        if (subModule == null) 
-            throw new NotFoundException("Sub module not found");
-        var chapter = new Chapter {
-            Name = model.Name,
-            Content = model.Content,
-            SubModule = subModule,
-            ChapterType = model.ChapterType,
-            Files = model.FileIds
-        };
-        subModule.OrderedChapters!.Add(chapter.Id);
-        await _dbContext.AddAsync(chapter);
-        await _dbContext.SaveChangesAsync();
-    }
-
-    public async Task EditChapter(Guid chapterId, ChapterEditDto model) {
-        var chapter = await _dbContext.Chapters
-            .FirstOrDefaultAsync(m => m.Id == chapterId && !m.ArchivedAt.HasValue);
-        if (chapter == null) 
-            throw new NotFoundException("Chapter not found");
-        chapter.Name = model.Name;
-        chapter.Content = model.Content;
-        chapter.ChapterType = model.ChapterType;
-        chapter.Files = model.FileIds;
-        _dbContext.Update(chapter);
-        await _dbContext.SaveChangesAsync();
-    }
-
-    public async Task ArchiveChapter(Guid chapterId) {
-        var chapter = await _dbContext.Chapters
-            .Include(c=>c.SubModule)
-            .FirstOrDefaultAsync(m => m.Id == chapterId);
-        if (chapter == null) 
-            throw new NotFoundException("Chapter not found");
-        if (chapter.ArchivedAt.HasValue) 
-            throw new ConflictException("Already archived");
-        chapter.ArchivedAt = DateTime.UtcNow;
-        chapter.SubModule.OrderedChapters!.Remove(chapterId);
-        _dbContext.Update(chapter);
-        await _dbContext.SaveChangesAsync();    
-    }
+    
 }

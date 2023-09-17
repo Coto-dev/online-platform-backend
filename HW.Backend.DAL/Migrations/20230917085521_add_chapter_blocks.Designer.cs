@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using HW.Backend.DAL.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -12,9 +13,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace HW.Backend.DAL.Migrations
 {
     [DbContext(typeof(BackendDbContext))]
-    partial class BackendDbContextModelSnapshot : ModelSnapshot
+    [Migration("20230917085521_add_chapter_blocks")]
+    partial class add_chapter_blocks
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -35,7 +38,7 @@ namespace HW.Backend.DAL.Migrations
 
                     b.HasIndex("ProgramsId");
 
-                    b.ToTable("EducationalProgramModule", (string)null);
+                    b.ToTable("EducationalProgramModule");
                 });
 
             modelBuilder.Entity("EducationalProgramTeacher", b =>
@@ -50,7 +53,7 @@ namespace HW.Backend.DAL.Migrations
 
                     b.HasIndex("EditorsId");
 
-                    b.ToTable("EducationalProgramTeacher", (string)null);
+                    b.ToTable("EducationalProgramTeacher");
                 });
 
             modelBuilder.Entity("HW.Backend.DAL.Data.Entities.Chapter", b =>
@@ -99,7 +102,7 @@ namespace HW.Backend.DAL.Migrations
 
                     b.HasIndex("SubModuleId");
 
-                    b.ToTable("Chapters", (string)null);
+                    b.ToTable("Chapters");
                 });
 
             modelBuilder.Entity("HW.Backend.DAL.Data.Entities.ChapterBlock", b =>
@@ -130,7 +133,7 @@ namespace HW.Backend.DAL.Migrations
 
                     b.HasIndex("ChapterId");
 
-                    b.ToTable("ChapterBlocks", (string)null);
+                    b.ToTable("ChapterBlocks");
                 });
 
             modelBuilder.Entity("HW.Backend.DAL.Data.Entities.ChapterComment", b =>
@@ -158,7 +161,7 @@ namespace HW.Backend.DAL.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("ChapterComments", (string)null);
+                    b.ToTable("ChapterComments");
                 });
 
             modelBuilder.Entity("HW.Backend.DAL.Data.Entities.CorrectSequenceAnswer", b =>
@@ -181,7 +184,7 @@ namespace HW.Backend.DAL.Migrations
 
                     b.HasIndex("CorrectSequenceTestId");
 
-                    b.ToTable("CorrectSequenceAnswers", (string)null);
+                    b.ToTable("CorrectSequenceAnswers");
                 });
 
             modelBuilder.Entity("HW.Backend.DAL.Data.Entities.EducationalProgram", b =>
@@ -229,7 +232,7 @@ namespace HW.Backend.DAL.Migrations
 
                     b.HasIndex("AuthorId");
 
-                    b.ToTable("EducationalPrograms", (string)null);
+                    b.ToTable("EducationalPrograms");
                 });
 
             modelBuilder.Entity("HW.Backend.DAL.Data.Entities.Learned", b =>
@@ -253,7 +256,7 @@ namespace HW.Backend.DAL.Migrations
 
                     b.HasIndex("LearnedById");
 
-                    b.ToTable("Learned", (string)null);
+                    b.ToTable("Learned");
                 });
 
             modelBuilder.Entity("HW.Backend.DAL.Data.Entities.Module", b =>
@@ -305,7 +308,7 @@ namespace HW.Backend.DAL.Migrations
 
                     b.HasIndex("AuthorId");
 
-                    b.ToTable("Modules", (string)null);
+                    b.ToTable("Modules");
 
                     b.HasDiscriminator<string>("Discriminator").HasValue("Module");
 
@@ -343,7 +346,7 @@ namespace HW.Backend.DAL.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("ModuleComments", (string)null);
+                    b.ToTable("ModuleComments");
                 });
 
             modelBuilder.Entity("HW.Backend.DAL.Data.Entities.SimpleAnswer", b =>
@@ -366,7 +369,7 @@ namespace HW.Backend.DAL.Migrations
 
                     b.HasIndex("SimpleAnswerTestId");
 
-                    b.ToTable("SimpleAnswers", (string)null);
+                    b.ToTable("SimpleAnswers");
                 });
 
             modelBuilder.Entity("HW.Backend.DAL.Data.Entities.Student", b =>
@@ -376,7 +379,7 @@ namespace HW.Backend.DAL.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Students", (string)null);
+                    b.ToTable("Students");
                 });
 
             modelBuilder.Entity("HW.Backend.DAL.Data.Entities.StudentEducationalProgram", b =>
@@ -400,7 +403,7 @@ namespace HW.Backend.DAL.Migrations
 
                     b.HasIndex("StudentId");
 
-                    b.ToTable("UserPrograms", (string)null);
+                    b.ToTable("UserPrograms");
                 });
 
             modelBuilder.Entity("HW.Backend.DAL.Data.Entities.StudentModule", b =>
@@ -424,7 +427,7 @@ namespace HW.Backend.DAL.Migrations
 
                     b.HasIndex("StudentId");
 
-                    b.ToTable("UserModules", (string)null);
+                    b.ToTable("UserModules");
                 });
 
             modelBuilder.Entity("HW.Backend.DAL.Data.Entities.SubModule", b =>
@@ -459,7 +462,7 @@ namespace HW.Backend.DAL.Migrations
 
                     b.HasIndex("ModuleId");
 
-                    b.ToTable("SubModules", (string)null);
+                    b.ToTable("SubModules");
                 });
 
             modelBuilder.Entity("HW.Backend.DAL.Data.Entities.Teacher", b =>
@@ -469,7 +472,7 @@ namespace HW.Backend.DAL.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Teachers", (string)null);
+                    b.ToTable("Teachers");
                 });
 
             modelBuilder.Entity("HW.Backend.DAL.Data.Entities.Test", b =>
@@ -511,7 +514,7 @@ namespace HW.Backend.DAL.Migrations
 
                     b.HasIndex("ChapterId");
 
-                    b.ToTable("Tests", (string)null);
+                    b.ToTable("Tests");
 
                     b.HasDiscriminator<string>("Discriminator").HasValue("Test");
 
@@ -534,7 +537,7 @@ namespace HW.Backend.DAL.Migrations
 
                     b.HasIndex("StudentId");
 
-                    b.ToTable("UserActions", (string)null);
+                    b.ToTable("UserActions");
                 });
 
             modelBuilder.Entity("HW.Backend.DAL.Data.Entities.UserAnswer", b =>
@@ -554,7 +557,7 @@ namespace HW.Backend.DAL.Migrations
 
                     b.HasIndex("UserAnswerTestId");
 
-                    b.ToTable("UserAnswers", (string)null);
+                    b.ToTable("UserAnswers");
 
                     b.HasDiscriminator<string>("Discriminator").HasValue("UserAnswer");
 
@@ -585,7 +588,7 @@ namespace HW.Backend.DAL.Migrations
 
                     b.HasIndex("TestId");
 
-                    b.ToTable("UserAnswerTests", (string)null);
+                    b.ToTable("UserAnswerTests");
                 });
 
             modelBuilder.Entity("HW.Backend.DAL.Data.Entities.UserBackend", b =>
@@ -596,7 +599,7 @@ namespace HW.Backend.DAL.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("UserBackends", (string)null);
+                    b.ToTable("UserBackends");
                 });
 
             modelBuilder.Entity("ModuleModule", b =>
@@ -626,7 +629,7 @@ namespace HW.Backend.DAL.Migrations
 
                     b.HasIndex("EditorsId");
 
-                    b.ToTable("ModuleTeacher", (string)null);
+                    b.ToTable("ModuleTeacher");
                 });
 
             modelBuilder.Entity("ModuleTeacher1", b =>
@@ -641,7 +644,7 @@ namespace HW.Backend.DAL.Migrations
 
                     b.HasIndex("TeachersId");
 
-                    b.ToTable("ModuleTeacher1", (string)null);
+                    b.ToTable("ModuleTeacher1");
                 });
 
             modelBuilder.Entity("HW.Backend.DAL.Data.Entities.StreamingModule", b =>

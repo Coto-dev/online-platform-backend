@@ -1,10 +1,12 @@
+using System.Xml;
 using HW.Backend.DAL.Data;
 using HW.Common.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
+using Xceed.Document.NET;
 using Xceed.Words.NET;
 
-namespace HW.Backend.BL.Services; 
+namespace HW.Backend.BL.Services;
 
 public class ParserService : IParserService {
     private readonly ILogger<ModuleManagerService> _logger;
@@ -19,31 +21,22 @@ public class ParserService : IParserService {
 
     public async Task ParseFile(IFormFile file) {
         List<string> textWithHeadings = new List<string>();
-        List<string> text= new List<string>();
+        List<string> text = new List<string>();
+        List<Paragraph> parags = new List<Paragraph>();
+        if (file != null && file.Length > 0) {
+            using var doc = DocX.Create("output.docx");
+            await using var stream = file.OpenReadStream();
+            var sourceDoc = DocX.Load(stream);
 
-        if (file != null && file.Length > 0)
-        {
-            using (var doc = DocX.Create("output.docx"))
-            {
-                using (var stream = file.OpenReadStream())
-                {
-                    var sourceDoc = DocX.Load(stream);
-
-                    // Копируем содержимое из загруженного файла в созданный документ
-                    foreach (var paragraph in sourceDoc.Paragraphs)
-                    {
-                        if (paragraph.StyleName.StartsWith("Heading")) 
-                            textWithHeadings.Add(paragraph.Text);
-                        else {
-                            text.Add(paragraph.Text);
-                        }
-                    }
-
-
+            foreach (var paragraph in sourceDoc.Paragraphs) {
+                if (paragraph.StyleName.StartsWith("1"))
+                    textWithHeadings.Add(paragraph.Text);
+                else {
+                    text.Add(paragraph.Text);
                 }
+                parags.Add(paragraph);
             }
+            var a = 3;
         }
-
-        var a = 3;
     }
 }

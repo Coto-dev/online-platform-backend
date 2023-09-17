@@ -19,6 +19,9 @@ public static class ServiceDependencyExtension {
         services.AddScoped<IModuleStudentService, ModuleStudentService>();
         services.AddScoped<IFileService, FileService>();
         services.AddScoped<IParserService, ParserService>();
+        services.AddScoped<ISubModuleService, SubModuleService>();
+        services.AddScoped<IChapterBlocksService, ChapterBlocksService>();
+
         return services;
     }
 }

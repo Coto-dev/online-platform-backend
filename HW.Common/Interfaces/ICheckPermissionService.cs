@@ -16,4 +16,6 @@ public interface ICheckPermissionService {
     Task CheckCreatorTestPermission(Guid creatorId, Guid testId);
     Task CheckTeacherTestPermission(Guid teacherId, Guid testId);
     Task CheckStudentTestPermission(Guid studentId, Guid testId);
+    
+    Task CheckCreatorChapterBlockPermission(Guid creatorId, Guid chapterBlockId);
 }

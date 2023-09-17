@@ -10,4 +10,5 @@ public class ChapterFullTeacherDto {
     public List<ChapterCommentDto> Comments { get; set; } = new();
     public ChapterType ChapterType { get; set; }
     public List<TestTeacherDto>? Tests { get; set; } = new();
+    public List<ChapterBlockTeacherDto>? ChapterBlocks { get; set; } = new();
 }

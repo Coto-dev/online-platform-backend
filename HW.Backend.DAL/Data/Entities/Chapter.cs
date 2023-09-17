@@ -28,17 +28,14 @@ public class Chapter
     /// </summary>
     public List<Guid>? OrderedTests { get; set; } = new();
     /// <summary>
+    /// List of sorted blocks
+    /// </summary>
+    public List<Guid>? OrderedBlocks { get; set; } = new();
+    /// <summary>
     /// Chapter's name
     /// </summary>
     public required string Name { get; set; }
-    // /// <summary>
-    // /// Previous chapter (for sorting)
-    // /// </summary>
-    // public Chapter? PreviousChapter { get; set; }
-    // /// <summary>
-    // /// Next chapter (for sorting)
-    // /// </summary>
-    // public Chapter? NextChapter { get; set; }
+    
     /// <summary>
     /// Chapter's content
     /// </summary>
@@ -57,6 +54,12 @@ public class Chapter
     /// Chapter's tests
     /// </summary>
     public List<Test>? ChapterTests { get; set; } = new();
+    
+    /// <summary>
+    /// Chapter's blocks
+    /// </summary>
+    public List<ChapterBlock>? ChapterBlocks  { get; set; } = new();
+    
     /// <summary>
     /// Chapter type
     /// </summary>
