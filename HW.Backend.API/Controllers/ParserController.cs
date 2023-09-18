@@ -23,11 +23,12 @@ namespace HW.Backend.API.Controllers;
         /// Parse docx to sub modules and chapters
         /// </summary>
         /// <param name="file"></param>
+        /// <param name="moduleId"></param>
         /// <returns></returns>
         [HttpPost]
-        [Route("parse")]
-        public async Task<ActionResult> UploadFiles(IFormFile file) {
-            await _parserService.ParseFile(file);
+        [Route("module/{moduleId}/parse")]
+        public async Task<ActionResult> UploadFiles(IFormFile file, Guid moduleId) {
+            await _parserService.ParseFile(file, moduleId);
             return Ok();
         }
     }

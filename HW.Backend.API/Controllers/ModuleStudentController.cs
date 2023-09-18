@@ -78,7 +78,6 @@ public class ModuleStudentController : ControllerBase {
     /// </remarks>
     [HttpGet]
     [Route("{moduleId}/content")]
-    [Authorize(AuthenticationSchemes = "Bearer", Roles = ApplicationRoleNames.Student)]
     public async Task<ActionResult<ModuleFullDto>> GetModuleContent(Guid moduleId) {
         if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false) {
             throw new UnauthorizedException("User is not authorized");
