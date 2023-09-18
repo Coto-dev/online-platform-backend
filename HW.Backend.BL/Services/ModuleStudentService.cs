@@ -131,7 +131,7 @@ public class ModuleStudentService : IModuleStudentService {
         var user = await _dbContext.Students
             .FirstOrDefaultAsync(u => u.Id == userId);
         if (user == null)
-            throw new NotFoundException("User not found");
+            return "0/0";
         var chapters = await _dbContext.Chapters
             .Where(c => c.ChapterType == ChapterType.DefaultChapter && c.SubModule.Module.Id == moduleId)
             .AsNoTracking()

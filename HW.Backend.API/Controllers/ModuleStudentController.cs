@@ -84,7 +84,9 @@ public class ModuleStudentController : ControllerBase {
             throw new UnauthorizedException("User is not authorized");
         }
 
+        /*
         await _checkPermissionService.CheckStudentModulePermission(userId, moduleId);
+        */
         return Ok(await _moduleStudentService.GetModuleContent(moduleId, userId));
     }
     
