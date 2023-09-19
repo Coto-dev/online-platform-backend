@@ -9,7 +9,6 @@ public class ModuleSelfStudyEditDto {
     public string Name { get; set; }
     [Required]
     public string Description { get; set; }
-    [Required]
     public string? AvatarId { get; set; }
     [Required]
     public int Price { get; set; }
