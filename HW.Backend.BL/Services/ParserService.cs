@@ -58,7 +58,7 @@ public class ParserService : IParserService {
                         ChapterType = ChapterType.DefaultChapter
                     });
                     break;
-                case "a":
+                default:
                     if (subModules.IsNullOrEmpty())
                         throw new InvalidOperationException("Not found heading 1 in paragraph: " +
                                                             sourceDoc.Paragraphs.IndexOf(paragraph));
@@ -73,7 +73,6 @@ public class ParserService : IParserService {
                         Chapter = subModules.Last().Chapters!.Last()
                     });
                     subModules.Last().Chapters!.Last().OrderedBlocks!.Add(chapterBlocks.Last().Id);
-                    parags.Add(paragraph);
                     break;
             }
         }
@@ -84,14 +83,50 @@ public class ParserService : IParserService {
     }
 
     private async Task<string> GetTextWithHtmlTags(Paragraph paragraph) {
-        string content = "";    
+        string content = "";
         foreach (var formattedText in paragraph.MagicText) {
+            var url = paragraph.Hyperlinks
+                .FirstOrDefault(h=>h.Text == formattedText.text);
+            paragraph.Hyperlinks.Remove(url);
             var text = formattedText.text;
             text = formattedText.formatting.Bold == true?   "<strong>" + text + "</strong>" : text;
             text = formattedText.formatting.Italic == true?  "<em>" + text + "</em>" : text;
-            text = formattedText.formatting.UnderlineStyle.HasValue && formattedText.formatting.UnderlineColor != Color.Blue ? "<u>" + text + "</u>" : text;
+            text = formattedText.formatting.UnderlineColor != null 
+                   && formattedText.formatting.UnderlineStyle.HasValue 
+                   && formattedText.formatting.UnderlineColor.Value.Name != "ff0000ff"
+                ? "<u>" + text + "</u>" 
+                : text;
+            text = formattedText.formatting.UnderlineColor != null
+                   && formattedText.formatting.UnderlineStyle.HasValue 
+                   && formattedText.formatting.UnderlineColor.Value.Name == "ff0000ff"
+                ? url?.Uri.ToString() != null 
+                    ?"<a href=\"" + url.Uri + "\" rel=\"noopener noreferrer\" target=\"_blank\">" + text + "</a>"
+                    : text
+                : text;
+
             content += text;
         }
+        
+        if (paragraph.IsListItem) {
+            content = "<li>" + content + "</li>";
+
+            if (paragraph.PreviousParagraph is not { IsListItem: true }) {
+                content = paragraph.ListItemType == ListItemType.Numbered
+                    ? "<ol>" + content
+                    : "<ul>" + content;
+            }
+
+            if (paragraph.NextParagraph == null || paragraph.NextParagraph.IsListItem) {
+                content = paragraph.ListItemType == ListItemType.Numbered
+                    ? content + "</ol>"
+                    : content + "</ul>";
+            }
+        }
+
+        if (content.IsNullOrEmpty())
+            content = "<br>";
+        if(!paragraph.IsListItem && !content.IsNullOrEmpty()) 
+            content = "<p>" + content + "</p>";
         return content;
     }
 }
