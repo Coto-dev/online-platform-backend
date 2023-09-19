@@ -34,7 +34,8 @@ public class ActivityService : IActivityService
 
         var yearActivity = new YearActivityDto
         {
-            DayActivities = new List<DayActivityDto>()
+            DayActivities = new List<DayActivityDto>(),
+            MaxActivity = 0
         };
 
         for (var i = 365; i >= 0;  i--)
@@ -57,6 +58,11 @@ public class ActivityService : IActivityService
             };
 
             yearActivity.DayActivities.Add(dayActivity);
+
+            if (userAnswersDayCount + userLearnedDayCount > yearActivity.MaxActivity)
+            {
+                yearActivity.MaxActivity = userAnswersDayCount + userLearnedDayCount;
+            }
         }
 
         return yearActivity;
