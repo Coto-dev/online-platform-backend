@@ -226,7 +226,7 @@ public class ModuleStudentService : IModuleStudentService {
                 ? module.Teachers!.Select(e=>e.Id).ToList() : new List<Guid>(),
             StartDate = streamingModule?.StartAt,
             StopRegistrationDate = streamingModule?.StopRegisterAt,
-            StartRegistrationDate = streamingModule?.StartAt,
+            StartRegistrationDate = streamingModule?.StartRegisterAt,
             ExpirationDate = streamingModule?.ExpiredAt,
             MaxStudents = streamingModule?.MaxStudents,
             TimeDuration = module.TimeDuration
