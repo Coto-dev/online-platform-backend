@@ -1,30 +1,37 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HW.Backend.API", "HW.Backend.API\HW.Backend.API.csproj", "{13D15031-11EC-421B-AE05-932C0563258E}"
+# Visual Studio Version 17
+VisualStudioVersion = 17.6.33829.357
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HW.Backend.API", "HW.Backend.API\HW.Backend.API.csproj", "{13D15031-11EC-421B-AE05-932C0563258E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HW.Common", "HW.Common\HW.Common.csproj", "{45AAEE03-95B4-4C06-B492-99FD21B058C1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HW.Common", "HW.Common\HW.Common.csproj", "{45AAEE03-95B4-4C06-B492-99FD21B058C1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HW.Backend.BL", "HW.Backend.BL\HW.Backend.BL.csproj", "{2EEA1798-C3B5-48CF-BC2C-8E252D5AB808}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HW.Backend.BL", "HW.Backend.BL\HW.Backend.BL.csproj", "{2EEA1798-C3B5-48CF-BC2C-8E252D5AB808}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HW.Backend.DAL", "HW.Backend.DAL\HW.Backend.DAL.csproj", "{58A854F9-0BE2-412E-ACC1-7527E16AD932}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HW.Backend.DAL", "HW.Backend.DAL\HW.Backend.DAL.csproj", "{58A854F9-0BE2-412E-ACC1-7527E16AD932}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HW.Account.API", "HW.Account.API\HW.Account.API.csproj", "{B96941FA-90CA-431E-A563-F44DBDEB509B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HW.Account.API", "HW.Account.API\HW.Account.API.csproj", "{B96941FA-90CA-431E-A563-F44DBDEB509B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HW.Notification.API", "HW.Notification.API\HW.Notification.API.csproj", "{CB888BE0-DB9B-4934-98B8-B949CBCD9095}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HW.Notification.API", "HW.Notification.API\HW.Notification.API.csproj", "{CB888BE0-DB9B-4934-98B8-B949CBCD9095}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HW.Account.DAL", "HW.Account.DAL\HW.Account.DAL.csproj", "{1F83F275-9243-4471-B621-158A0541677E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HW.Account.DAL", "HW.Account.DAL\HW.Account.DAL.csproj", "{1F83F275-9243-4471-B621-158A0541677E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HW.Account.BLL", "HW.Account.BLL\HW.Account.BLL.csproj", "{E2DD6302-266E-4EE2-9A8E-D2F729596535}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HW.Account.BLL", "HW.Account.BLL\HW.Account.BLL.csproj", "{E2DD6302-266E-4EE2-9A8E-D2F729596535}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HW.Notification.BL", "HW.Notification.BL\HW.Notification.BL.csproj", "{F9AAEDC7-CE35-4CB7-847B-89F988C24A92}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HW.Notification.BL", "HW.Notification.BL\HW.Notification.BL.csproj", "{F9AAEDC7-CE35-4CB7-847B-89F988C24A92}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HW.Notification.DAL", "HW.Notification.DAL\HW.Notification.DAL.csproj", "{25FAFBBC-88F4-4285-BC6C-C2493615F7ED}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HW.Notification.DAL", "HW.Notification.DAL\HW.Notification.DAL.csproj", "{25FAFBBC-88F4-4285-BC6C-C2493615F7ED}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HW.EmailReciever.MVC", "HW.EmailReciever.MVC\HW.EmailReciever.MVC.csproj", "{5C40A2CB-5A7F-4A24-B135-81B32EFD1CF5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HW.EmailReciever.MVC", "HW.EmailReciever.MVC\HW.EmailReciever.MVC.csproj", "{5C40A2CB-5A7F-4A24-B135-81B32EFD1CF5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HW.FileManager.API", "HW.FileManager.API\HW.FileManager.API.csproj", "{1ADA7B15-3007-4FC7-A4C5-502B9D3F13CE}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HW.FileManager.API", "HW.FileManager.API\HW.FileManager.API.csproj", "{1ADA7B15-3007-4FC7-A4C5-502B9D3F13CE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HW.FileManager.BL", "HW.FileManager.BL\HW.FileManager.BL.csproj", "{CCAFEB25-C6FC-4392-8659-0AC48DB984FB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HW.FileManager.BL", "HW.FileManager.BL\HW.FileManager.BL.csproj", "{CCAFEB25-C6FC-4392-8659-0AC48DB984FB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HW.AdminPanel.API", "HW.AdminPanel.API\HW.AdminPanel.API.csproj", "{D385C95A-379F-4E2E-8C8D-27174C3AD340}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HW.AdminPanel.BL", "HW.AdminPanel.BL\HW.AdminPanel.BL.csproj", "{A712B6B8-5A0C-4297-9885-62F9377339B4}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -84,5 +91,19 @@ Global
 		{CCAFEB25-C6FC-4392-8659-0AC48DB984FB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CCAFEB25-C6FC-4392-8659-0AC48DB984FB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CCAFEB25-C6FC-4392-8659-0AC48DB984FB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D385C95A-379F-4E2E-8C8D-27174C3AD340}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D385C95A-379F-4E2E-8C8D-27174C3AD340}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D385C95A-379F-4E2E-8C8D-27174C3AD340}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D385C95A-379F-4E2E-8C8D-27174C3AD340}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A712B6B8-5A0C-4297-9885-62F9377339B4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A712B6B8-5A0C-4297-9885-62F9377339B4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A712B6B8-5A0C-4297-9885-62F9377339B4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A712B6B8-5A0C-4297-9885-62F9377339B4}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {B08B1371-6C0A-475B-B61F-7FBF861C7505}
 	EndGlobalSection
 EndGlobal
