@@ -1,5 +1,6 @@
 ﻿using HW.Backend.BL.Services;
 using HW.Common.DataTransferObjects;
+using HW.Common.Enums;
 using HW.Common.Exceptions;
 using HW.Common.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -36,13 +37,21 @@ public class ActivityController : ControllerBase
     }
 
     /// <summary>
-    /// Get user's activity
+    /// Get student's activity [Student][Teacher]
     /// </summary>
     [HttpGet]
-    [Route("{userId}")]
-    public async Task<ActionResult<YearActivityDto>> GetUserActivity(Guid userId)
+    [Route("{studentId}")]
+    [Authorize(AuthenticationSchemes = "Bearer", Roles = ApplicationRoleNames.Student
+                                                         + "," + ApplicationRoleNames.Teacher
+                                                         + "," + ApplicationRoleNames.Administrator)]
+    public async Task<ActionResult<YearActivityDto>> GetUserActivity(Guid studentId)
     {
+        if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false)
+        {
+            throw new UnauthorizedException("User is not authorized");
+        }
 
-        return Ok(await _activityService.GetUserActivity(userId));
+
+        return Ok(await _activityService.GetUserActivity(studentId));
     }
 }
