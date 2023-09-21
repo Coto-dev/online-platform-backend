@@ -194,10 +194,28 @@ public class CheckPermissionService: ICheckPermissionService {
             .ThenInclude(m => m.Teachers)
             .FirstOrDefaultAsync(u => u.Id == testId);
         if (test == null)
-            throw new NotFoundException("Chapter not found");
+            throw new NotFoundException("Test not found");
         if (test.Chapter.SubModule.Module.Teachers == null || !test.Chapter.SubModule.Module.Teachers.Contains(user))
             throw new ForbiddenException("User do not have permission");
     }
+
+/*    public async Task CheckEditorTestPermission(Guid editorId, Guid testId)
+    {
+        var user = await _dbContext.Teachers
+            .FirstOrDefaultAsync(u => u.Id == editorId);
+        if (user == null)
+            throw new NotFoundException("User not found");
+        var test = await _dbContext.Tests
+            .Include(c => c.Chapter)
+            .ThenInclude(c => c.SubModule)
+            .ThenInclude(s => s.Module)
+            .ThenInclude(m => m.Editors)
+            .FirstOrDefaultAsync(u => u.Id == testId);
+        if (test == null)
+            throw new NotFoundException("Test not found");
+        if (test.Chapter.SubModule.Module.Editors == null || !test.Chapter.SubModule.Module.Editors.Contains(user))
+            throw new ForbiddenException("User do not have permisson");
+    }*/
 
     public async Task CheckStudentTestPermission(Guid studentId, Guid testId)
     {
@@ -213,7 +231,7 @@ public class CheckPermissionService: ICheckPermissionService {
             .ThenInclude(u => u.Student)
             .FirstOrDefaultAsync(u => u.Id == testId);
         if (test == null)
-            throw new NotFoundException("Chapter not found");
+            throw new NotFoundException("Test not found");
         if (!test.Chapter.SubModule.Module.UserModules!.Any(u => u.Student == user && u.ModuleStatus != ModuleStatusType.InCart))
             throw new ForbiddenException("User do not have permission");
     }
