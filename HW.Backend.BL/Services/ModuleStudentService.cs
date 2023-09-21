@@ -34,7 +34,7 @@ public class ModuleStudentService : IModuleStudentService {
             throw new BadRequestException("Wrong page");
         
         var modules = _dbContext.Modules
-            .Where(m => !m.ArchivedAt.HasValue)
+            .Where(m => !m.ArchivedAt.HasValue && m.ModuleVisibility == ModuleVisibilityType.Everyone)
             .ModuleAvailableFilter(filter,sortByNameFilter)
             .ModuleOrderBy(sortModuleType)
             .AsQueryable()
@@ -45,6 +45,8 @@ public class ModuleStudentService : IModuleStudentService {
             Name = x.Name,
             Price = x.Price,
             AvatarId = x.AvatarId,
+            TimeDuration = x.TimeDuration,
+            StartDate = x is StreamingModule ?  ((StreamingModule)x).StartAt : null,
             Status = typeof(Module) == x.GetType()? ModuleType.SelfStudyModule : ModuleType.StreamingModule,
         });
         var response = await PagedList<ModuleShortDto>.ToPagedList(shortModules, pagination.PageNumber, pagination.PageSize);
@@ -54,15 +56,18 @@ public class ModuleStudentService : IModuleStudentService {
                 : await _fileService.GetAvatarLink(moduleShortDto.AvatarId);
             moduleShortDto.ModuleStatusType = user == null ? null :
                 user.Modules!.All(m => m.Module.Id != moduleShortDto.Id) ? null :
-                user.Modules!.FirstOrDefault(m => m.Module.Id == moduleShortDto.Id)!.ModuleStatus ==
-                ModuleStatusType.InCart ? ModuleStatusType.InCart :
-                ModuleStatusType.Purchased;
+                user.Modules!.FirstOrDefault(m => m.Module.Id == moduleShortDto.Id)!.ModuleStatus;
         }
         return response;
     }
 
     public async Task<PagedList<ModuleShortDto>> GetStudentModules(PaginationParamsDto pagination, FilterModuleType? filter, string? sortByNameFilter,
-        ModuleFilterStudentType? section, SortModuleType? sortModuleType, Guid userId) {
+        ModuleStudentFilter? section, SortModuleType? sortModuleType, Guid userId) {
+        var user = await _dbContext.Students
+            .Include(u=>u.Modules)!
+            .ThenInclude(m=>m.Module)
+            .FirstOrDefaultAsync(u => u.Id == userId);
+        
         if (pagination.PageNumber <= 0)
             throw new BadRequestException("Wrong page");
         
@@ -77,6 +82,8 @@ public class ModuleStudentService : IModuleStudentService {
             Id = x.Id,
             Name = x.Name,
             Price = x.Price,
+            AvatarId = x.AvatarId,
+            TimeDuration = x.TimeDuration,
             Status = typeof(Module) == x.GetType()? ModuleType.SelfStudyModule : ModuleType.StreamingModule,
         });
         var response = await PagedList<ModuleShortDto>.ToPagedList(shortModules, pagination.PageNumber, pagination.PageSize);
@@ -84,9 +91,12 @@ public class ModuleStudentService : IModuleStudentService {
             moduleShortDto.AvatarId = moduleShortDto.AvatarId == null
                 ? moduleShortDto.AvatarId
                 : await _fileService.GetAvatarLink(moduleShortDto.AvatarId);
+            moduleShortDto.ModuleStatusType = user == null
+                ? null
+                : user.Modules!.FirstOrDefault(m => m.Module.Id == moduleShortDto.Id)!.ModuleStatus;
+            moduleShortDto.Progress = await CalculateProgressFloat(moduleShortDto.Id, userId);
         }
         return response;
-        
     }
 
     public async Task<ModuleFullDto> GetModuleContent(Guid moduleId, Guid userId) {
@@ -101,12 +111,12 @@ public class ModuleStudentService : IModuleStudentService {
             Id = module.Id,
             Progress = await CalculateProgress(moduleId, userId),
             SubModules = module.SubModules != null? module.SubModules
-                .OrderBy(s=>s.CreatedAt)
+                .OrderBy(x=> module.OrderedSubModules!.IndexOf(x.Id))
                 .Select(s=> new SubModuleFullDto {
                 Id = s.Id,
                 Name = s.Name,
                 Chapters = s.Chapters != null ? s.Chapters
-                    .OrderBy(c=>c.CreatedAt)
+                    .OrderBy(c=> s.OrderedChapters!.IndexOf(c.Id))
                     .Select(c=> new ChapterShrotDto {
                     Id = c.Id,
                     Name = c.Name,
@@ -121,7 +131,7 @@ public class ModuleStudentService : IModuleStudentService {
         var user = await _dbContext.Students
             .FirstOrDefaultAsync(u => u.Id == userId);
         if (user == null)
-            throw new NotFoundException("User not found");
+            return "0/0";
         var chapters = await _dbContext.Chapters
             .Where(c => c.ChapterType == ChapterType.DefaultChapter && c.SubModule.Module.Id == moduleId)
             .AsNoTracking()
@@ -133,93 +143,28 @@ public class ModuleStudentService : IModuleStudentService {
         return totalLearned + "/" + chapters.Count;
     }
 
-    public async Task<ChapterFullDto> GetChapterContent(Guid chapterId, Guid userId) {
-        var chapter = await _dbContext.Chapters
-            .Include(c=>c.ChapterTests)
-            .Include(c=>c.ChapterComments)!
-            .ThenInclude(com=>com.User)
-            .FirstOrDefaultAsync(m => m.Id == chapterId);
+    private async Task<float> CalculateProgressFloat(Guid moduleId, Guid userId) {
         var user = await _dbContext.Students
-            .Include(u=>u.LearnedChapters)
             .FirstOrDefaultAsync(u => u.Id == userId);
-        return new ChapterFullDto {
-            Id = chapter!.Id,
-            Name = chapter.Name,
-            Content = chapter.Content ?? "",
-            FileUrls = chapter.Files.IsNullOrEmpty()
-                ? new List<string>()
-                : chapter.Files!.Select(async f=> await _fileService.GetFileLink(f)).Select(task=>task.Result).ToList()!, 
-            Comments = chapter.ChapterComments == null  
-                ? new List<ChapterCommentDto>()
-                : chapter.ChapterComments.Select(com => new ChapterCommentDto {
-                    Id = com.Id,
-                    UserId = com.User.Id,
-                    IsTeacherComment = com.IsTeacherComment,
-                    Message = com.Comment
-                }).ToList(),
-            IsLearned = user!.LearnedChapters != null && user.LearnedChapters.Contains(chapter),
-            ChapterType = chapter.ChapterType,
-            Tests = chapter.ChapterTests == null
-                ? new List<TestDto>()
-                : chapter.ChapterTests.Select(t => new TestDto {
-                    Id = t.Id,
-                    Question = t.Question,
-                    FileIds = t.Files.IsNullOrEmpty()
-                        ? new List<string>()
-                        : t.Files!.Select(async f=> await _fileService.GetFileLink(f)).Select(task=>task.Result).ToList()!, 
-                    PossibleAnswers = t switch {
-                        SimpleAnswerTest simpleTest => simpleTest.PossibleAnswers
-                            .Select(pa => new PossibleAnswerDto {
-                                Id = pa.Id,
-                                AnswerContent = pa.AnswerContent
-                            }).ToList(),
-                        CorrectSequenceTest correctSequenceTest => correctSequenceTest.PossibleAnswers
-                            .Select(pa => new PossibleAnswerDto {
-                                Id = pa.Id,
-                                AnswerContent = pa.AnswerContent
-                            }).ToList(),
-                        _ => new List<PossibleAnswerDto>()
-                    },
-                    UserAnswer = 
-                        _dbContext.UserAnswerTests.Any(uat=>uat.Student == user && uat.Test == t) ?
-                            t.TestType is TestType.ExtraAnswer 
-                        or TestType.MultipleAnswer 
-                        or TestType.SingleAnswer 
-                        or TestType.MultipleExtraAnswer ? new UserAnswerFullDto {
-                        UserAnswerSimples = _dbContext.UserAnswers.OfType<SimpleUserAnswer>()
-                            .Where(u=>u.UserAnswerTest.Test == t && u.UserAnswerTest.Student == user)
-                            .Select(s=> new UserAnswerSimpleDto {
-                                Id = s.SimpleAnswer.Id
-                            }).ToList(),
-                        IsAnswered =  _dbContext.UserAnswerTests
-                            .Where(uat=>uat.Student == user && uat.Test == t)
-                            .MaxBy(uat=>uat.NumberOfAttempt)!.AnsweredAt.HasValue 
-                    } : t.TestType is TestType.CorrectSequenceAnswer ? new UserAnswerFullDto {
-                                UserAnswerCorrectSequences = _dbContext.UserAnswers.OfType<CorrectSequenceUserAnswer>()
-                                .Where(u=>u.UserAnswerTest.Test == t && u.UserAnswerTest.Student == user)
-                                .Select(s=> new UserAnswerCorrectSequenceDto() {
-                                Id = s.CorrectSequenceAnswer.Id,
-                                Order = s.Order
-                                }).ToList(),
-                                IsAnswered = _dbContext.UserAnswerTests
-                                    .Where(uat=>uat.Student == user && uat.Test == t)
-                                    .MaxBy(uat=>uat.NumberOfAttempt)!.AnsweredAt.HasValue 
-                            } : t.TestType is TestType.DetailedAnswer ? new UserAnswerFullDto {
-                                DetailedAnswer = _dbContext.UserAnswers.OfType<DetailedAnswer>()
-                                    .FirstOrDefault(u=>u.UserAnswerTest.Test == t && u.UserAnswerTest.Student == user)!
-                                    .AnswerContent,
-                                IsAnswered = _dbContext.UserAnswerTests
-                                    .Where(uat=>uat.Student == user && uat.Test == t)
-                                    .MaxBy(uat=>uat.NumberOfAttempt)!.AnsweredAt.HasValue
-                            } : null : null,
-                    Type = t.TestType,
-                }).ToList()
-        };
+        if (user == null)
+            throw new NotFoundException("User not found");
+        var chapters = await _dbContext.Chapters
+            .Where(c => c.ChapterType == ChapterType.DefaultChapter && c.SubModule.Module.Id == moduleId)
+            .AsNoTracking()
+            .ToListAsync();
+        var totalLearned = await _dbContext.Learned
+            .Where(l => chapters.Contains(l.Chapter) && l.LearnedBy == user)
+            .AsNoTracking()
+            .CountAsync();
+        return chapters.Count !=0 ? (float)Math.Round((float)totalLearned / chapters.Count, 2): 0;
     }
+
+   
 
     public async Task<ModuleDetailsDto> GetModuleDetails(Guid moduleId, Guid? userId) {
         var module = await _dbContext.Modules
-            .Include(m=>m.Creators)
+            .Include(m=>m.Editors)
+            .Include(m=>m.UserModules)
             .FirstOrDefaultAsync(m => m.Id == moduleId);
         if (module == null)
             throw new NotFoundException("Module not found");
@@ -227,6 +172,10 @@ public class ModuleStudentService : IModuleStudentService {
             .Include(u=>u.Modules)!
             .ThenInclude(m=>m.Module)
             .FirstOrDefaultAsync(u => u.Id == userId);
+
+        if (module.Editors.IsNullOrEmpty() || (module.Editors!.All(c => c.Id != userId) &&
+                                                module.ModuleVisibility == ModuleVisibilityType.OnlyCreators))
+            throw new ForbiddenException("Module is private");
         
         var streamingModule = module as StreamingModule; 
         
@@ -238,26 +187,49 @@ public class ModuleStudentService : IModuleStudentService {
             Avatar = module.AvatarId == null 
                 ? null 
                 : new FileLinkDto {
-                    FileId = _dbContext.Teachers.Any(t=>t.Id == userId) ? module.AvatarId : null,
+                    FileId = _dbContext.Teachers.Any(t=>t.Id == userId) 
+                        ? module.AvatarId 
+                        : null,
                     Url = await _fileService.GetAvatarLink(module.AvatarId) 
                 },
             Status = user?.Modules != null && user.Modules.Any(m => m.Module == module)
                 ? user.Modules.FirstOrDefault(m => m.Module == module)!.ModuleStatus
                 : ModuleStatusType.NotPurchased,
-            Type = ModuleType.StreamingModule,
+            Type = streamingModule == null ? ModuleType.SelfStudyModule : ModuleType.StreamingModule,
             RequiredModules = module.RecommendedModules != null
                 ? module.RecommendedModules.Select(m => new RequiredModulesDto {
                     Id = m.Id,
                     Avatar = new FileLinkDto{
-                        FileId = !module.Creators.IsNullOrEmpty() ? module.Creators!.Any(c=>c.Id == userId) ? m.AvatarId : null : null,
+                        FileId = !module.Editors.IsNullOrEmpty() && module.Editors!.Any(c=>c.Id == userId) 
+                            ? m.AvatarId 
+                            : null,
                         Url = m.AvatarId
                         },
-                    Name = m.Name
+                    Name = m.Name,
+                    Status = user?.Modules != null && user.Modules.Any(sm => sm.Module == m)
+                        ? user.Modules.FirstOrDefault(sm => sm.Module == m)!.ModuleStatus
+                        : ModuleStatusType.NotPurchased
                 }).ToList()
                 : new List<RequiredModulesDto>(),
-            StartDate = streamingModule?.StartAt ,
+            VisibilityType = !module.Editors.IsNullOrEmpty() && module.Editors!
+                .Any(c=>c.Id == userId) ? module.ModuleVisibility : null,
+            AmountOfStudents = module.UserModules.IsNullOrEmpty() 
+                ? 0 
+                : module.UserModules!.Count(um => um.ModuleStatus 
+                is ModuleStatusType.Purchased or ModuleStatusType.InProcess),
+            Author = module.Editors.IsNullOrEmpty() 
+                ? Guid.Empty 
+                : module.Editors!.FirstOrDefault()!.Id,
+            Editors = !module.Editors.IsNullOrEmpty() && module.Editors!.Any(c=>c.Id == userId)
+                ? module.Editors!.Select(e=>e.Id).ToList() : new List<Guid>(),
+            Teachers = !module.Editors.IsNullOrEmpty() && module.Editors!.Any(c=>c.Id == userId)
+                ? module.Teachers!.Select(e=>e.Id).ToList() : new List<Guid>(),
+            StartDate = streamingModule?.StartAt,
+            StopRegistrationDate = streamingModule?.StopRegisterAt,
+            StartRegistrationDate = streamingModule?.StartRegisterAt,
             ExpirationDate = streamingModule?.ExpiredAt,
             MaxStudents = streamingModule?.MaxStudents,
+            TimeDuration = module.TimeDuration
         };
         
         foreach (var responseRequiredModule in response.RequiredModules) {
@@ -313,6 +285,25 @@ public class ModuleStudentService : IModuleStudentService {
             studentModule.ModuleStatus = ModuleStatusType.Purchased;
             _dbContext.Update(studentModule);
         }
+        await _dbContext.SaveChangesAsync();
+    }
+
+    public async Task StartModule(Guid moduleId, Guid userId) {
+        var module = await _dbContext.Modules
+            .FirstOrDefaultAsync(m => m.Id == moduleId && m.ModuleVisibility == ModuleVisibilityType.Everyone);
+        if (module == null)
+            throw new NotFoundException("Module not found");
+        var user = await _dbContext.UserBackends
+            .Include(u => u.Student)
+            .FirstOrDefaultAsync(u => u.Id == userId);
+        if (user == null)
+            throw new NotFoundException("User not found");
+        var studentModule = await _dbContext.UserModules
+            .FirstOrDefaultAsync(um => um.Student == user.Student && um.Module == module);
+        if (studentModule is not { ModuleStatus: ModuleStatusType.Purchased })
+            throw new ForbiddenException("User don't have this module");
+        studentModule.ModuleStatus = ModuleStatusType.InProcess;
+        _dbContext.Update(studentModule);
         await _dbContext.SaveChangesAsync();
     }
 

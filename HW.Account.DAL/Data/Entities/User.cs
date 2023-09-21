@@ -18,28 +18,35 @@ public class User : IdentityUser<Guid> {
     /// <summary>
     /// User's work experience
     /// </summary>
-    public required WorkExperience WorkExperience { get; set; } = new WorkExperience();
+    public WorkExperience WorkExperience { get; set; }
 
     /// <summary>
     /// User's location(city)
     /// </summary>
-    public required Location Location { get; set; } = new Location();
+    public Location Location { get; set; } 
 
     /// <summary>
     /// User's education grade
     /// </summary>
-    public required Education Education { get; set; } = new Education();
+    public Education Education { get; set; } 
 
     /// <summary>
     /// User`s birth date
     /// </summary>
-    public required BirthDate BirthDate { get; set; } = new BirthDate();
+    public BirthDate BirthDate { get; set; } 
 
     /// <summary>
     /// Avatar id
     /// </summary>
     public string? AvatarId { get; set; }
-
+    /// <summary>
+    /// Myself description
+    /// </summary>
+    public string? AboutMe { get; set; }
+    /// <summary>
+    /// User's post
+    /// </summary>
+    public string? Post { get; set; }
     /// <summary>
     /// Date when user joined the system
     /// </summary>

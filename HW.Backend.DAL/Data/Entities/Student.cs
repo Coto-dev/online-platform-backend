@@ -25,7 +25,7 @@ public class Student {
     /// <summary>
     /// User educational programs
     /// </summary>
-    public List<EducationalProgram>? EducationalPrograms { get; set; } = new();
+    public List<StudentEducationalProgram>? EducationalPrograms { get; set; } = new();
 
 
 }

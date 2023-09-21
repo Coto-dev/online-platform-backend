@@ -5,24 +5,24 @@
 namespace HW.Backend.DAL.Migrations
 {
     /// <inheritdoc />
-    public partial class fix_name : Migration
+    public partial class add_ordered_tests : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.RenameColumn(
-                name: "IsAnswered",
-                table: "UserAnswerTests",
-                newName: "AnsweredAt");
+                name: "OrderedChapters",
+                table: "Chapters",
+                newName: "OrderedTests");
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.RenameColumn(
-                name: "AnsweredAt",
-                table: "UserAnswerTests",
-                newName: "IsAnswered");
+                name: "OrderedTests",
+                table: "Chapters",
+                newName: "OrderedChapters");
         }
     }
 }

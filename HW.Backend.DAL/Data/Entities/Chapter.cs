@@ -10,7 +10,7 @@ public class Chapter
     /// <summary>
     /// Chapter id
     /// </summary>
-    public Guid Id { get; set; }
+    public Guid Id { get; set; } = Guid.NewGuid();
     /// <summary>
     /// Date and time the chapter was created
     /// </summary>
@@ -24,9 +24,18 @@ public class Chapter
     /// </summary>
     public DateTime? ArchivedAt { get; set; }
     /// <summary>
+    /// List of sorted tests
+    /// </summary>
+    public List<Guid>? OrderedTests { get; set; } = new();
+    /// <summary>
+    /// List of sorted blocks
+    /// </summary>
+    public List<Guid>? OrderedBlocks { get; set; } = new();
+    /// <summary>
     /// Chapter's name
     /// </summary>
     public required string Name { get; set; }
+    
     /// <summary>
     /// Chapter's content
     /// </summary>
@@ -45,6 +54,12 @@ public class Chapter
     /// Chapter's tests
     /// </summary>
     public List<Test>? ChapterTests { get; set; } = new();
+    
+    /// <summary>
+    /// Chapter's blocks
+    /// </summary>
+    public List<ChapterBlock>? ChapterBlocks  { get; set; } = new();
+    
     /// <summary>
     /// Chapter type
     /// </summary>

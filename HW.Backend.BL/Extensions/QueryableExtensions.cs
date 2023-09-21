@@ -28,41 +28,44 @@ public static  class QueryableExtensions {
     }*/
     
     public static IQueryable<Module> ModuleTeacherFilter(this IQueryable<Module> source, FilterModuleType? filter,
-        ModuleFilterTeacherType? section, string? sortByNameFilter, Guid userId) {
+        ModuleTeacherFilter? section, string? sortByNameFilter, Guid userId) {
 
-        return source.Where(x =>
-            (filter == null || (filter.ModuleTypes!.Contains(ModuleType.StreamingModule) 
-                               && x.GetType() == typeof(StreamingModule)) 
-                           || (filter.ModuleTypes!.Contains(ModuleType.SelfStudyModule) 
-                               && x.GetType() == typeof(Module)))
-                           && (section == null || (section == ModuleFilterTeacherType.Draft 
-                                                   && x.ModuleVisibility == ModuleVisibilityType.OnlyMe)
-                           || (section == ModuleFilterTeacherType.Published 
-                               && x.ModuleVisibility == ModuleVisibilityType.Everyone)
-                           || (section == ModuleFilterTeacherType.Taught && x.Teachers!.Any(t=>t.Id == userId)))
-                           && (sortByNameFilter == null || x.Name.Contains(sortByNameFilter)));
-    }
-    
-    public static IQueryable<Module> ModuleStudentFilter(this IQueryable<Module> source, FilterModuleType? filter,
-        ModuleFilterStudentType? section, string? sortByNameFilter, Guid userId) {
         return source.Where(x =>
             (filter == null || (filter.ModuleTypes!.Contains(ModuleType.StreamingModule) 
                                 && x.GetType() == typeof(StreamingModule)) 
                             || (filter.ModuleTypes!.Contains(ModuleType.SelfStudyModule) 
                                 && x.GetType() == typeof(Module)))
-            && (section == null || (section == ModuleFilterStudentType.Passed 
+            && (section == null || (section.Sections!.Contains(ModuleFilterTeacherType.Draft)
+                                    && x.ModuleVisibility == ModuleVisibilityType.OnlyCreators
+                                    && x.Editors!.Any(c=>c.Id == userId))
+                                || (section.Sections.Contains(ModuleFilterTeacherType.Published)
+                                    && x.Editors!.Any(c=>c.Id == userId)
+                                    && x.ModuleVisibility == ModuleVisibilityType.Everyone)
+                                || (section.Sections.Contains(ModuleFilterTeacherType.Taught) 
+                                    && x.Teachers!.Any(t=>t.Id == userId)))
+            && (sortByNameFilter == null || x.Name.ToLower().Contains(sortByNameFilter.ToLower())));
+    }
+    
+    public static IQueryable<Module> ModuleStudentFilter(this IQueryable<Module> source, FilterModuleType? filter,
+        ModuleStudentFilter? section, string? sortByNameFilter, Guid userId) {
+        return source.Where(x =>
+            (filter == null || (filter.ModuleTypes!.Contains(ModuleType.StreamingModule) 
+                                && x.GetType() == typeof(StreamingModule)) 
+                            || (filter.ModuleTypes!.Contains(ModuleType.SelfStudyModule) 
+                                && x.GetType() == typeof(Module)))
+            && (section == null || (section.Sections!.Contains(ModuleFilterStudentType.Passed)
                                     && x.UserModules!.Any(u=>u.Student.Id == userId && u.ModuleStatus == ModuleStatusType.Passed))
-                                || (section == ModuleFilterStudentType.NotPassed 
+                                || (section.Sections!.Contains(ModuleFilterStudentType.NotPassed) 
                                     && x.UserModules!.Any(u=>u.Student.Id == userId 
-                                        && (u.ModuleStatus == ModuleStatusType.NotPassedByExam 
-                                            || u.ModuleStatus == ModuleStatusType.NotPassedByExpiration)))
-                                || (section == ModuleFilterStudentType.InProcess 
-                                    && x.UserModules!.Any(u=>u.Student.Id == userId && u.ModuleStatus == ModuleStatusType.InProcess))
-                                || (section == ModuleFilterStudentType.InCart 
+                                                             && (u.ModuleStatus == ModuleStatusType.NotPassedByExam 
+                                                                 || u.ModuleStatus == ModuleStatusType.NotPassedByExpiration)))
+                                || (section.Sections!.Contains(ModuleFilterStudentType.InProcess)
+                                                                  && x.UserModules!.Any(u=>u.Student.Id == userId && u.ModuleStatus == ModuleStatusType.InProcess))
+                                || (section.Sections!.Contains(ModuleFilterStudentType.InCart)
                                     && x.UserModules!.Any(u=>u.Student.Id == userId && u.ModuleStatus == ModuleStatusType.InCart))
-                                || (section == ModuleFilterStudentType.Purchased 
+                                || (section.Sections!.Contains(ModuleFilterStudentType.Purchased)
                                     && x.UserModules!.Any(u=>u.Student.Id == userId && u.ModuleStatus == ModuleStatusType.Purchased)))
-            && (sortByNameFilter == null || x.Name.Contains(sortByNameFilter)));        
+            && (sortByNameFilter == null || x.Name.ToLower().Contains(sortByNameFilter.ToLower())));        
     }
     
     public static IQueryable<Module> ModuleAvailableFilter(this IQueryable<Module> source, FilterModuleType? filter,
@@ -72,7 +75,7 @@ public static  class QueryableExtensions {
                                 && x.GetType() == typeof(StreamingModule)) 
                             || (filter.ModuleTypes!.Contains(ModuleType.SelfStudyModule) 
                                 && x.GetType() == typeof(Module)))
-            && (sortByNameFilter == null || x.Name.Contains(sortByNameFilter)));
+            && (sortByNameFilter == null || x.Name.ToLower().Contains(sortByNameFilter.ToLower())));
             
     }
 }

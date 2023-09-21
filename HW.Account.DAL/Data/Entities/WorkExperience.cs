@@ -5,8 +5,7 @@ namespace HW.Account.DAL.Data.Entities;
 
 public class WorkExperience {
     public Guid Id { get; set; } = Guid.NewGuid();
-    [ForeignKey("UserId")]
-    public User User;
+    public required User User { get; set; }
     public List<WorkExperienceInfo>? WorkExperiencesInfos { get; set; } = new();
     public ProfileVisibility Visibility { get; set; } = ProfileVisibility.All;
 }

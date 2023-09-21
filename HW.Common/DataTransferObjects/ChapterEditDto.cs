@@ -13,8 +13,7 @@ public class ChapterEditDto {
     [Required]
     [DefaultValue(Enums.ChapterType.DefaultChapter)]
     public ChapterType ChapterType { get; set; }
-    [Required]
-    public string Content { get; set; } // html
+    public string? Content { get; set; } // html
     [Required]
     public List<string>? FileIds { get; set; } = new();
 }

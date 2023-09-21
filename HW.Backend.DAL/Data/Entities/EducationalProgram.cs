@@ -26,11 +26,23 @@ public class EducationalProgram
     /// </summary>
     public string? AvatarId { get; set; }
     /// <summary>
+    /// Date when program starts
+    /// </summary>
+    public DateTime? StartAt { get; set; }
+    /// <summary>
+    /// Date when user can register
+    /// </summary>
+    public DateTime? StartRegisterAt { get; set; }
+    /// <summary>
+    /// Required time to finish program
+    /// </summary>
+    public string? TimeDuration { get; set; }
+    /// <summary>
     /// Date and time the EducationalProgram was created
     /// </summary>
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     /// <summary>
-    /// Date and time the EducationalProgram was editted
+    /// Date and time the EducationalProgram was edited
     /// </summary>
     public DateTime? EditedAt { get; set; }
     /// <summary>
@@ -40,10 +52,20 @@ public class EducationalProgram
     /// <summary>
     /// List of available modules in this EducationalProgram
     /// </summary>
-    public List<Module>? Modules { get; set; }
+    public List<Module>? Modules { get; set; } = new();
     /// <summary>
-    /// List of students in this EducationalProgram
+    /// List of students on educational program
     /// </summary>
-    public List<Student>? Students { get; set; }
+    public List<StudentEducationalProgram>? UserPrograms { get; set; } = new();
+    
+    /// <summary>
+    /// Module author
+    /// </summary>
+    public required Teacher Author { get; set; }
+    
+    /// <summary>
+    /// List of Editors in this EducationalProgram
+    /// </summary>
+    public List<Teacher>? Editors { get; set; } = new();
 
 }
