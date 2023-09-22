@@ -70,4 +70,10 @@ public class Chapter
     /// </summary>
 
     public List<ChapterComment>? ChapterComments { get; set; } = new();
+    
+    /// <summary>
+    /// Learned chapters
+    /// </summary>
+    public List<Learned>? LearnedList { get; set; } = new();
+
 }

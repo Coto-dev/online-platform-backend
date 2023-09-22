@@ -80,7 +80,7 @@ public class ModuleStudentController : ControllerBase {
     [Route("{moduleId}/content")]
     public async Task<ActionResult<ModuleFullDto>> GetModuleContent(Guid moduleId) {
         if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false) {
-            throw new UnauthorizedException("User is not authorized");
+            userId = Guid.Empty;
         }
 
         /*

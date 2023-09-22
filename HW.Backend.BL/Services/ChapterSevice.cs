@@ -201,6 +201,7 @@ public class ChapterService : IChapterService
      public async Task<ChapterFullDto> GetChapterContentStudent(Guid chapterId, Guid userId) {
         var chapter = await _dbContext.Chapters
             .Include(c=>c.ChapterTests)
+            .Include(c=>c.ChapterBlocks)
             .Include(c=>c.ChapterComments)!
             .ThenInclude(com=>com.User)
             .FirstOrDefaultAsync(m => m.Id == chapterId);
@@ -222,7 +223,7 @@ public class ChapterService : IChapterService
                     IsTeacherComment = com.IsTeacherComment,
                     Message = com.Comment
                 }).ToList(),
-            IsLearned = user!.LearnedChapters != null && user.LearnedChapters.Contains(chapter),
+            IsLearned = user!.LearnedChapters != null && user.LearnedChapters.Any(l=>l.Chapter == chapter),
             ChapterType = chapter.ChapterType,
             ChapterBlocks = chapter.ChapterBlocks == null
                 ? new List<ChapterBlockDto>()

@@ -85,25 +85,25 @@ public class ParserService : IParserService {
     private async Task<string> GetTextWithHtmlTags(Paragraph paragraph) {
         string content = "";
         foreach (var formattedText in paragraph.MagicText) {
-            var url = paragraph.Hyperlinks
-                .FirstOrDefault(h=>h.Text == formattedText.text);
-            paragraph.Hyperlinks.Remove(url);
             var text = formattedText.text;
-            text = formattedText.formatting.Bold == true?   "<strong>" + text + "</strong>" : text;
-            text = formattedText.formatting.Italic == true?  "<em>" + text + "</em>" : text;
-            text = formattedText.formatting.UnderlineColor != null 
-                   && formattedText.formatting.UnderlineStyle.HasValue 
-                   && formattedText.formatting.UnderlineColor.Value.Name != "ff0000ff"
-                ? "<u>" + text + "</u>" 
-                : text;
-            text = formattedText.formatting.UnderlineColor != null
-                   && formattedText.formatting.UnderlineStyle.HasValue 
-                   && formattedText.formatting.UnderlineColor.Value.Name == "ff0000ff"
-                ? url?.Uri.ToString() != null 
-                    ?"<a href=\"" + url.Uri + "\" rel=\"noopener noreferrer\" target=\"_blank\">" + text + "</a>"
-                    : text
-                : text;
-
+            if (formattedText.formatting != null) {
+                var url = paragraph.Hyperlinks
+                    .FirstOrDefault(h => h.Text == formattedText.text);
+                paragraph.Hyperlinks.Remove(url);
+                text = formattedText.formatting.Bold == true ? "<strong>" + text + "</strong>" : text;
+                text = formattedText.formatting.Italic == true ? "<em>" + text + "</em>" : text;
+                text = formattedText.formatting.UnderlineStyle.HasValue
+                       && formattedText.formatting.UnderlineColor is not { Name: "ff0000ff" }
+                    ? "<u>" + text + "</u>"
+                    : text;
+                text = formattedText.formatting.UnderlineColor != null
+                       && formattedText.formatting.UnderlineStyle.HasValue
+                       && formattedText.formatting.UnderlineColor.Value.Name == "ff0000ff"
+                    ? url?.Uri.ToString() != null
+                        ? "<a href=\"" + url.Uri + "\" rel=\"noopener noreferrer\" target=\"_blank\">" + text + "</a>"
+                        : text
+                    : text;
+            }
             content += text;
         }
         
@@ -116,7 +116,7 @@ public class ParserService : IParserService {
                     : "<ul>" + content;
             }
 
-            if (paragraph.NextParagraph == null || paragraph.NextParagraph.IsListItem) {
+            if (paragraph.NextParagraph is not { IsListItem: true }) {
                 content = paragraph.ListItemType == ListItemType.Numbered
                     ? content + "</ol>"
                     : content + "</ul>";

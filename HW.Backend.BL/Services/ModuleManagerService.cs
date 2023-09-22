@@ -65,7 +65,7 @@ public class ModuleManagerService : IModuleManagerService {
             .Include(m=>m.SubModules)!
             .ThenInclude(s=>s.Chapters)
             .AsNoTracking()
-            .FirstOrDefaultAsync(m => m.Id == moduleId);
+            .FirstOrDefaultAsync(m => m.Id == moduleId && !m.ArchivedAt.HasValue);
         if (module == null)
             throw new NotFoundException("Module not found");
         return new ModuleFullTeacherDto {
@@ -272,11 +272,9 @@ public class ModuleManagerService : IModuleManagerService {
 
     public async Task ArchiveModule(Guid moduleId) {
         var module = await _dbContext.Modules
-            .FirstOrDefaultAsync(m => m.Id == moduleId);
+            .FirstOrDefaultAsync(m => m.Id == moduleId && !m.ArchivedAt.HasValue);
         if (module == null) 
             throw new NotFoundException("Module not found");
-        if (module == null) 
-            throw new NotFoundException("Sub module not found");
         module.ArchivedAt = DateTime.UtcNow;
         _dbContext.Update(module);
         await _dbContext.SaveChangesAsync();

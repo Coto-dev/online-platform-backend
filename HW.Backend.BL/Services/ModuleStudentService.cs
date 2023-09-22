@@ -101,30 +101,47 @@ public class ModuleStudentService : IModuleStudentService {
 
     public async Task<ModuleFullDto> GetModuleContent(Guid moduleId, Guid userId) {
         var module = await _dbContext.Modules
+            .Where(m=>!m.ArchivedAt.HasValue && m.ModuleVisibility == ModuleVisibilityType.Everyone)
             .Include(m=>m.SubModules)!
-            .ThenInclude(s=>s.Chapters)
+            .ThenInclude(s=>s.Chapters)!
+            .ThenInclude(c=>c.LearnedList)!
+            .ThenInclude(l=>l.LearnedBy)
             .AsNoTracking()
             .FirstOrDefaultAsync(m => m.Id == moduleId);
+
         if (module == null)
             throw new NotFoundException("Module not found");
-        return new ModuleFullDto {
+
+        
+        
+        var response = new ModuleFullDto {
             Id = module.Id,
-            Progress = await CalculateProgress(moduleId, userId),
+            Progress = await CalculateProgressFloat(moduleId, userId),
             SubModules = module.SubModules != null? module.SubModules
-                .OrderBy(x=> module.OrderedSubModules!.IndexOf(x.Id))
+                .Where(s=>!s.ArchivedAt.HasValue)
+                .OrderBy(s=> module.OrderedSubModules!.IndexOf(s.Id))
                 .Select(s=> new SubModuleFullDto {
                 Id = s.Id,
                 Name = s.Name,
                 Chapters = s.Chapters != null ? s.Chapters
+                    .Where(c=>!c.ArchivedAt.HasValue)
                     .OrderBy(c=> s.OrderedChapters!.IndexOf(c.Id))
                     .Select(c=> new ChapterShrotDto {
                     Id = c.Id,
                     Name = c.Name,
-                    ChapterType = c.ChapterType
+                    ChapterType = c.ChapterType,
+                    IsLearned = c.LearnedList != null && c.LearnedList.Any(l=>l.LearnedBy.Id == userId)
                 }).ToList() : new List<ChapterShrotDto>()
             }).ToList() : new List<SubModuleFullDto>()
         };
-        
+        foreach (var subModuleFullDto in response.SubModules) {
+            foreach (var chapterShortDto in subModuleFullDto.Chapters) {
+                if (chapterShortDto.IsLearned) continue;
+                response.FirstUnlearnedChapter = chapterShortDto.Id;
+                return response;
+            }
+        }
+        return response;
     }
 
     public async Task<string> CalculateProgress(Guid moduleId, Guid userId) {
@@ -147,7 +164,7 @@ public class ModuleStudentService : IModuleStudentService {
         var user = await _dbContext.Students
             .FirstOrDefaultAsync(u => u.Id == userId);
         if (user == null)
-            throw new NotFoundException("User not found");
+            return 0;
         var chapters = await _dbContext.Chapters
             .Where(c => c.ChapterType == ChapterType.DefaultChapter && c.SubModule.Module.Id == moduleId)
             .AsNoTracking()
@@ -165,7 +182,7 @@ public class ModuleStudentService : IModuleStudentService {
         var module = await _dbContext.Modules
             .Include(m=>m.Editors)
             .Include(m=>m.UserModules)
-            .FirstOrDefaultAsync(m => m.Id == moduleId);
+            .FirstOrDefaultAsync(m => m.Id == moduleId && !m.ArchivedAt.HasValue);
         if (module == null)
             throw new NotFoundException("Module not found");
         var user = await _dbContext.Students
@@ -247,7 +264,9 @@ public class ModuleStudentService : IModuleStudentService {
 
     public async Task BuyModule(Guid moduleId, Guid userId) {
         var module = await _dbContext.Modules
-            .FirstOrDefaultAsync(m => m.Id == moduleId && m.ModuleVisibility == ModuleVisibilityType.Everyone);
+            .FirstOrDefaultAsync(m => m.Id == moduleId 
+                                      && !m.ArchivedAt.HasValue
+                                      && m.ModuleVisibility == ModuleVisibilityType.Everyone);
         if (module == null)
             throw new NotFoundException("Module not found");
         var user = await _dbContext.UserBackends
@@ -290,7 +309,9 @@ public class ModuleStudentService : IModuleStudentService {
 
     public async Task StartModule(Guid moduleId, Guid userId) {
         var module = await _dbContext.Modules
-            .FirstOrDefaultAsync(m => m.Id == moduleId && m.ModuleVisibility == ModuleVisibilityType.Everyone);
+            .FirstOrDefaultAsync(m => m.Id == moduleId 
+                                      && !m.ArchivedAt.HasValue
+                                      && m.ModuleVisibility == ModuleVisibilityType.Everyone);
         if (module == null)
             throw new NotFoundException("Module not found");
         var user = await _dbContext.UserBackends
@@ -309,7 +330,9 @@ public class ModuleStudentService : IModuleStudentService {
 
     public async Task AddModuleToBasket(Guid moduleId, Guid userId) {
         var module = await _dbContext.Modules
-            .FirstOrDefaultAsync(m => m.Id == moduleId && m.ModuleVisibility == ModuleVisibilityType.Everyone);
+            .FirstOrDefaultAsync(m => m.Id == moduleId 
+                                      && !m.ArchivedAt.HasValue
+                                      && m.ModuleVisibility == ModuleVisibilityType.Everyone);
         if (module == null)
             throw new NotFoundException("Module not found");
         var user = await _dbContext.UserBackends
