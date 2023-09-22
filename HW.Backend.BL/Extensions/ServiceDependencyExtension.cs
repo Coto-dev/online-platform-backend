@@ -1,6 +1,5 @@
 using HW.Backend.BL.Services;
 using HW.Backend.DAL.Data;
-using HW.Backend.DAL.Data.Entities;
 using HW.Common.Interfaces;
 using HW.FileManager.BL.Services;
 using Microsoft.AspNetCore.Identity;
@@ -23,6 +22,7 @@ public static class ServiceDependencyExtension {
         services.AddScoped<ISubModuleService, SubModuleService>();
         services.AddScoped<IChapterBlocksService, ChapterBlocksService>();
         services.AddScoped<ITestService, TestService>();
+        services.AddScoped<IActivityService, ActivityService>();
 
         return services;
     }
