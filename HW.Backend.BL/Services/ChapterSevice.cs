@@ -152,7 +152,7 @@ public class ChapterService : IChapterService
                 : chapter.ChapterBlocks
                     .OrderBy(cb=> chapter.OrderedBlocks!.IndexOf(cb.Id))
                     .Select(cb=> new ChapterBlockTeacherDto {
-                    Content = cb.Content,
+                    Content = SwapFileIdsWithUrls(cb.Content, cb.Files).Result,
                     FileIds = cb.Files == null
                         ? new List<FileLinkDto>()
                         : cb.Files.Select( f => new FileLinkDto {
@@ -230,10 +230,10 @@ public class ChapterService : IChapterService
                 : chapter.ChapterBlocks
                     .OrderBy(cb=> chapter.OrderedBlocks!.IndexOf(cb.Id))
                     .Select(cb=> new ChapterBlockDto {
-                    Content = cb.Content,
-                    FilesUrls = cb.Files.IsNullOrEmpty()
-                        ? new List<string>()
-                        : cb.Files!.Select(async f=> await _fileService.GetFileLink(f)).Select(task=>task.Result).ToList()!
+                    Content = SwapFileIdsWithUrls(cb.Content, cb.Files).Result,
+                    // FilesUrls = cb.Files.IsNullOrEmpty()
+                    //     ? new List<string>()
+                    //     : cb.Files!.Select(async f=> await _fileService.GetFileLink(f)).Select(task=>task.Result).ToList()!
                 }).ToList(),
             Tests = chapter.ChapterTests == null
                 ? new List<TestDto>()
@@ -294,6 +294,15 @@ public class ChapterService : IChapterService
                 }).ToList()
         };
     }
+
+     private async Task<string?> SwapFileIdsWithUrls(string? content, List<string>? FileIds) {
+         if (content == null) return content;
+         foreach (var fileId in FileIds!) {
+             var fileUrl = await _fileService.GetFileLink(fileId);
+              content = content.Replace(fileId, fileUrl);
+         }
+         return content;
+     }
      
     public async Task EditChaptersOrder(List<Guid> orderedChapters, Guid subModuleId) {
         var duplicates = orderedChapters.GroupBy(x => x)

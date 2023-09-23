@@ -1,10 +1,12 @@
 using System.Drawing;
+using System.Net.Mime;
 using System.Xml;
 using HW.Backend.DAL.Data;
 using HW.Backend.DAL.Data.Entities;
 using HW.Common.Enums;
 using HW.Common.Exceptions;
 using HW.Common.Interfaces;
+using HW.Common.Other;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -66,13 +68,20 @@ public class ParserService : IParserService {
                         throw new InvalidOperationException("Not found heading 2: " +
                                                             sourceDoc.Paragraphs.IndexOf(paragraph));
                     var chapterBlocks = subModules.Last().Chapters!.Last().ChapterBlocks;
+                    
                     var content = await GetTextWithHtmlTags(paragraph);
-                    chapterBlocks!.Add(new ChapterBlock {
-                        Content = content,
-                        //Files = null,
-                        Chapter = subModules.Last().Chapters!.Last()
-                    });
-                    subModules.Last().Chapters!.Last().OrderedBlocks!.Add(chapterBlocks.Last().Id);
+                    if (paragraph is { IsListItem: true, PreviousParagraph.IsListItem: true }) {
+                        chapterBlocks!.Last().Content += content.Content;
+                        chapterBlocks!.Last().Files!.AddRange(content.fileIds);
+                    }
+                    else {
+                        chapterBlocks!.Add(new ChapterBlock {
+                            Content = content.Content,
+                            Files = content.fileIds,
+                            Chapter = subModules.Last().Chapters!.Last()
+                        });
+                        subModules.Last().Chapters!.Last().OrderedBlocks!.Add(chapterBlocks.Last().Id);
+                    }
                     break;
             }
         }
@@ -82,8 +91,8 @@ public class ParserService : IParserService {
         var a = 3;
     }
 
-    private async Task<string> GetTextWithHtmlTags(Paragraph paragraph) {
-        string content = "";
+    private async Task<HtmlContentAndFiles> GetTextWithHtmlTags(Paragraph paragraph) {
+        var content = new HtmlContentAndFiles();
         foreach (var formattedText in paragraph.MagicText) {
             var text = formattedText.text;
             if (formattedText.formatting != null) {
@@ -104,29 +113,72 @@ public class ParserService : IParserService {
                         : text
                     : text;
             }
-            content += text;
+            content.Content+= text;
         }
-        
+
         if (paragraph.IsListItem) {
-            content = "<li>" + content + "</li>";
+            content.Content= "<li>" + content.Content+ "</li>";
 
             if (paragraph.PreviousParagraph is not { IsListItem: true }) {
-                content = paragraph.ListItemType == ListItemType.Numbered
-                    ? "<ol>" + content
-                    : "<ul>" + content;
+                content.Content= paragraph.ListItemType == ListItemType.Numbered
+                    ? "<ol>" + content.Content
+                    : "<ul>" + content.Content;
             }
 
             if (paragraph.NextParagraph is not { IsListItem: true }) {
-                content = paragraph.ListItemType == ListItemType.Numbered
-                    ? content + "</ol>"
-                    : content + "</ul>";
+                content.Content= paragraph.ListItemType == ListItemType.Numbered
+                    ? content.Content+ "</ol>"
+                    : content.Content+ "</ul>";
             }
         }
 
-        if (content.IsNullOrEmpty())
-            content = "<br>";
-        if(!paragraph.IsListItem && !content.IsNullOrEmpty()) 
-            content = "<p>" + content + "</p>";
+        if (!paragraph.Pictures.IsNullOrEmpty()) {
+            var files = new List<IFormFile>();
+            foreach (var paragraphPicture in paragraph.Pictures) {
+                var memoryStream = new MemoryStream();
+                await paragraphPicture.Stream.CopyToAsync(memoryStream);
+                memoryStream.Position = 0;
+               
+                files.Add(new FormFile(memoryStream, 0, memoryStream.Length,
+                    "image", paragraphPicture.FileName) {
+                    Headers = new HeaderDictionary(),
+                    ContentType = GetContentTypeFromExtension(Path.GetExtension(paragraphPicture.FileName))
+                });
+            }
+            var fileIds = await _fileService.UploadFiles(files);
+            content.fileIds = fileIds
+                .Select(f => f.NewFileName)
+                .ToList();
+        }
+        if (content.Content.IsNullOrEmpty())
+            content.Content = "<br>";
+        if(!paragraph.IsListItem && !content.Content.IsNullOrEmpty()) 
+            content.Content = "<p>" + content.Content + "</p>";
+        foreach (var contentFileId in content.fileIds) {
+            content.Content = content.Content + "<img src=\"" + contentFileId + "\" alt = \"\">";
+        }
         return content;
+    }
+    private string GetContentTypeFromExtension(string fileExtension)
+    {
+        switch (fileExtension.ToLower())
+        {
+            case ".jpg":
+            case ".jpeg":
+                return "image/jpeg";
+            case ".png":
+                return "image/png";
+            case ".gif":
+                return "image/gif";
+            case ".bmp":
+                return "image/bmp";
+            case ".tiff":
+                return "image/tiff";
+            case ".pdf":
+                return "application/pdf";
+            // Другие расширения и их соответствующие contentType
+            default:
+                throw new ForbiddenException("Wrong picture format");
+        }
     }
 }
