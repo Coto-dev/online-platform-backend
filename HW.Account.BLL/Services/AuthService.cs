@@ -103,6 +103,7 @@ public class AuthService : IAuthService {
             }
             catch (Exception e) {
                 await _userManager.DeleteAsync(newUser);
+                throw new BadRequestException(e.Message);
             }
 
             await _userManager.AddToRoleAsync(newUser, ApplicationRoleNames.Student);
