@@ -237,10 +237,12 @@ public class ModuleStudentService : IModuleStudentService {
             Author = module.Editors.IsNullOrEmpty() 
                 ? Guid.Empty 
                 : module.Editors!.FirstOrDefault()!.Id,
-            Editors = !module.Editors.IsNullOrEmpty() && module.Editors!.Any(c=>c.Id == userId)
-                ? module.Editors!.Select(e=>e.Id).ToList() : new List<Guid>(),
-            Teachers = !module.Editors.IsNullOrEmpty() && module.Editors!.Any(c=>c.Id == userId)
-                ? module.Teachers!.Select(e=>e.Id).ToList() : new List<Guid>(),
+            Editors = !module.Editors.IsNullOrEmpty()
+                ? module.Editors!.Select(e=>e.Id).ToList() 
+                : new List<Guid>(),
+            Teachers = !module.Editors.IsNullOrEmpty() 
+                ? module.Teachers!.Select(e=>e.Id).ToList() 
+                : new List<Guid>(),
             StartDate = streamingModule?.StartAt,
             StopRegistrationDate = streamingModule?.StopRegisterAt,
             StartRegistrationDate = streamingModule?.StartRegisterAt,
