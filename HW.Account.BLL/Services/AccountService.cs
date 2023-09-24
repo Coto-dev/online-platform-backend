@@ -138,7 +138,7 @@ public class AccountService: IAccountService {
     }
 
     public async Task<ProfileUserFullDto> GetUserFullProfile(Guid targetUserId , Guid userId) {
-        var requester = await _userManager.FindByIdAsync(targetUserId.ToString());
+        var requester = await _userManager.FindByIdAsync(userId.ToString());
         if (requester == null) {
             throw new NotFoundException("Requester not found");
         }
