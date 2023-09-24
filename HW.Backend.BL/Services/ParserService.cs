@@ -1,5 +1,6 @@
 using System.Drawing;
 using System.Net.Mime;
+using System.Text.RegularExpressions;
 using System.Xml;
 using HW.Backend.DAL.Data;
 using HW.Backend.DAL.Data.Entities;
@@ -28,19 +29,23 @@ public class ParserService : IParserService {
     }
 
     public async Task ParseFile(IFormFile file, Guid moduleId) {
+        if (file.ContentType != "application/vnd.openxmlformats-officedocument.wordprocessingml.document")
+            throw new BadRequestException("Can support only docx format");
+        
         var module = await _dbContext.Modules
             .FirstOrDefaultAsync(m => m.Id == moduleId && !m.ArchivedAt.HasValue);
         if (module == null)
             throw new NotFoundException("Module not found");
 
-        List<Paragraph> parags = new List<Paragraph>();
         var subModules = new List<SubModule>();
-
+        
         await using var stream = file.OpenReadStream();
         var sourceDoc = DocX.Load(stream);
-        foreach (var paragraph in sourceDoc.Paragraphs) {
-            parags.Add(paragraph);
-        }
+
+        var htmlMatch = Regex.Match(sourceDoc.Text,  @"<[^>]+>");
+        if (htmlMatch.Success)
+            throw new ForbiddenException("Html tag was found: "+ htmlMatch.Value);
+            
         foreach (var paragraph in sourceDoc.Paragraphs) {
             switch (paragraph.StyleId) {
                 case "1":

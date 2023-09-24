@@ -56,7 +56,8 @@ public class FileService : IFileService {
                 }
                 catch (MinioException ex)
                 {
-                    throw new BadRequestException($"Error uploading file: {ex.Message}");
+                    _logger.LogError("Minio not responding");
+                    throw new ServiceUnavailableException("Error uploading file");
                 }
             }
         }
@@ -83,8 +84,13 @@ public class FileService : IFileService {
             .WithBucket(bucketName)
             .WithObject(fileId)
             .WithExpiry(1000);
-        var presignedUrl = await _minioClient.PresignedGetObjectAsync(args).ConfigureAwait(false);
-        return presignedUrl;
+        try {
+            var presignedUrl = await _minioClient.PresignedGetObjectAsync(args).ConfigureAwait(false);
+            return presignedUrl;
+        }
+        catch (Exception e) {
+            return null;
+        }
     }
 
     public async Task<List<FileDownloadDto>> GetFiles(List<string> fileNames) {

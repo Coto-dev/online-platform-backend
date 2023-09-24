@@ -1,6 +1,8 @@
 using System.Net;
 using HW.Common.DataTransferObjects;
+using HW.Common.Enums;
 using HW.Common.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Net.Http.Headers;
 using ContentDispositionHeaderValue = System.Net.Http.Headers.ContentDispositionHeaderValue;
@@ -34,6 +36,7 @@ public class FileController : ControllerBase {
     /// <param name="files"></param>
     /// <returns></returns>
     [HttpPost]
+    [Authorize(AuthenticationSchemes = "Bearer")]
     [Route("upload")]
     public async Task<ActionResult<List<FileKeyDto>>> UploadFiles(List<IFormFile> files) {
         return Ok(await _fileService.UploadFiles(files));
@@ -45,6 +48,7 @@ public class FileController : ControllerBase {
     /// <param name="fileNames"></param>
     /// <returns></returns>
     [HttpGet]
+    [Authorize(AuthenticationSchemes = "Bearer", Roles = ApplicationRoleNames.Administrator)]
     [Route("download")]
     public async Task<HttpResponseMessage> DownloadFiles([FromQuery] List<string> fileNames) {
         var byteFiles = await _fileService.GetFiles(fileNames);
@@ -88,6 +92,7 @@ public class FileController : ControllerBase {
     /// <param name="fileNames"></param>
     /// <returns></returns>
     [HttpGet]
+    [Authorize(AuthenticationSchemes = "Bearer", Roles = ApplicationRoleNames.Administrator)]
     [Route("download1")]
     public async Task<FileContentResult> DownloadFiles1([FromQuery] List<string> fileNames) {
         var byteFiles = await _fileService.GetFiles(fileNames);
