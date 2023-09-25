@@ -71,12 +71,11 @@ public class ModuleManagerController : ControllerBase {
     /// </summary>
     [HttpPost]
     [Route("self-study")]
-    public async Task<ActionResult> CreateSelfStudyModule([FromBody] ModuleSelfStudyCreateDto model) {
+    public async Task<ActionResult<Guid>>  CreateSelfStudyModule([FromBody] ModuleSelfStudyCreateDto model) {
         if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false) {
             throw new UnauthorizedException("User is not authorized");
         }
-        await _moduleManagerService.CreateSelfStudyModule(model, userId);
-        return Ok();
+        return Ok(await _moduleManagerService.CreateSelfStudyModule(model, userId));
     }
 
     /// <summary>
@@ -113,13 +112,12 @@ public class ModuleManagerController : ControllerBase {
     /// </summary>
     [HttpPost]
     [Route("streaming")]
-    public async Task<ActionResult> CreateStreamingModule([FromBody] ModuleStreamingCreateDto model) {
+    public async Task<ActionResult<Guid>>  CreateStreamingModule([FromBody] ModuleStreamingCreateDto model) {
         if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false) {
             throw new UnauthorizedException("User is not authorized");
         }
 
-        await _moduleManagerService.CreateStreamingModule(model, userId);
-        return Ok();
+        return Ok(await _moduleManagerService.CreateStreamingModule(model, userId));
     }
     
     /// <summary>

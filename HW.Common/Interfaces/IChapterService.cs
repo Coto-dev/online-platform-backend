@@ -8,7 +8,7 @@ public interface IChapterService
     Task SendComment(ChapterCommentDto message, Guid chapterId);
     Task DeleteComment(Guid commentId, Guid userId);
     Task EditComment(ChapterCommentSendDto message, Guid commentId, Guid userId);
-    Task CreateChapter(Guid subModuleId, ChapterCreateDto model);
+    Task<Guid> CreateChapter(Guid subModuleId, ChapterCreateDto model);
     Task EditChapter(Guid chapterId, ChapterEditDto model);
     Task ArchiveChapter(Guid chapterId);
     Task EditChaptersOrder(List<Guid> orderedChapters, Guid subModuleId);

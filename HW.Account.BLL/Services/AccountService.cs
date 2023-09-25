@@ -110,6 +110,8 @@ public class AccountService: IAccountService {
         user.FullName = accountProfileEditDto.FullName;
         user.NickName = accountProfileEditDto.NickName;
         user.BirthDate.Value = accountProfileEditDto.BirthDate;
+        if (user.AvatarId != null && user.AvatarId != accountProfileEditDto.AvatarId)
+            await _fileService.RemoveFiles(new List<string>(){user.AvatarId});
         user.AvatarId = accountProfileEditDto.AvatarId;
         user.Location.Place = accountProfileEditDto.Location;
         user.AboutMe = accountProfileEditDto.AboutMe;

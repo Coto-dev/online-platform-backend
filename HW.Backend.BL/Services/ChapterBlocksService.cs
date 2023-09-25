@@ -76,7 +76,12 @@ public class ChapterBlocksService : IChapterBlocksService {
         if (chapterBlock == null) 
             throw new NotFoundException("Chapter block not found");
         chapterBlock.Content = model.Content;
-        chapterBlock.Files = model.FileIds;
+       var deletedFiles = chapterBlock.Files!
+           .Where(f => !model.FileIds!.Contains(f))
+           .ToList();
+       if (!deletedFiles.IsNullOrEmpty())
+           await _fileService.RemoveFiles(deletedFiles);
+       chapterBlock.Files = model.FileIds;
         _dbContext.Update(chapterBlock);
         await _dbContext.SaveChangesAsync();
     }

@@ -55,7 +55,7 @@ public class SubModuleService : ISubModuleService {
         _dbContext.Update(module);
         await _dbContext.SaveChangesAsync();
     }
-    public async Task AddSubModule(Guid moduleId, SubModuleCreateDto model) {
+    public async Task<Guid> AddSubModule(Guid moduleId, SubModuleCreateDto model) {
         var module = await _dbContext.Modules
             .FirstOrDefaultAsync(m => m.Id == moduleId && !m.ArchivedAt.HasValue);
         if (module == null) 
@@ -68,6 +68,7 @@ public class SubModuleService : ISubModuleService {
         module.OrderedSubModules!.Add(subModule.Id);
         await _dbContext.AddAsync(subModule);
         await _dbContext.SaveChangesAsync();
+        return subModule.Id;
     }
 
     public async Task EditSubModule(Guid subModuleId, SubModuleEditDto model) {

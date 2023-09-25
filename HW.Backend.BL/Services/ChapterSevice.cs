@@ -339,7 +339,7 @@ public class ChapterService : IChapterService
         await _dbContext.SaveChangesAsync();    
     }
     
-    public async Task CreateChapter(Guid subModuleId, ChapterCreateDto model) {
+    public async Task<Guid> CreateChapter(Guid subModuleId, ChapterCreateDto model) {
         var subModule = await _dbContext.SubModules
             .FirstOrDefaultAsync(m => m.Id == subModuleId && !m.ArchivedAt.HasValue);
         if (subModule == null) 
@@ -354,6 +354,7 @@ public class ChapterService : IChapterService
         subModule.OrderedChapters!.Add(chapter.Id);
         await _dbContext.AddAsync(chapter);
         await _dbContext.SaveChangesAsync();
+        return chapter.Id;
     }
 
     public async Task EditChapter(Guid chapterId, ChapterEditDto model) {

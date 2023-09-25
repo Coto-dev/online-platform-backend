@@ -31,7 +31,7 @@ public class FileController : ControllerBase {
     }
 
     /// <summary>
-    /// 
+    /// Upload file
     /// </summary>
     /// <param name="files"></param>
     /// <returns></returns>
@@ -41,9 +41,21 @@ public class FileController : ControllerBase {
     public async Task<ActionResult<List<FileKeyDto>>> UploadFiles(List<IFormFile> files) {
         return Ok(await _fileService.UploadFiles(files));
     }
+
+    /// <summary>
+    /// Remove list of file
+    /// </summary>
+    /// <param name="fileIds"></param>
+    /// <returns></returns>
+    [HttpDelete]
+    [Route("remove/list")]
+    public async Task<ActionResult> RemoveFile(List<string> fileIds) {
+        await _fileService.RemoveFiles(fileIds);
+        return Ok();
+    }
     
     /// <summary>
-    /// 
+    /// Download file
     /// </summary>
     /// <param name="fileNames"></param>
     /// <returns></returns>
@@ -87,7 +99,7 @@ public class FileController : ControllerBase {
     }
     
     /// <summary>
-    /// 
+    /// Download 2
     /// </summary>
     /// <param name="fileNames"></param>
     /// <returns></returns>

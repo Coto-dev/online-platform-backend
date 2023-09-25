@@ -124,7 +124,7 @@ public class ModuleManagerService : IModuleManagerService {
         
     }
 
-    public async Task CreateSelfStudyModule(ModuleSelfStudyCreateDto model, Guid userId) {
+    public async Task<Guid> CreateSelfStudyModule(ModuleSelfStudyCreateDto model, Guid userId) {
         var user = await _dbContext.UserBackends
             .Include(u=>u.Teacher)
             .FirstOrDefaultAsync(u => u.Id == userId);
@@ -159,6 +159,7 @@ public class ModuleManagerService : IModuleManagerService {
         };
         await _dbContext.AddAsync(module);
         await _dbContext.SaveChangesAsync();
+        return module.Id;
     }
 
     public async Task EditSelfStudyModule(ModuleSelfStudyEditDto model, Guid moduleId, Guid userId) {
@@ -177,6 +178,8 @@ public class ModuleManagerService : IModuleManagerService {
         module.Description = model.Description;
         module.Price = model.Price;
         module.EditedAt = DateTime.UtcNow;
+        if (module.AvatarId != null && module.AvatarId != model.AvatarId)
+            await _fileService.RemoveFiles(new List<string>(){module.AvatarId});
         module.AvatarId = model.AvatarId;
         if (editors.Count != 0 && module.Author.Id == userId) module.Editors = editors;
         if (teachers.Count != 0) module.Teachers = teachers;
@@ -196,7 +199,7 @@ public class ModuleManagerService : IModuleManagerService {
         await _dbContext.SaveChangesAsync();  
     }
 
-    public async Task CreateStreamingModule(ModuleStreamingCreateDto model, Guid userId) {
+    public async Task<Guid> CreateStreamingModule(ModuleStreamingCreateDto model, Guid userId) {
         var user = await _dbContext.UserBackends
             .Include(u=>u.Teacher)
             .FirstOrDefaultAsync(u => u.Id == userId);
@@ -237,7 +240,8 @@ public class ModuleManagerService : IModuleManagerService {
             MaxStudents = model.MaxStudents ?? 0
         };
         await _dbContext.AddAsync(module);
-        await _dbContext.SaveChangesAsync();    
+        await _dbContext.SaveChangesAsync();  
+        return module.Id;
     }
 
     public async Task EditStreamingModule(ModuleStreamingEditDto model, Guid moduleId, Guid userId) {
@@ -255,6 +259,8 @@ public class ModuleManagerService : IModuleManagerService {
         module.Name = model.Name;
         module.Description = model.Description;
         module.Price = model.Price;
+        if (module.AvatarId != null && module.AvatarId != model.AvatarId)
+            await _fileService.RemoveFiles(new List<string>(){module.AvatarId});
         module.AvatarId = model.AvatarId;
         if (editors.Count != 0 && module.Author.Id == userId) module.Editors = editors;
         if (teachers.Count != 0) module.Teachers = teachers;

@@ -32,13 +32,12 @@ public class SubModuleController : ControllerBase {
     /// </summary>
     [HttpPost]
     [Route("module/{moduleId}/sub-module")]
-    public async Task<ActionResult> AddSubModule(Guid moduleId, [FromBody] SubModuleCreateDto model) {
+    public async Task<ActionResult<Guid>> AddSubModule(Guid moduleId, [FromBody] SubModuleCreateDto model) {
         if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false) {
             throw new UnauthorizedException("User is not authorized");
         }
         await _checkPermissionService.CheckCreatorModulePermission(userId, moduleId);
-        await _subModuleService.AddSubModule(moduleId, model);
-        return Ok();
+        return Ok(await _subModuleService.AddSubModule(moduleId, model));
     }
     
     /// <summary>

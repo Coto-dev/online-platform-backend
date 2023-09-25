@@ -9,10 +9,10 @@ public interface IModuleManagerService {
         ModuleTeacherFilter? section, string? sortByNameFilter, SortModuleType? sortModuleType, Guid userId);
     public Task<ModuleFullTeacherDto> GetModuleContent(Guid moduleId, Guid userId);
     Task EditChapterTestsOrder(List<Guid> orderedChapterTests, Guid chapterId);
-    Task CreateSelfStudyModule(ModuleSelfStudyCreateDto model, Guid userId);
+    Task<Guid> CreateSelfStudyModule(ModuleSelfStudyCreateDto model, Guid userId);
     Task EditSelfStudyModule(ModuleSelfStudyEditDto model, Guid moduleId, Guid userId);
     Task EditVisibilityModule(ModuleVisibilityType visibilityType, Guid moduleId);
-    Task CreateStreamingModule(ModuleStreamingCreateDto model, Guid userId);
+    Task<Guid> CreateStreamingModule(ModuleStreamingCreateDto model, Guid userId);
     Task EditStreamingModule(ModuleStreamingEditDto model, Guid moduleId, Guid userId);
     Task ArchiveModule(Guid moduleId);
     

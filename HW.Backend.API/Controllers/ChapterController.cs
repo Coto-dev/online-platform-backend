@@ -61,7 +61,6 @@ public class ChapterController : ControllerBase {
         
         await _checkPermissionService.CheckStudentChapterPermission(userId, chapterId);
         return Ok(await _chapterService.GetChapterContentStudent(chapterId, userId));
-        
     }
     
     /// <summary>
@@ -83,13 +82,12 @@ public class ChapterController : ControllerBase {
     /// </summary>
     [HttpPost]
     [Route("sub-module/{subModuleId}/chapter")]
-    public async Task<ActionResult> CreateChapter(Guid subModuleId, [FromBody] ChapterCreateDto model) {
+    public async Task<ActionResult<Guid>> CreateChapter(Guid subModuleId, [FromBody] ChapterCreateDto model) {
         if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false) {
             throw new UnauthorizedException("User is not authorized");
         }
         await _checkPermissionService.CheckCreatorSubModulePermission(userId, subModuleId);
-        await _chapterService.CreateChapter(subModuleId, model);
-        return Ok();
+        return Ok(await _chapterService.CreateChapter(subModuleId, model));
     }
     
     /// <summary>
