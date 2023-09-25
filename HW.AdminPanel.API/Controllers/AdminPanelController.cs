@@ -1,6 +1,11 @@
+using HW.Account.DAL.Data.Entities;
+using HW.Common.DataTransferObjects;
+using HW.Common.Enums;
 using HW.Common.Interfaces;
+using HW.Common.Other;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using static System.Collections.Specialized.BitVector32;
 
 namespace HW.AdminPanel.API.Controllers;
 
@@ -8,7 +13,7 @@ namespace HW.AdminPanel.API.Controllers;
 /// Controller for admin
 /// </summary>
 [ApiController]
-//[Authorize(AuthenticationSchemes = "Bearer", Roles = ApplicationRoleNames.Administrator)]
+[Authorize(AuthenticationSchemes = "Bearer", Roles = ApplicationRoleNames.Administrator)]
 [Route("api/admin-panel")]
 public class AdminPanelController : ControllerBase
 {
@@ -29,49 +34,96 @@ public class AdminPanelController : ControllerBase
     }
 
     /// <summary>
+    /// Get users list [Admin]
+    /// </summary>
+    [HttpGet]
+    [Route("users/list")]
+    public async Task<ActionResult<PagedList<UserShortDto>>> GetUsers([FromQuery] PaginationParamsDto pagination,
+        [FromQuery] FilterRoleType? filter,
+        [FromQuery] SortUserType? sortUserType = SortUserType.Name)
+    {
+
+        return Ok(await _adminPanelService.GetUsers(pagination, filter, sortUserType));
+    }
+
+    /// <summary>
+    /// Get all modules list [Admin]
+    /// </summary>
+    [HttpGet]
+    [Route("modules/list")]
+    public async Task<ActionResult<List<ModuleFullDto>>> GetModules()
+    {
+
+        throw new NotImplementedException();
+    }
+
+    /// <summary>
     /// Add teacher rights to user [Admin]
     /// </summary>
     [HttpPost]
-    [Route("add/teacher/{userId}/to/{moduleId}")]
-    public async Task<ActionResult> AddTeacherRightsToUser(Guid userId, Guid moduleId)
+    [Route("teacher/{userId}")]
+    public async Task<ActionResult> AddTeacherRightsToUser(Guid userId)
     {
+        throw new NotImplementedException();
 
-        await _adminPanelService.AddTeacherRightsToUser(userId, moduleId);
-        return Ok();
     }
 
     /// <summary>
-    /// Delete teacher rights from user [Admin]
+    /// Delete teacher rights to user [Admin]
+    /// </summary>
+    [HttpDelete]
+    [Route("teacher/{userId}")]
+    public async Task<ActionResult> DeleteTeacherRightsFromUser(Guid userId)
+    {
+        throw new NotImplementedException();
+
+    }
+
+
+    /// <summary>
+    /// Add teacher rights to user in module [Admin]
     /// </summary>
     [HttpPost]
-    [Route("delete/teacher/{userId}/from/{moduleId}")]
-    public async Task<ActionResult> DeleteTeacherRightsFromUser(Guid userId, Guid moduleId)
+    [Route("teacher/{userId}/to/{moduleId}")]
+    public async Task<ActionResult> AddTeacherRightsToUserOnModule(Guid userId, Guid moduleId)
     {
 
-        await _adminPanelService.DeleteTeacherRightsFromUser(userId, moduleId);
+        await _adminPanelService.AddTeacherRightsToUserOnModule(userId, moduleId);
         return Ok();
     }
 
     /// <summary>
-    /// Add editor rights to user [Admin]
+    /// Delete teacher rights from user on module [Admin]
+    /// </summary>
+    [HttpDelete]
+    [Route("teacher/{userId}/from/{moduleId}")]
+    public async Task<ActionResult> DeleteTeacherRightsFromUserOnModule(Guid userId, Guid moduleId)
+    {
+
+        await _adminPanelService.DeleteTeacherRightsFromUserOnModule(userId, moduleId);
+        return Ok();
+    }
+
+    /// <summary>
+    /// Add editor rights to user on module [Admin]
     /// </summary>
     [HttpPost]
-    [Route("add/editor/{userId}/to/{moduleId}")]
-    public async Task<ActionResult> AddEditorRightsToUser(Guid userId, Guid moduleId)
+    [Route("editor/{userId}/to/{moduleId}")]
+    public async Task<ActionResult> AddEditorRightsToUserOnModule(Guid userId, Guid moduleId)
     {
-        await _adminPanelService.AddEditorRightsToUser(userId, moduleId);
+        await _adminPanelService.AddEditorRightsToUserOnModule(userId, moduleId);
         return Ok();
     }
 
     /// <summary>
-    /// Delete editor rights from user [Admin]
+    /// Delete editor rights from user on module [Admin]
     /// </summary>
     [HttpPost]
     [Route("{moduleId}/delete-teacher/{userId}")]
-    public async Task<ActionResult> DeleteEditorRightsFromUser(Guid userId, Guid moduleId)
+    public async Task<ActionResult> DeleteEditorRightsFromUserOnModule(Guid userId, Guid moduleId)
     {
 
-        await _adminPanelService.DeleteEditorRightsFromUser(userId, moduleId);
+        await _adminPanelService.DeleteEditorRightsFromUserOnModule(userId, moduleId);
         return Ok();
     }
 
@@ -79,7 +131,7 @@ public class AdminPanelController : ControllerBase
     /// Add student to module [Admin]
     /// </summary>
     [HttpPost]
-    [Route("add/student/{userId}/to/{moduleId}")]
+    [Route("student/{userId}/to/{moduleId}")]
     public async Task<ActionResult> AddStudentToModule(Guid userId, Guid moduleId)
     {
 
@@ -91,7 +143,7 @@ public class AdminPanelController : ControllerBase
     /// Delete student from module [Admin]
     /// </summary>
     [HttpPost]
-    [Route("delete/student/{userId}/from/{module}")]
+    [Route("student/{userId}/from/{module}")]
     public async Task<ActionResult> DeleteStudentFromModule(Guid userId, Guid moduleId)
     {
 
@@ -103,7 +155,7 @@ public class AdminPanelController : ControllerBase
     /// Get exact student's marks on module [Admin]
     /// </summary>
     [HttpGet]
-    [Route("marks/{userId}/from/{moduleId}")]
+    [Route("marks/{userId}/on/{moduleId}")]
     public async Task<ActionResult> GetStudentMarksFromModule(Guid userId, Guid moduleId)
     {
 
@@ -115,7 +167,7 @@ public class AdminPanelController : ControllerBase
     /// Get all marks of students on module [Admin]
     /// </summary>
     [HttpGet]
-    [Route("all-marks/from/{moduleId}")]
+    [Route("all-marks/on/{moduleId}")]
     public async Task<ActionResult> GetStudentsMarksFromModule(Guid moduleId)
     {
 

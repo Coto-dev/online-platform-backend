@@ -2,6 +2,7 @@
 using HW.AdminPanel.BL.Services;
 using HW.Backend.DAL.Data;
 using HW.Common.Interfaces;
+using HW.FileManager.BL.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -28,6 +29,7 @@ public static class ServiceDependencyExtension
         options.UseNpgsql(configuration.GetConnectionString("BackendDatabase")));
 
         services.AddScoped<IAdminPanelService, AdminPanelService>();
+        services.AddScoped<IFileService, FileService>();
 
         return services;
     }

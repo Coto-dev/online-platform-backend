@@ -1,11 +1,20 @@
-﻿namespace HW.Common.Interfaces;
+﻿using HW.Common.DataTransferObjects;
+using HW.Common.Enums;
+using HW.Common.Other;
+
+namespace HW.Common.Interfaces;
 
 public interface IAdminPanelService
 {
-    public Task AddTeacherRightsToUser(Guid userId, Guid moduleId);
-    public Task DeleteTeacherRightsFromUser(Guid userId, Guid moduleId);
-    public Task AddEditorRightsToUser(Guid userId, Guid moduleId);
-    public Task DeleteEditorRightsFromUser(Guid userId, Guid moduleId);
+    public Task<PagedList<UserShortDto>> GetUsers(PaginationParamsDto pagination, FilterRoleType? filter,
+        SortUserType? sortUserType);
+    public Task<List<ModuleFullDto>> GetModules();
+    public Task AddTeacherRightsToUser(Guid userId);
+    public Task DeleteTeacherRightsFromUser(Guid userId);
+    public Task AddTeacherRightsToUserOnModule(Guid userId, Guid moduleId);
+    public Task DeleteTeacherRightsFromUserOnModule(Guid userId, Guid moduleId);
+    public Task AddEditorRightsToUserOnModule(Guid userId, Guid moduleId);
+    public Task DeleteEditorRightsFromUserOnModule(Guid userId, Guid moduleId);
     public Task AddStudentToModule(Guid userId, Guid moduleId);
     public Task DeleteStudentFromModule(Guid userId, Guid moduleId);
     public Task GetStudentMarksFromModule(Guid userId, Guid moduleId);
