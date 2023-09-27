@@ -8,7 +8,8 @@ public interface IAdminPanelService
 {
     public Task<PagedList<UserShortDto>> GetUsers(PaginationParamsDto pagination, FilterRoleType? filter,
         SortUserType? sortUserType);
-    public Task<List<ModuleFullDto>> GetModules();
+    public Task<PagedList<ModuleShortAdminDto>> GetModules(PaginationParamsDto pagination, FilterModuleType? filter,
+            string? sortByNameFilter, SortModuleType? sortModuleType);
     public Task AddTeacherRightsToUser(Guid userId);
     public Task DeleteTeacherRightsFromUser(Guid userId);
     public Task AddTeacherRightsToUserOnModule(Guid userId, Guid moduleId);
