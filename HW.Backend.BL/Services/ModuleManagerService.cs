@@ -85,8 +85,97 @@ public class ModuleManagerService : IModuleManagerService {
             }).ToList()
         };
     }
-    
-    
+
+    public async Task EditModuleSortStructure(SortStructureDto structureDto, Guid moduleId) {
+        var module = await _dbContext.Modules
+            .Include(m => m.SubModules)!
+            .ThenInclude(s => s.Chapters)
+            .FirstOrDefaultAsync(m => m.Id == moduleId && !m.ArchivedAt.HasValue);
+        if (module == null)
+            throw new NotFoundException("Module not found");
+        var missingChapters = new List<Guid>();
+        var notExistingChaptersModule = new List<Guid>();
+        foreach (var subModuleSort in structureDto.SubModules) {
+            var subModule = module.SubModules!
+                .FirstOrDefault(s => s.Id == subModuleSort.Id);
+            if (subModule == null)
+                throw new NotFoundException("Sub module not found"); 
+            
+            var duplicates = subModuleSort.ChapterIds
+                .GroupBy(x => x)
+                .Where(g => g.Count() > 1)
+                .Select(y => y.Key)
+                .ToList();
+            if (duplicates.Count > 0)
+                throw new BadRequestException("There are chapter duplicates: " + string.Join(", ", duplicates.Select(x => x)));
+            
+            missingChapters.AddRange(subModule.Chapters!
+                .Where(c=>!c.ArchivedAt.HasValue)
+                .Select(c=>c.Id)
+                .Except(subModuleSort.ChapterIds)
+                .ToList());
+            
+            var notExistingChapters = subModuleSort.ChapterIds.Except(subModule.Chapters!
+                    .Where(c=>!c.ArchivedAt.HasValue)
+                    .Select(c=>c.Id)
+                    .ToList())
+                .ToList();
+            notExistingChaptersModule.AddRange(notExistingChapters);
+            var chapters = module.SubModules!
+                .SelectMany(s => s.Chapters!
+                    .Where(c=> notExistingChapters.Contains(c.Id))
+                    .ToList())
+                .ToList();
+           var notFoundChapters = notExistingChapters
+               .Where(nec => chapters.All(c => c.Id != nec))
+               .ToList();
+           if (notFoundChapters.Any()) 
+               throw new ConflictException("These chapters not found in this module: " 
+                                           + string.Join(", ", notFoundChapters.Select(x => x)));
+           
+            chapters.ForEach(c=>c.SubModule = subModule);
+            subModule.OrderedChapters = subModuleSort.ChapterIds;
+        }
+        foreach (var notExChapter in notExistingChaptersModule) {
+            missingChapters.Remove(notExChapter);
+        }
+        if (missingChapters.Any()) 
+            throw new ConflictException("These chapters are missing: " 
+                                        + string.Join(", ", missingChapters.Select(x => x)));
+        var subsDuplicates = structureDto.SubModules
+            .Select(s=>s.Id)
+            .GroupBy(x => x)
+            .Where(g => g.Count() > 1)
+            .Select(y => y.Key)
+            .ToList();
+        if (subsDuplicates.Count > 0)
+            throw new BadRequestException("There are sub module duplicates: " + string.Join(", ", subsDuplicates.Select(x => x)));
+        
+        var missingSubs = module.SubModules!
+            .Where(s=>!s.ArchivedAt.HasValue)
+            .Select(o=>o.Id)
+            .Except(structureDto.SubModules.Select(s=>s.Id))
+            .ToList();
+        if (missingSubs.Any())
+            throw new ConflictException("These sub modules are missing: " 
+                                        + string.Join(", ", missingSubs.Select(x => x)));
+        var notExistingSubs = structureDto.SubModules.Select(s=>s.Id)
+            .Except(module.SubModules!
+                .Where(s=>!s.ArchivedAt.HasValue)
+                .Select(o=>o.Id)
+                .ToList())
+            .ToList();
+        if (notExistingSubs.Any())
+            throw new ConflictException("These sub modules do not exist: " 
+                                        + string.Join(", ", notExistingSubs.Select(x => x)));
+        module.OrderedSubModules = structureDto.SubModules
+            .Select(s => s.Id)
+            .ToList();
+        _dbContext.Update(module);
+        await _dbContext.SaveChangesAsync();
+
+    }
+
 
     public async Task EditChapterTestsOrder(List<Guid> orderedChapterTests, Guid chapterId) {
         var duplicates = orderedChapterTests.GroupBy(x => x)

@@ -147,5 +147,18 @@ public class ModuleManagerController : ControllerBase {
         await _moduleManagerService.ArchiveModule(moduleId);
         return Ok();
     }
-
+    
+    /// <summary>
+    /// Edit order of full module structure [Editor]
+    /// </summary>
+    [HttpPut]
+    [Route("{moduleId}/full-structure/order")]
+    public async Task<ActionResult> EditModulesOrder([FromBody]SortStructureDto structureDto, Guid moduleId) {
+        if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false) {
+            throw new UnauthorizedException("User is not authorized");
+        }
+        await _checkPermissionService.CheckCreatorModulePermission(userId, moduleId);
+        await _moduleManagerService.EditModuleSortStructure(structureDto , moduleId);
+        return Ok();
+    }
 }
