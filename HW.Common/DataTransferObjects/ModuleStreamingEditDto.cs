@@ -30,7 +30,5 @@ public class ModuleStreamingEditDto {
     public DateTime StartRegistrationDate { get; set; }
     [Required]
     public int MaxStudents { get; set; }
-    [Required]
-    public List<Guid> Teachers { get; set; } = new();
-    public List<Guid>? Editors { get; set; } = new();
+
 }

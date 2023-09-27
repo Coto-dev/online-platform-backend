@@ -161,4 +161,60 @@ public class ModuleManagerController : ControllerBase {
         await _moduleManagerService.EditModuleSortStructure(structureDto , moduleId);
         return Ok();
     }
+    
+    /// <summary>
+    /// Add editor to module
+    /// </summary>
+    [HttpPost]
+    [Route("{moduleId}/editor")]
+    public async Task<ActionResult> AddEditorToModule([FromQuery] Guid userId, Guid moduleId) {
+        if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid authorId) == false) {
+            throw new UnauthorizedException("User is not authorized");
+        }
+        await _checkPermissionService.CheckAuthorModulePermission(authorId, moduleId);
+        await _moduleManagerService.AddEditorToModule(userId, moduleId);
+        return Ok();
+    }
+    
+    /// <summary>
+    /// Remove editor from module
+    /// </summary>
+    [HttpDelete]
+    [Route("{moduleId}/editor")]
+    public async Task<ActionResult> RemoveEditorFromModule([FromQuery] Guid userId, Guid moduleId) {
+        if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid authorId) == false) {
+            throw new UnauthorizedException("User is not authorized");
+        }
+        await _checkPermissionService.CheckAuthorModulePermission(authorId, moduleId);
+        await _moduleManagerService.RemoveEditorFromModule(userId, moduleId);
+        return Ok();
+    }
+    
+    /// <summary>
+    /// Add teacher to module
+    /// </summary>
+    [HttpPost]
+    [Route("{moduleId}/teacher")]
+    public async Task<ActionResult> AddTeacherToModule([FromQuery] Guid userId, Guid moduleId) {
+        if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid editorId) == false) {
+            throw new UnauthorizedException("User is not authorized");
+        }
+        await _checkPermissionService.CheckCreatorModulePermission(editorId, moduleId);
+        await _moduleManagerService.AddTeacherToModule(userId, moduleId);
+        return Ok();
+    }
+    
+    /// <summary>
+    /// Remove teacher from module
+    /// </summary>
+    [HttpDelete]
+    [Route("{moduleId}/teacher")]
+    public async Task<ActionResult> RemoveTeacherFromModule([FromQuery] Guid userId, Guid moduleId) {
+        if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid editorId) == false) {
+            throw new UnauthorizedException("User is not authorized");
+        }
+        await _checkPermissionService.CheckCreatorModulePermission(editorId, moduleId);
+        await _moduleManagerService.RemoveTeacherFromModule(userId, moduleId);
+        return Ok();
+    }
 }

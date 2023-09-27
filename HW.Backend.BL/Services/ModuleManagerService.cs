@@ -252,12 +252,6 @@ public class ModuleManagerService : IModuleManagerService {
     }
 
     public async Task EditSelfStudyModule(ModuleSelfStudyEditDto model, Guid moduleId, Guid userId) {
-        var editors = model.Editors!.Count == 0
-            ? new List<Teacher>()
-            : await _dbContext.Teachers.Where(t => model.Editors.Contains(t.Id)).ToListAsync();
-        var teachers = model.Teachers!.Count == 0
-            ? new List<Teacher>()
-            : await _dbContext.Teachers.Where(t => model.Teachers.Contains(t.Id)).ToListAsync();
         var module = await _dbContext.Modules
             .FirstOrDefaultAsync(m => m.Id == moduleId && !m.ArchivedAt.HasValue);
         if (module is null or StreamingModule) 
@@ -270,10 +264,7 @@ public class ModuleManagerService : IModuleManagerService {
         if (module.AvatarId != null && module.AvatarId != model.AvatarId)
             await _fileService.RemoveFiles(new List<string>(){module.AvatarId});
         module.AvatarId = model.AvatarId;
-        if (editors.Count != 0 && module.Author.Id == userId) module.Editors = editors;
-        if (teachers.Count != 0) module.Teachers = teachers;
-        if (!editors.Contains(module.Author))
-            editors.Add(module.Author); 
+
         _dbContext.Update(module);
         await _dbContext.SaveChangesAsync();    
     }
@@ -334,12 +325,6 @@ public class ModuleManagerService : IModuleManagerService {
     }
 
     public async Task EditStreamingModule(ModuleStreamingEditDto model, Guid moduleId, Guid userId) {
-        var editors = model.Editors!.Count == 0
-            ? new List<Teacher>()
-            : await _dbContext.Teachers.Where(t => model.Editors.Contains(t.Id)).ToListAsync();
-        var teachers = model.Teachers!.Count == 0
-            ? new List<Teacher>()
-            : await _dbContext.Teachers.Where(t => model.Teachers.Contains(t.Id)).ToListAsync();
         var module = await _dbContext.StreamingModules
             .FirstOrDefaultAsync(m => m.Id == moduleId && !m.ArchivedAt.HasValue);
         if (module == null) 
@@ -351,17 +336,82 @@ public class ModuleManagerService : IModuleManagerService {
         if (module.AvatarId != null && module.AvatarId != model.AvatarId)
             await _fileService.RemoveFiles(new List<string>(){module.AvatarId});
         module.AvatarId = model.AvatarId;
-        if (editors.Count != 0 && module.Author.Id == userId) module.Editors = editors;
-        if (teachers.Count != 0) module.Teachers = teachers;
         module.StartAt = model.StartTime;
         module.ExpiredAt = model.ExpirationTime;
         module.MaxStudents = model.MaxStudents;
         module.StartRegisterAt = model.StartRegistrationDate;
         module.StopRegisterAt = model.StopRegistrationDate;
         module.EditedAt = DateTime.UtcNow;
-        if (!editors.Contains(module.Author))
-            editors.Add(module.Author); 
+
         _dbContext.Update(module);
+        await _dbContext.SaveChangesAsync();
+    }
+
+    public async Task AddEditorToModule(Guid userId, Guid moduleId) {
+        var module = await _dbContext.Modules
+            .Include(m=>m.Editors)
+            .FirstOrDefaultAsync(m => m.Id == moduleId && !m.ArchivedAt.HasValue);
+        if (module == null)
+            throw new NotFoundException("Module not found");
+        var user = await _dbContext.Teachers
+            .FirstOrDefaultAsync(u => u.Id == userId);
+        if (user == null)
+            throw new NotFoundException("User not found");
+        
+        if (module.Editors!.Contains(user))
+            throw new ConflictException("User already editor");
+        module.Editors.Add(user);
+       await _dbContext.SaveChangesAsync();
+    }
+
+    public async Task RemoveEditorFromModule(Guid userId, Guid moduleId) {
+        var module = await _dbContext.Modules
+            .Include(m=>m.Editors)
+            .FirstOrDefaultAsync(m => m.Id == moduleId && !m.ArchivedAt.HasValue);
+        if (module == null)
+            throw new NotFoundException("Module not found");
+        var user = await _dbContext.Teachers
+            .FirstOrDefaultAsync(u => u.Id == userId);
+        if (user == null)
+            throw new NotFoundException("User not found");
+
+        if (!module.Editors!.Contains(user))
+            throw new ConflictException("User is not editor");
+        module.Editors.Remove(user);
+        await _dbContext.SaveChangesAsync();
+    }
+
+    public async Task AddTeacherToModule(Guid userId, Guid moduleId) {
+        var module = await _dbContext.Modules
+            .Include(m=>m.Teachers)
+            .FirstOrDefaultAsync(m => m.Id == moduleId && !m.ArchivedAt.HasValue);
+        if (module == null)
+            throw new NotFoundException("Module not found");
+        var user = await _dbContext.Teachers
+            .FirstOrDefaultAsync(u => u.Id == userId);
+        if (user == null)
+            throw new NotFoundException("User not found");
+
+        if (module.Teachers!.Contains(user))
+            throw new ConflictException("User already teacher");
+        module.Teachers.Add(user);
+        await _dbContext.SaveChangesAsync();
+    }
+
+    public async Task RemoveTeacherFromModule(Guid userId, Guid moduleId) {
+        var module = await _dbContext.Modules
+            .Include(m=>m.Teachers)
+            .FirstOrDefaultAsync(m => m.Id == moduleId && !m.ArchivedAt.HasValue);
+        if (module == null)
+            throw new NotFoundException("Module not found");
+        var user = await _dbContext.Teachers
+            .FirstOrDefaultAsync(u => u.Id == userId);
+        if (user == null)
+            throw new NotFoundException("User not found");
+
+        if (!module.Teachers!.Contains(user))
+            throw new ConflictException("User is not teacher");
+        module.Teachers.Remove(user);
         await _dbContext.SaveChangesAsync();
     }
 
@@ -372,6 +422,7 @@ public class ModuleManagerService : IModuleManagerService {
             throw new NotFoundException("Module not found");
         module.ArchivedAt = DateTime.UtcNow;
         _dbContext.Update(module);
+        await _dbContext.SaveChangesAsync();
         await _dbContext.SaveChangesAsync();
     }
     

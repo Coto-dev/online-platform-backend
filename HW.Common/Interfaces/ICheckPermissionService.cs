@@ -1,6 +1,8 @@
 namespace HW.Common.Interfaces; 
 
 public interface ICheckPermissionService {
+    Task CheckAuthorModulePermission(Guid authorId, Guid moduleId);
+    
     Task CheckCreatorModulePermission(Guid creatorId, Guid moduleId);
     Task CheckTeacherModulePermission(Guid teacherId, Guid moduleId);
     Task CheckStudentModulePermission(Guid studentId, Guid moduleId);

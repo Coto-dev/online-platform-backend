@@ -15,6 +15,11 @@ public interface IModuleManagerService {
     Task EditVisibilityModule(ModuleVisibilityType visibilityType, Guid moduleId);
     Task<Guid> CreateStreamingModule(ModuleStreamingCreateDto model, Guid userId);
     Task EditStreamingModule(ModuleStreamingEditDto model, Guid moduleId, Guid userId);
+    Task AddEditorToModule(Guid userId, Guid moduleId);
+    Task RemoveEditorFromModule(Guid userId, Guid moduleId);
+    Task AddTeacherToModule(Guid userId, Guid moduleId);
+    Task RemoveTeacherFromModule(Guid userId, Guid moduleId);
+    
     Task ArchiveModule(Guid moduleId);
     
     

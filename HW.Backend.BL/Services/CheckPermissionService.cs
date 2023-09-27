@@ -17,6 +17,19 @@ public class CheckPermissionService: ICheckPermissionService {
         _dbContext = dbContext;
     }
 
+    public async Task CheckAuthorModulePermission(Guid authorId, Guid moduleId) {
+        var user = await _dbContext.Teachers
+            .FirstOrDefaultAsync(u => u.Id == authorId);
+        if (user == null)
+            throw new NotFoundException("User not found");
+        var module = await _dbContext.Modules
+            .FirstOrDefaultAsync(m => m.Id == moduleId);
+        if (module == null)
+            throw new NotFoundException("Module not found");
+        if (module.Author != user)
+            throw new ForbiddenException("User do not have permission");
+    }
+
     public async Task CheckCreatorModulePermission(Guid creatorId, Guid moduleId) {
         var user = await _dbContext.Teachers
             .FirstOrDefaultAsync(u => u.Id == creatorId);
