@@ -181,7 +181,9 @@ public class ModuleStudentService : IModuleStudentService {
     public async Task<ModuleDetailsDto> GetModuleDetails(Guid moduleId, Guid? userId) {
         var module = await _dbContext.Modules
             .Include(m=>m.Editors)
+            .Include(m=>m.Teachers)
             .Include(m=>m.UserModules)
+            .Include(m=>m.RecommendedModules)
             .FirstOrDefaultAsync(m => m.Id == moduleId && !m.ArchivedAt.HasValue);
         if (module == null)
             throw new NotFoundException("Module not found");
@@ -234,13 +236,11 @@ public class ModuleStudentService : IModuleStudentService {
                 ? 0 
                 : module.UserModules!.Count(um => um.ModuleStatus 
                 is ModuleStatusType.Purchased or ModuleStatusType.InProcess),
-            Author = module.Editors.IsNullOrEmpty() 
-                ? Guid.Empty 
-                : module.Editors!.FirstOrDefault()!.Id,
+            Author = module.Author.Id,
             Editors = !module.Editors.IsNullOrEmpty()
                 ? module.Editors!.Select(e=>e.Id).ToList() 
                 : new List<Guid>(),
-            Teachers = !module.Editors.IsNullOrEmpty() 
+            Teachers = !module.Teachers.IsNullOrEmpty() 
                 ? module.Teachers!.Select(e=>e.Id).ToList() 
                 : new List<Guid>(),
             StartDate = streamingModule?.StartAt,
