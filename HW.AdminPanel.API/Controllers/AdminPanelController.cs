@@ -53,9 +53,10 @@ public class AdminPanelController : ControllerBase
     public async Task<ActionResult<PagedList<ModuleShortAdminDto>>> GetModules([FromQuery] PaginationParamsDto pagination,
         [FromQuery] FilterModuleType? filter,
         [FromQuery] string? sortByNameFilter,
-        [FromQuery] SortModuleType? sortModuleType = SortModuleType.NameAsc)
+        [FromQuery] SortModuleType? sortModuleType = SortModuleType.NameAsc,
+        [FromQuery] bool withArchived = true)
     {
-        return Ok(await _adminPanelService.GetModules(pagination, filter, sortByNameFilter, sortModuleType));
+        return Ok(await _adminPanelService.GetModules(pagination, filter, sortByNameFilter, sortModuleType, withArchived));
     }
 
     /// <summary>

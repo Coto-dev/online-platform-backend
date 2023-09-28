@@ -36,7 +36,8 @@ public class SubModuleController : ControllerBase {
         if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false) {
             throw new UnauthorizedException("User is not authorized");
         }
-        await _checkPermissionService.CheckCreatorModulePermission(userId, moduleId);
+        if (!User.IsInRole(ApplicationRoleNames.Administrator))
+            await _checkPermissionService.CheckCreatorModulePermission(userId, moduleId);
         return Ok(await _subModuleService.AddSubModule(moduleId, model));
     }
     
@@ -49,7 +50,8 @@ public class SubModuleController : ControllerBase {
         if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false) {
             throw new UnauthorizedException("User is not authorized");
         }
-        await _checkPermissionService.CheckCreatorSubModulePermission(userId, subModuleId);
+        if (!User.IsInRole(ApplicationRoleNames.Administrator))
+            await _checkPermissionService.CheckCreatorSubModulePermission(userId, subModuleId);
         await _subModuleService.EditSubModule(subModuleId, model);
         return Ok();
     }
@@ -63,7 +65,8 @@ public class SubModuleController : ControllerBase {
         if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false) {
             throw new UnauthorizedException("User is not authorized");
         }
-        await _checkPermissionService.CheckCreatorSubModulePermission(userId, subModuleId);
+        if (!User.IsInRole(ApplicationRoleNames.Administrator))
+            await _checkPermissionService.CheckCreatorSubModulePermission(userId, subModuleId);
         await _subModuleService.ArchiveSubModule(subModuleId);
         return Ok();
     }
@@ -77,7 +80,8 @@ public class SubModuleController : ControllerBase {
         if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false) {
             throw new UnauthorizedException("User is not authorized");
         }
-        await _checkPermissionService.CheckCreatorModulePermission(userId, moduleId);
+        if (!User.IsInRole(ApplicationRoleNames.Administrator))
+            await _checkPermissionService.CheckCreatorModulePermission(userId, moduleId);
         await _subModuleService.EditSubModulesOrder(orderedSubModules , moduleId);
         return Ok();
     }

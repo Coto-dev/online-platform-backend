@@ -43,7 +43,8 @@ public class ChapterController : ControllerBase {
         if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false) {
             throw new UnauthorizedException("User is not authorized");
         }
-        await _checkPermissionService.CheckCreatorChapterPermission(userId, chapterId);
+        if (!User.IsInRole(ApplicationRoleNames.Administrator))
+            await _checkPermissionService.CheckCreatorChapterPermission(userId, chapterId);
         return Ok(await _chapterService.GetChapterContentTeacher(chapterId, userId));
     }
     
@@ -58,8 +59,8 @@ public class ChapterController : ControllerBase {
         if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false) {
             throw new UnauthorizedException("User is not authorized");
         }
-        
-        await _checkPermissionService.CheckStudentChapterPermission(userId, chapterId);
+        if (!User.IsInRole(ApplicationRoleNames.Administrator))
+            await _checkPermissionService.CheckStudentChapterPermission(userId, chapterId);
         return Ok(await _chapterService.GetChapterContentStudent(chapterId, userId));
     }
     
@@ -72,7 +73,8 @@ public class ChapterController : ControllerBase {
         if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false) {
             throw new UnauthorizedException("User is not authorized");
         }
-        await _checkPermissionService.CheckCreatorSubModulePermission(userId, subModuleId);
+        if (!User.IsInRole(ApplicationRoleNames.Administrator))
+            await _checkPermissionService.CheckCreatorSubModulePermission(userId, subModuleId);
         await _chapterService.EditChaptersOrder(orderedChapters , subModuleId);
         return Ok();
     }
@@ -86,7 +88,8 @@ public class ChapterController : ControllerBase {
         if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false) {
             throw new UnauthorizedException("User is not authorized");
         }
-        await _checkPermissionService.CheckCreatorSubModulePermission(userId, subModuleId);
+        if (!User.IsInRole(ApplicationRoleNames.Administrator))
+            await _checkPermissionService.CheckCreatorSubModulePermission(userId, subModuleId);
         return Ok(await _chapterService.CreateChapter(subModuleId, model));
     }
     
@@ -99,7 +102,8 @@ public class ChapterController : ControllerBase {
         if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false) {
             throw new UnauthorizedException("User is not authorized");
         }
-        await _checkPermissionService.CheckCreatorChapterPermission(userId, chapterId);
+        if (!User.IsInRole(ApplicationRoleNames.Administrator))
+            await _checkPermissionService.CheckCreatorChapterPermission(userId, chapterId);
         await _chapterService.EditChapter(chapterId, model);
         return Ok();
     }
@@ -113,7 +117,8 @@ public class ChapterController : ControllerBase {
         if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false) {
             throw new UnauthorizedException("User is not authorized");
         }
-        await _checkPermissionService.CheckCreatorChapterPermission(userId, chapterId);
+        if (!User.IsInRole(ApplicationRoleNames.Administrator))
+            await _checkPermissionService.CheckCreatorChapterPermission(userId, chapterId);
         await _chapterService.ArchiveChapter(chapterId);
         return Ok();
     }
@@ -128,8 +133,8 @@ public class ChapterController : ControllerBase {
         {
             throw new UnauthorizedException("User is not authorized");
         }
-
-        await _checkPermissionService.CheckStudentChapterPermission(userId, chapterId);
+        if (!User.IsInRole(ApplicationRoleNames.Administrator))
+            await _checkPermissionService.CheckStudentChapterPermission(userId, chapterId);
         await _chapterService.LearnChapter(chapterId, userId);
         return Ok();
     }
@@ -145,14 +150,11 @@ public class ChapterController : ControllerBase {
             throw new UnauthorizedException("User is not authorized");
         }
 
-        await _checkPermissionService.CheckStudentChapterPermission(userId, chapterId);
-        try {
+        if (User.IsInRole(ApplicationRoleNames.Teacher)) 
             await _checkPermissionService.CheckTeacherChapterPermission(userId, chapterId);
-        }
-        catch (Exception e) {
-            await _chapterService.SendComment(message, chapterId);
-            return Ok();
-        }
+        else if (User.IsInRole(ApplicationRoleNames.Student))
+            await _checkPermissionService.CheckStudentChapterPermission(userId, chapterId);
+        await _chapterService.SendComment(message, chapterId);
         return Ok();
     }
 

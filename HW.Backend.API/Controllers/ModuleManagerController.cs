@@ -62,7 +62,8 @@ public class ModuleManagerController : ControllerBase {
         if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false) {
             throw new UnauthorizedException("User is not authorized");
         }
-        await _checkPermissionService.CheckCreatorModulePermission(userId, moduleId);
+        if (!User.IsInRole(ApplicationRoleNames.Administrator)) 
+            await _checkPermissionService.CheckCreatorModulePermission(userId, moduleId);
         return Ok(await _moduleManagerService.GetModuleContent(moduleId, userId));
     }
 
@@ -87,8 +88,8 @@ public class ModuleManagerController : ControllerBase {
         if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false) {
             throw new UnauthorizedException("User is not authorized");
         }
-        
-        await _checkPermissionService.CheckCreatorModulePermission(userId, moduleId);
+        if (!User.IsInRole(ApplicationRoleNames.Administrator))
+            await _checkPermissionService.CheckCreatorModulePermission(userId, moduleId);
         await _moduleManagerService.EditSelfStudyModule(model, moduleId, userId);
         return Ok();
     }
@@ -101,8 +102,8 @@ public class ModuleManagerController : ControllerBase {
         if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false) {
             throw new UnauthorizedException("User is not authorized");
         }
-        
-        await _checkPermissionService.CheckCreatorModulePermission(userId, moduleId);
+        if (!User.IsInRole(ApplicationRoleNames.Administrator))
+            await _checkPermissionService.CheckCreatorModulePermission(userId, moduleId);
         await _moduleManagerService.EditVisibilityModule(visibilityType, moduleId);
         return Ok();
     }
@@ -129,7 +130,8 @@ public class ModuleManagerController : ControllerBase {
         if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false) {
             throw new UnauthorizedException("User is not authorized");
         }
-        await _checkPermissionService.CheckCreatorModulePermission(userId, moduleId);
+        if (!User.IsInRole(ApplicationRoleNames.Administrator))
+            await _checkPermissionService.CheckCreatorModulePermission(userId, moduleId);
         await _moduleManagerService.EditStreamingModule(model, moduleId,userId);
         return Ok();    
     }
@@ -143,7 +145,8 @@ public class ModuleManagerController : ControllerBase {
         if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false) {
             throw new UnauthorizedException("User is not authorized");
         }
-        await _checkPermissionService.CheckCreatorModulePermission(userId, moduleId);
+        if (!User.IsInRole(ApplicationRoleNames.Administrator))
+            await _checkPermissionService.CheckCreatorModulePermission(userId, moduleId);
         await _moduleManagerService.ArchiveModule(moduleId);
         return Ok();
     }
@@ -157,7 +160,8 @@ public class ModuleManagerController : ControllerBase {
         if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false) {
             throw new UnauthorizedException("User is not authorized");
         }
-        await _checkPermissionService.CheckCreatorModulePermission(userId, moduleId);
+        if (!User.IsInRole(ApplicationRoleNames.Administrator))
+            await _checkPermissionService.CheckCreatorModulePermission(userId, moduleId);
         await _moduleManagerService.EditModuleSortStructure(structureDto , moduleId);
         return Ok();
     }
@@ -171,7 +175,8 @@ public class ModuleManagerController : ControllerBase {
         if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid authorId) == false) {
             throw new UnauthorizedException("User is not authorized");
         }
-        await _checkPermissionService.CheckAuthorModulePermission(authorId, moduleId);
+        if (!User.IsInRole(ApplicationRoleNames.Administrator))
+            await _checkPermissionService.CheckAuthorModulePermission(authorId, moduleId);
         await _moduleManagerService.AddEditorToModule(userId, moduleId);
         return Ok();
     }
@@ -185,7 +190,8 @@ public class ModuleManagerController : ControllerBase {
         if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid authorId) == false) {
             throw new UnauthorizedException("User is not authorized");
         }
-        await _checkPermissionService.CheckAuthorModulePermission(authorId, moduleId);
+        if (!User.IsInRole(ApplicationRoleNames.Administrator))
+            await _checkPermissionService.CheckAuthorModulePermission(authorId, moduleId);
         await _moduleManagerService.RemoveEditorFromModule(userId, moduleId);
         return Ok();
     }
@@ -199,7 +205,8 @@ public class ModuleManagerController : ControllerBase {
         if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid editorId) == false) {
             throw new UnauthorizedException("User is not authorized");
         }
-        await _checkPermissionService.CheckCreatorModulePermission(editorId, moduleId);
+        if (!User.IsInRole(ApplicationRoleNames.Administrator))
+            await _checkPermissionService.CheckCreatorModulePermission(editorId, moduleId);
         await _moduleManagerService.AddTeacherToModule(userId, moduleId);
         return Ok();
     }
@@ -213,7 +220,8 @@ public class ModuleManagerController : ControllerBase {
         if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid editorId) == false) {
             throw new UnauthorizedException("User is not authorized");
         }
-        await _checkPermissionService.CheckCreatorModulePermission(editorId, moduleId);
+        if (!User.IsInRole(ApplicationRoleNames.Administrator))
+            await _checkPermissionService.CheckCreatorModulePermission(editorId, moduleId);
         await _moduleManagerService.RemoveTeacherFromModule(userId, moduleId);
         return Ok();
     }

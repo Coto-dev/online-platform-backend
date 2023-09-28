@@ -64,7 +64,7 @@ public class ParserService : IParserService {
                         SubModule = subModules.Last(),
                         ChapterType = ChapterType.DefaultChapter
                     });
-                    module.SubModules!.Last().OrderedChapters!.Add(subModules.Last().Chapters!.Last().Id);
+                    subModules.Last().OrderedChapters!.Add(subModules.Last().Chapters!.Last().Id);
                     break;
                 default:
                     if (subModules.IsNullOrEmpty())

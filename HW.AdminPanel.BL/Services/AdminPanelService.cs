@@ -87,12 +87,13 @@ public class AdminPanelService : IAdminPanelService
 
 
     public async Task<PagedList<ModuleShortAdminDto>> GetModules(PaginationParamsDto pagination, FilterModuleType? filter,
-            string? sortByNameFilter, SortModuleType? sortModuleType)
+            string? sortByNameFilter, SortModuleType? sortModuleType, bool withArchived)
     {
         if (pagination.PageNumber <= 0)
             throw new BadRequestException("Wrong page");
 
         var modules = _backendDbContext.Modules
+            .Where(m=> withArchived || !m.ArchivedAt.HasValue)
             .ModuleAdminFilter(filter, sortByNameFilter)
             .ModuleOrderBy(sortModuleType)
             .AsQueryable()
