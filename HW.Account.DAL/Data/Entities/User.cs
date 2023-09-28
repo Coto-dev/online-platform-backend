@@ -34,6 +34,11 @@ public class User : IdentityUser<Guid> {
     /// User`s birth date
     /// </summary>
     public BirthDate BirthDate { get; set; } 
+    
+    /// <summary>
+    /// User roles  
+    /// </summary>
+    public ICollection<UserRole> Roles { get; set; }
 
     /// <summary>
     /// Avatar id

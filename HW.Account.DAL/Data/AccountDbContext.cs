@@ -42,6 +42,22 @@ public class AccountDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid
             .HasOne(u => u.Education)
             .WithOne(c => c.User)
             .HasForeignKey<Education>();
+        
+        modelBuilder.Entity<Role>(o => {
+            o.ToTable("Roles");
+        });
+        modelBuilder.Entity<UserRole>(o => {
+            o.ToTable("UserRoles");
+            o.HasOne(x => x.Role)
+                .WithMany(x => x.Users)
+                .HasForeignKey(x => x.RoleId)
+                .OnDelete(DeleteBehavior.Cascade);
+            o.HasOne(x => x.User)
+                .WithMany(x => x.Roles)
+                .HasForeignKey(x => x.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+        
         base.OnModelCreating(modelBuilder);
     }
 

@@ -15,12 +15,12 @@ namespace HW.Account.BLL.Extensions;
         /// <param name="services"></param>
         /// <returns></returns>
         public static IServiceCollection AddIdentityManagers(this IServiceCollection services) {
-            services.AddIdentity<User, IdentityRole<Guid>>()
+            services.AddIdentity<User, Role>()
                 .AddEntityFrameworkStores<AccountDbContext>()
                 .AddDefaultTokenProviders()
                 .AddSignInManager<SignInManager<User>>()
                 .AddUserManager<UserManager<User>>()
-                .AddRoleManager<RoleManager<IdentityRole<Guid>>>();
+                .AddRoleManager<RoleManager<Role>>();
             return services;
         }
     }
