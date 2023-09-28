@@ -21,7 +21,7 @@ public class Student {
     /// <summary>
     /// List of student's learned chapters
     /// </summary>
-    public List<Chapter>? LearnedChapters { get; set; } = new();
+    public List<Learned>? LearnedChapters { get; set; } = new();
     /// <summary>
     /// User educational programs
     /// </summary>

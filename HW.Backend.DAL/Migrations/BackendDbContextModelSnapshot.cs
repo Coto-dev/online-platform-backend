@@ -81,22 +81,51 @@ namespace HW.Backend.DAL.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<List<Guid>>("OrderedTests")
+                    b.Property<List<Guid>>("OrderedBlocks")
                         .HasColumnType("uuid[]");
 
-                    b.Property<Guid?>("StudentId")
-                        .HasColumnType("uuid");
+                    b.Property<List<Guid>>("OrderedTests")
+                        .HasColumnType("uuid[]");
 
                     b.Property<Guid>("SubModuleId")
                         .HasColumnType("uuid");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("StudentId");
-
                     b.HasIndex("SubModuleId");
 
                     b.ToTable("Chapters");
+                });
+
+            modelBuilder.Entity("HW.Backend.DAL.Data.Entities.ChapterBlock", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("ArchivedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("ChapterId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Content")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("EditedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<List<string>>("Files")
+                        .HasColumnType("text[]");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ChapterId");
+
+                    b.ToTable("ChapterBlocks");
                 });
 
             modelBuilder.Entity("HW.Backend.DAL.Data.Entities.ChapterComment", b =>
@@ -721,10 +750,6 @@ namespace HW.Backend.DAL.Migrations
 
             modelBuilder.Entity("HW.Backend.DAL.Data.Entities.Chapter", b =>
                 {
-                    b.HasOne("HW.Backend.DAL.Data.Entities.Student", null)
-                        .WithMany("LearnedChapters")
-                        .HasForeignKey("StudentId");
-
                     b.HasOne("HW.Backend.DAL.Data.Entities.SubModule", "SubModule")
                         .WithMany("Chapters")
                         .HasForeignKey("SubModuleId")
@@ -732,6 +757,17 @@ namespace HW.Backend.DAL.Migrations
                         .IsRequired();
 
                     b.Navigation("SubModule");
+                });
+
+            modelBuilder.Entity("HW.Backend.DAL.Data.Entities.ChapterBlock", b =>
+                {
+                    b.HasOne("HW.Backend.DAL.Data.Entities.Chapter", "Chapter")
+                        .WithMany("ChapterBlocks")
+                        .HasForeignKey("ChapterId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Chapter");
                 });
 
             modelBuilder.Entity("HW.Backend.DAL.Data.Entities.ChapterComment", b =>
@@ -778,13 +814,13 @@ namespace HW.Backend.DAL.Migrations
             modelBuilder.Entity("HW.Backend.DAL.Data.Entities.Learned", b =>
                 {
                     b.HasOne("HW.Backend.DAL.Data.Entities.Chapter", "Chapter")
-                        .WithMany()
+                        .WithMany("LearnedList")
                         .HasForeignKey("ChapterId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("HW.Backend.DAL.Data.Entities.Student", "LearnedBy")
-                        .WithMany()
+                        .WithMany("LearnedChapters")
                         .HasForeignKey("LearnedById")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -1027,9 +1063,13 @@ namespace HW.Backend.DAL.Migrations
 
             modelBuilder.Entity("HW.Backend.DAL.Data.Entities.Chapter", b =>
                 {
+                    b.Navigation("ChapterBlocks");
+
                     b.Navigation("ChapterComments");
 
                     b.Navigation("ChapterTests");
+
+                    b.Navigation("LearnedList");
                 });
 
             modelBuilder.Entity("HW.Backend.DAL.Data.Entities.EducationalProgram", b =>

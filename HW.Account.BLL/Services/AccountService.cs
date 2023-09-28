@@ -88,7 +88,9 @@ public class AccountService: IAccountService {
                 FileId = user.AvatarId,
                 Url = await _fileService.GetAvatarLink(user.AvatarId)
             },
-            Roles = await _userManager.GetRolesAsync(userM!)
+            Roles = await _userManager.GetRolesAsync(userM!),
+            Post = user.Post,
+            AboutMe = user.AboutMe
         };
         return profile;
     }
@@ -108,8 +110,13 @@ public class AccountService: IAccountService {
         user.FullName = accountProfileEditDto.FullName;
         user.NickName = accountProfileEditDto.NickName;
         user.BirthDate.Value = accountProfileEditDto.BirthDate;
+        if (user.AvatarId != null && user.AvatarId != accountProfileEditDto.AvatarId)
+            await _fileService.RemoveFiles(new List<string>(){user.AvatarId});
         user.AvatarId = accountProfileEditDto.AvatarId;
         user.Location.Place = accountProfileEditDto.Location;
+        user.AboutMe = accountProfileEditDto.AboutMe;
+        user.Post = accountProfileEditDto.Post;
+        
         _authDb.UpdateRange(user);
          await _authDb.SaveChangesAsync();
     }
@@ -133,7 +140,7 @@ public class AccountService: IAccountService {
     }
 
     public async Task<ProfileUserFullDto> GetUserFullProfile(Guid targetUserId , Guid userId) {
-        var requester = await _userManager.FindByIdAsync(targetUserId.ToString());
+        var requester = await _userManager.FindByIdAsync(userId.ToString());
         if (requester == null) {
             throw new NotFoundException("Requester not found");
         }
@@ -180,6 +187,8 @@ public class AccountService: IAccountService {
             Id = user.Id,
             FullName = user.FullName,
             NickName = user.NickName,
+            AboutMe = user.AboutMe,
+            Post = user.Post,
             WorkExperienceInfos = 
                user.WorkExperience.Visibility switch{
                    ProfileVisibility.All => workExp,
@@ -210,22 +219,26 @@ public class AccountService: IAccountService {
                 _ => null
             },
             AvatarUrl = user.AvatarId == null ? null : await _fileService.GetAvatarLink(user.AvatarId),
-            Roles = await _userManager.GetRolesAsync(userTarget!)
+            Roles = await _userManager.GetRolesAsync(userTarget!),
+            
         };
          return profile;
     }
 
-    public async Task<ProfileShortDto> GetUserShortProfile(Guid userId) {
-        var user = await _userManager.FindByIdAsync(userId.ToString());
-        if (user == null) {
-            throw new NotFoundException("User not found");
-        }
-        var profile = new ProfileShortDto {
-            Id = user.Id,
-            AvatarId = user.AvatarId == null ? null : await _fileService.GetAvatarLink(user.AvatarId),
-            NickName = user.NickName
-        };
-        return profile;    
+    public async Task<List<ProfileShortDto>> GetUserShortProfile(List<Guid> userIds) {
+        var users = await _authDb.Users.Where(u => userIds.Contains(u.Id))
+            .ToListAsync();
+        
+        var profileTasks = users.Select(async u => new ProfileShortDto
+        {
+            Id = u.Id,
+            AvatarId = u.AvatarId == null ? null : await _fileService.GetAvatarLink(u.AvatarId),
+            NickName = u.NickName,
+            AboutMe = u.AboutMe,
+            Post = u.Post
+        }).ToList();
+        var profiles = await Task.WhenAll(profileTasks);
+        return profiles.ToList();
     }
 
     public async Task AddEducationInfo(EducationInfoCreateDto model, Guid userId) {

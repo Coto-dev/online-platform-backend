@@ -11,7 +11,6 @@ public class ModuleStreamingEditDto {
     public string Description { get; set; }
     [Required]
     public int Price { get; set; }
-    [Required]
     public string? AvatarId { get; set; }
     [Required]
     public List<RequiredModulesDto>? RequiredModules { get; set; } = new();
@@ -31,7 +30,5 @@ public class ModuleStreamingEditDto {
     public DateTime StartRegistrationDate { get; set; }
     [Required]
     public int MaxStudents { get; set; }
-    [Required]
-    public List<Guid> Teachers { get; set; } = new();
-    public List<Guid>? Editors { get; set; } = new();
+
 }

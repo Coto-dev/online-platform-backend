@@ -11,4 +11,5 @@ public class ChapterFullDto {
     public bool IsLearned { get; set; }
     public ChapterType ChapterType { get; set; }
     public List<TestDto>? Tests { get; set; } = new();
+    public List<ChapterBlockDto>? ChapterBlocks { get; set; } = new();
 }

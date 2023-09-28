@@ -7,6 +7,7 @@ public class BackendDbContext : DbContext {
     
     
     public DbSet<Chapter> Chapters { get; set; }
+    public DbSet<ChapterBlock> ChapterBlocks { get; set; }
     public DbSet<ChapterComment> ChapterComments { get; set; }
     public DbSet<CorrectSequenceAnswer> CorrectSequenceAnswers { get; set; }
     public DbSet<CorrectSequenceTest> CorrectSequenceTest { get; set; }

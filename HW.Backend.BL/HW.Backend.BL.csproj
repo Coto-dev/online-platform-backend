@@ -11,4 +11,8 @@
       <ProjectReference Include="..\HW.FileManager.BL\HW.FileManager.BL.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <PackageReference Include="DocX" Version="2.5.0" />
+    </ItemGroup>
+
 </Project>

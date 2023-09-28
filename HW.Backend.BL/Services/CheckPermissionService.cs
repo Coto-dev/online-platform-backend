@@ -17,6 +17,19 @@ public class CheckPermissionService: ICheckPermissionService {
         _dbContext = dbContext;
     }
 
+    public async Task CheckAuthorModulePermission(Guid authorId, Guid moduleId) {
+        var user = await _dbContext.Teachers
+            .FirstOrDefaultAsync(u => u.Id == authorId);
+        if (user == null)
+            throw new NotFoundException("User not found");
+        var module = await _dbContext.Modules
+            .FirstOrDefaultAsync(m => m.Id == moduleId);
+        if (module == null)
+            throw new NotFoundException("Module not found");
+        if (module.Author != user)
+            throw new ForbiddenException("User do not have permission");
+    }
+
     public async Task CheckCreatorModulePermission(Guid creatorId, Guid moduleId) {
         var user = await _dbContext.Teachers
             .FirstOrDefaultAsync(u => u.Id == creatorId);
@@ -216,5 +229,23 @@ public class CheckPermissionService: ICheckPermissionService {
             throw new NotFoundException("Chapter not found");
         if (!test.Chapter.SubModule.Module.UserModules!.Any(u => u.Student == user && u.ModuleStatus != ModuleStatusType.InCart))
             throw new ForbiddenException("User do not have permission");
+    }
+
+    public async Task CheckCreatorChapterBlockPermission(Guid creatorId, Guid chapterBlockId) {
+        var user = await _dbContext.Teachers
+            .FirstOrDefaultAsync(u => u.Id == creatorId);
+        if (user == null)
+            throw new NotFoundException("User not found");
+        var chapterBlock = await _dbContext.ChapterBlocks
+            .Include(cb=>cb.Chapter)
+            .ThenInclude(c=>c.SubModule)
+            .ThenInclude(s=>s.Module)
+            .ThenInclude(m=>m.Editors)
+            .FirstOrDefaultAsync(u => u.Id == chapterBlockId);
+        if (chapterBlock == null)
+            throw new NotFoundException("Chapter block not found");    
+        if (chapterBlock.Chapter.SubModule.Module.Editors != null && !chapterBlock.Chapter.SubModule.Module.Editors.Contains(user))
+            throw new ForbiddenException("User do not have permission");
+        
     }
 }

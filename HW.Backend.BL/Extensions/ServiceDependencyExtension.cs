@@ -18,6 +18,11 @@ public static class ServiceDependencyExtension {
         services.AddScoped<ICheckPermissionService, CheckPermissionService>();
         services.AddScoped<IModuleStudentService, ModuleStudentService>();
         services.AddScoped<IFileService, FileService>();
+        services.AddScoped<IParserService, ParserService>();
+        services.AddScoped<ISubModuleService, SubModuleService>();
+        services.AddScoped<IChapterBlocksService, ChapterBlocksService>();
+        services.AddScoped<ITestService, TestService>();
+        services.AddScoped<IActivityService, ActivityService>();
 
         return services;
     }

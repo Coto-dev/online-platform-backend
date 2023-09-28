@@ -22,8 +22,29 @@ public class AccountDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid
     public DbSet<BirthDate> BirthDate { get; set; }
 
 
+    protected override void OnModelCreating(ModelBuilder modelBuilder) {
+        modelBuilder.Entity<User>()
+            .HasOne(u => u.BirthDate)
+            .WithOne(c => c.User)
+            .HasForeignKey<BirthDate>();
+        
+        modelBuilder.Entity<User>()
+            .HasOne(u => u.Location)
+            .WithOne(c => c.User)
+            .HasForeignKey<Location>();
+        
+        modelBuilder.Entity<User>()
+            .HasOne(u => u.WorkExperience)
+            .WithOne(c => c.User)
+            .HasForeignKey<WorkExperience>();
+        
+        modelBuilder.Entity<User>()
+            .HasOne(u => u.Education)
+            .WithOne(c => c.User)
+            .HasForeignKey<Education>();
+        base.OnModelCreating(modelBuilder);
+    }
 
-    
     /// <summary>
     /// Devices table
     /// </summary>

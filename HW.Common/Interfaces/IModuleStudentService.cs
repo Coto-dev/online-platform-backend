@@ -12,7 +12,6 @@ public interface IModuleStudentService {
          string? sortByNameFilter, ModuleStudentFilter? section, SortModuleType? sortModuleType, Guid userId);
     public Task<ModuleFullDto> GetModuleContent(Guid moduleId, Guid userId);
     public Task<string> CalculateProgress(Guid moduleId, Guid userId);
-    public Task<ChapterFullDto> GetChapterContent(Guid chapterId, Guid userId);
     public Task<ModuleDetailsDto> GetModuleDetails(Guid moduleId, Guid? userId);
     public Task<ModuleDetailsDto> SendCommentToModule(ModuleCommentDto model, Guid moduleId, Guid userId);
     public Task BuyModule(Guid moduleId, Guid userId);

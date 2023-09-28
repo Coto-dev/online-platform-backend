@@ -14,6 +14,27 @@ public class EmailService : IEmailService {
     public EmailService(IConfiguration configuration) {
         _configuration = configuration;
     }
+
+    public async Task CheckIfMailExist(string subject) {
+        var config = _configuration.GetSection("EmailConfiguration");
+        try
+        {
+            using (var client = new SmtpClient())
+            {
+                await client.ConnectAsync(config.GetValue<string>("SmtpHost"), 465, true);
+
+                await client.AuthenticateAsync(config.GetValue<string>("UserName"), config.GetValue<string>("Password"));
+
+                 await client.ExpandAsync(subject);
+
+                await client.DisconnectAsync(true);
+            }
+        }
+        catch (Exception ex)
+        {
+            throw new NotFoundException("Enter correct email");
+        }
+    }
     public async Task SendEmailAsync(string email, string subject, string message)
     {
         var emailMessage = new MimeMessage();
@@ -38,7 +59,7 @@ public class EmailService : IEmailService {
             catch (Exception e) {
                 throw new NotFoundException("Enter correct email");
             }
-
+            
             await client.DisconnectAsync(true);
         }
     }

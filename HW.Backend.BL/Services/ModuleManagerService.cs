@@ -25,7 +25,10 @@ public class ModuleManagerService : IModuleManagerService {
 
 
     public async Task<PagedList<ModuleShortDto>> GetTeacherModules(PaginationParamsDto pagination, FilterModuleType? filter,
-        ModuleFilterTeacherType? section, string? sortByNameFilter, SortModuleType? sortModuleType, Guid userId) {
+        ModuleTeacherFilter? section, string? sortByNameFilter, SortModuleType? sortModuleType, Guid userId) {
+        var user = await _dbContext.Teachers
+            .FirstOrDefaultAsync(u => u.Id == userId);
+        
         if (pagination.PageNumber <= 0)
             throw new BadRequestException("Wrong page");
         
@@ -42,6 +45,11 @@ public class ModuleManagerService : IModuleManagerService {
             Price = x.Price,
             AvatarId = x.AvatarId,
             TimeDuration = x.TimeDuration,
+            UserType = x.Author == user 
+                ? UserType.Author
+                : x.Editors!.Contains(user!)
+                ? UserType.Editor 
+                : null,
             Status = typeof(Module) == x.GetType()? ModuleType.SelfStudyModule : ModuleType.StreamingModule,
         });
         var response = await PagedList<ModuleShortDto>.ToPagedList(shortModules, pagination.PageNumber, pagination.PageSize);
@@ -51,22 +59,27 @@ public class ModuleManagerService : IModuleManagerService {
                 : await _fileService.GetAvatarLink(moduleShortDto.AvatarId);
         }
         return response;
-         
     }
     public async Task<ModuleFullTeacherDto> GetModuleContent(Guid moduleId, Guid userId) {
         var module = await _dbContext.Modules
             .Include(m=>m.SubModules)!
             .ThenInclude(s=>s.Chapters)
             .AsNoTracking()
-            .FirstOrDefaultAsync(m => m.Id == moduleId);
+            .FirstOrDefaultAsync(m => m.Id == moduleId && !m.ArchivedAt.HasValue);
         if (module == null)
             throw new NotFoundException("Module not found");
         return new ModuleFullTeacherDto {
             Id = module.Id,
-            SubModules = module.SubModules!.Select(s=> new SubModuleFullDto {
+            SubModules = module.SubModules!
+                .Where(s=>!s.ArchivedAt.HasValue)
+                .OrderBy(x=> module.OrderedSubModules!.IndexOf(x.Id))
+                .Select(s=> new SubModuleFullDto {
                 Id = s.Id,
                 Name = s.Name,
-                Chapters = s.Chapters != null ? s.Chapters.Select(c=> new ChapterShrotDto {
+                Chapters = s.Chapters != null ? s.Chapters
+                    .Where(с=>!с.ArchivedAt.HasValue)
+                    .OrderBy(c=> s.OrderedChapters!.IndexOf(c.Id))
+                    .Select(c=> new ChapterShrotDto {
                     Id = c.Id,
                     Name = c.Name,
                     ChapterType = c.ChapterType
@@ -74,68 +87,135 @@ public class ModuleManagerService : IModuleManagerService {
             }).ToList()
         };
     }
-    
-    public async Task<ChapterFullTeacherDto> GetChapterContent(Guid chapterId, Guid userId) {
-        var chapter = await _dbContext.Chapters
-            .Include(c=>c.ChapterTests)
-            .Include(c=>c.ChapterComments)!
-            .ThenInclude(com=>com.User)
-            .FirstOrDefaultAsync(m => m.Id == chapterId);
-        var user = await _dbContext.Students
-            .Include(u=>u.LearnedChapters)
-            .FirstOrDefaultAsync(u => u.Id == userId);
-        var response = new ChapterFullTeacherDto {
-            Id = chapter!.Id,
-            Name = chapter.Name,
-            Content = chapter.Content ?? "",
-            FileIds = chapter.Files == null
-                ? new List<FileLinkDto>()
-                : chapter.Files.Select( f => new FileLinkDto {
-                    FileId = f,
-                    Url = null 
-                }).ToList(),
-            Comments = chapter.ChapterComments == null
-                ? new List<ChapterCommentDto>()
-                : chapter.ChapterComments.Select(com => new ChapterCommentDto {
-                    Id = com.Id,
-                    UserId = com.User.Id,
-                    IsTeacherComment = com.IsTeacherComment,
-                    Message = com.Comment
-                }).ToList(),
-            ChapterType = chapter.ChapterType,
-            Tests = chapter.ChapterTests == null
-                ? new List<TestTeacherDto>()
-                : chapter.ChapterTests.Select(t => new TestTeacherDto {
-                    Id = t.Id,
-                    Question = t.Question,
-                    FileIds = t.Files == null
-                        ? new List<FileLinkDto>()
-                        : t.Files.Select( f => new FileLinkDto {
-                            FileId = f,
-                            Url = null 
-                        }).ToList(),
-                    PossibleSimpleAnswers = t is SimpleAnswerTest simpleAnswerTest ? simpleAnswerTest.PossibleAnswers
-                        .Select(uat=> new SimpleAnswerDto {
-                            AnswerContent = uat.AnswerContent,
-                            isRight = uat.IsRight
-                        }).ToList():new List<SimpleAnswerDto>(),
-                    PossibleCorrectSequenceAnswers = t is CorrectSequenceTest correctSequenceTest ? correctSequenceTest.PossibleAnswers
-                        .Select(uat=> new CorrectSequenceAnswerDto {
-                            AnswerContent = uat.AnswerContent,
-                            RightOrder = uat.RightOrder
-                        }).ToList():new List<CorrectSequenceAnswerDto>(),
-                    Type = t.TestType,
-                }).ToList()
-        };
-        foreach (var responseFileId in response.FileIds) {
-            responseFileId.Url = (await _fileService.GetFileLink(responseFileId.FileId!) ?? null)!;
+
+    public async Task EditModuleSortStructure(SortStructureDto structureDto, Guid moduleId) {
+        var module = await _dbContext.Modules
+            .Include(m => m.SubModules)!
+            .ThenInclude(s => s.Chapters)
+            .FirstOrDefaultAsync(m => m.Id == moduleId && !m.ArchivedAt.HasValue);
+        if (module == null)
+            throw new NotFoundException("Module not found");
+        var missingChapters = new List<Guid>();
+        var notExistingChaptersModule = new List<Guid>();
+        foreach (var subModuleSort in structureDto.SubModules) {
+            var subModule = module.SubModules!
+                .FirstOrDefault(s => s.Id == subModuleSort.Id);
+            if (subModule == null)
+                throw new NotFoundException("Sub module not found"); 
+            
+            var duplicates = subModuleSort.ChapterIds
+                .GroupBy(x => x)
+                .Where(g => g.Count() > 1)
+                .Select(y => y.Key)
+                .ToList();
+            if (duplicates.Count > 0)
+                throw new BadRequestException("There are chapter duplicates: " + string.Join(", ", duplicates.Select(x => x)));
+            
+            missingChapters.AddRange(subModule.Chapters!
+                .Where(c=>!c.ArchivedAt.HasValue)
+                .Select(c=>c.Id)
+                .Except(subModuleSort.ChapterIds)
+                .ToList());
+            
+            var notExistingChapters = subModuleSort.ChapterIds.Except(subModule.Chapters!
+                    .Where(c=>!c.ArchivedAt.HasValue)
+                    .Select(c=>c.Id)
+                    .ToList())
+                .ToList();
+            notExistingChaptersModule.AddRange(notExistingChapters);
+            var chapters = module.SubModules!
+                .SelectMany(s => s.Chapters!
+                    .Where(c=> notExistingChapters.Contains(c.Id))
+                    .ToList())
+                .ToList();
+           var notFoundChapters = notExistingChapters
+               .Where(nec => chapters.All(c => c.Id != nec))
+               .ToList();
+           if (notFoundChapters.Any()) 
+               throw new ConflictException("These chapters not found in this module: " 
+                                           + string.Join(", ", notFoundChapters.Select(x => x)));
+           
+            chapters.ForEach(c=>c.SubModule = subModule);
+            subModule.OrderedChapters = subModuleSort.ChapterIds;
         }
-        foreach (var fileLinkDto in response.Tests.SelectMany(testTeacherDto => testTeacherDto.FileIds!)) {
-            fileLinkDto.Url = (await _fileService.GetFileLink(fileLinkDto.FileId!) ?? null)!;
+        foreach (var notExChapter in notExistingChaptersModule) {
+            missingChapters.Remove(notExChapter);
         }
-        return response;
+        if (missingChapters.Any()) 
+            throw new ConflictException("These chapters are missing: " 
+                                        + string.Join(", ", missingChapters.Select(x => x)));
+        var subsDuplicates = structureDto.SubModules
+            .Select(s=>s.Id)
+            .GroupBy(x => x)
+            .Where(g => g.Count() > 1)
+            .Select(y => y.Key)
+            .ToList();
+        if (subsDuplicates.Count > 0)
+            throw new BadRequestException("There are sub module duplicates: " + string.Join(", ", subsDuplicates.Select(x => x)));
+        
+        var missingSubs = module.SubModules!
+            .Where(s=>!s.ArchivedAt.HasValue)
+            .Select(o=>o.Id)
+            .Except(structureDto.SubModules.Select(s=>s.Id))
+            .ToList();
+        if (missingSubs.Any())
+            throw new ConflictException("These sub modules are missing: " 
+                                        + string.Join(", ", missingSubs.Select(x => x)));
+        var notExistingSubs = structureDto.SubModules.Select(s=>s.Id)
+            .Except(module.SubModules!
+                .Where(s=>!s.ArchivedAt.HasValue)
+                .Select(o=>o.Id)
+                .ToList())
+            .ToList();
+        if (notExistingSubs.Any())
+            throw new ConflictException("These sub modules do not exist: " 
+                                        + string.Join(", ", notExistingSubs.Select(x => x)));
+        module.OrderedSubModules = structureDto.SubModules
+            .Select(s => s.Id)
+            .ToList();
+        _dbContext.Update(module);
+        await _dbContext.SaveChangesAsync();
+
     }
-    public async Task CreateSelfStudyModule(ModuleSelfStudyCreateDto model, Guid userId) {
+
+
+    public async Task EditChapterTestsOrder(List<Guid> orderedChapterTests, Guid chapterId) {
+        var duplicates = orderedChapterTests.GroupBy(x => x)
+            .Where(g => g.Count() > 1)
+            .Select(y => y.Key)
+            .ToList();
+        if (duplicates.Count > 0)
+            throw new BadRequestException("There are duplicates: " + string.Join(", ", duplicates.Select(x => x)));
+        var chapter = await _dbContext.Chapters
+            .Include(m=>m.ChapterTests)
+            .FirstOrDefaultAsync(m => m.Id == chapterId);
+        if (chapter == null)
+            throw new NotFoundException("Chapter not found");
+        if (chapter.ChapterTests.IsNullOrEmpty() || chapter.ChapterTests!.All(c => c.ArchivedAt.HasValue))
+            throw new ConflictException("There are no existing chapter tests");
+        var missingChapterTests = chapter.ChapterTests!
+            .Where(c=>!c.ArchivedAt.HasValue)
+            .Select(c=>c.Id)
+            .Except(orderedChapterTests)
+            .ToList();
+        if (missingChapterTests.Any())
+            throw new ConflictException("These chapter tests are missing: " 
+                                        + string.Join(", ", missingChapterTests.Select(x => x)));
+        var notExistingChapterTests = orderedChapterTests.Except(chapter.ChapterTests!
+                .Where(c=>!c.ArchivedAt.HasValue)
+                .Select(c=>c.Id)
+                .ToList())
+            .ToList();
+        if (notExistingChapterTests.Any())
+            throw new ConflictException("These chapter tests do not exist: " 
+                                        + string.Join(", ", notExistingChapterTests.Select(x => x)));
+        chapter.OrderedTests = orderedChapterTests;
+        _dbContext.Update(chapter);
+        await _dbContext.SaveChangesAsync();
+        
+    }
+
+    public async Task<Guid> CreateSelfStudyModule(ModuleSelfStudyCreateDto model, Guid userId) {
         var user = await _dbContext.UserBackends
             .Include(u=>u.Teacher)
             .FirstOrDefaultAsync(u => u.Id == userId);
@@ -170,15 +250,10 @@ public class ModuleManagerService : IModuleManagerService {
         };
         await _dbContext.AddAsync(module);
         await _dbContext.SaveChangesAsync();
+        return module.Id;
     }
 
     public async Task EditSelfStudyModule(ModuleSelfStudyEditDto model, Guid moduleId, Guid userId) {
-        var editors = model.Editors!.Count == 0
-            ? new List<Teacher>()
-            : await _dbContext.Teachers.Where(t => model.Editors.Contains(t.Id)).ToListAsync();
-        var teachers = model.Teachers!.Count == 0
-            ? new List<Teacher>()
-            : await _dbContext.Teachers.Where(t => model.Teachers.Contains(t.Id)).ToListAsync();
         var module = await _dbContext.Modules
             .FirstOrDefaultAsync(m => m.Id == moduleId && !m.ArchivedAt.HasValue);
         if (module is null or StreamingModule) 
@@ -188,11 +263,10 @@ public class ModuleManagerService : IModuleManagerService {
         module.Description = model.Description;
         module.Price = model.Price;
         module.EditedAt = DateTime.UtcNow;
+        if (module.AvatarId != null && module.AvatarId != model.AvatarId)
+            await _fileService.RemoveFiles(new List<string>(){module.AvatarId});
         module.AvatarId = model.AvatarId;
-        if (editors.Count != 0 && module.Author.Id == userId) module.Editors = editors;
-        if (teachers.Count != 0) module.Teachers = teachers;
-        if (!editors.Contains(module.Author))
-            editors.Add(module.Author); 
+
         _dbContext.Update(module);
         await _dbContext.SaveChangesAsync();    
     }
@@ -207,7 +281,7 @@ public class ModuleManagerService : IModuleManagerService {
         await _dbContext.SaveChangesAsync();  
     }
 
-    public async Task CreateStreamingModule(ModuleStreamingCreateDto model, Guid userId) {
+    public async Task<Guid> CreateStreamingModule(ModuleStreamingCreateDto model, Guid userId) {
         var user = await _dbContext.UserBackends
             .Include(u=>u.Teacher)
             .FirstOrDefaultAsync(u => u.Id == userId);
@@ -248,16 +322,11 @@ public class ModuleManagerService : IModuleManagerService {
             MaxStudents = model.MaxStudents ?? 0
         };
         await _dbContext.AddAsync(module);
-        await _dbContext.SaveChangesAsync();    
+        await _dbContext.SaveChangesAsync();  
+        return module.Id;
     }
 
     public async Task EditStreamingModule(ModuleStreamingEditDto model, Guid moduleId, Guid userId) {
-        var editors = model.Editors!.Count == 0
-            ? new List<Teacher>()
-            : await _dbContext.Teachers.Where(t => model.Editors.Contains(t.Id)).ToListAsync();
-        var teachers = model.Teachers!.Count == 0
-            ? new List<Teacher>()
-            : await _dbContext.Teachers.Where(t => model.Teachers.Contains(t.Id)).ToListAsync();
         var module = await _dbContext.StreamingModules
             .FirstOrDefaultAsync(m => m.Id == moduleId && !m.ArchivedAt.HasValue);
         if (module == null) 
@@ -266,113 +335,97 @@ public class ModuleManagerService : IModuleManagerService {
         module.Name = model.Name;
         module.Description = model.Description;
         module.Price = model.Price;
+        if (module.AvatarId != null && module.AvatarId != model.AvatarId)
+            await _fileService.RemoveFiles(new List<string>(){module.AvatarId});
         module.AvatarId = model.AvatarId;
-        if (editors.Count != 0 && module.Author.Id == userId) module.Editors = editors;
-        if (teachers.Count != 0) module.Teachers = teachers;
         module.StartAt = model.StartTime;
         module.ExpiredAt = model.ExpirationTime;
         module.MaxStudents = model.MaxStudents;
         module.StartRegisterAt = model.StartRegistrationDate;
         module.StopRegisterAt = model.StopRegistrationDate;
         module.EditedAt = DateTime.UtcNow;
-        if (!editors.Contains(module.Author))
-            editors.Add(module.Author); 
+
         _dbContext.Update(module);
+        await _dbContext.SaveChangesAsync();
+    }
+
+    public async Task AddEditorToModule(Guid userId, Guid moduleId) {
+        var module = await _dbContext.Modules
+            .Include(m=>m.Editors)
+            .FirstOrDefaultAsync(m => m.Id == moduleId && !m.ArchivedAt.HasValue);
+        if (module == null)
+            throw new NotFoundException("Module not found");
+        var user = await _dbContext.Teachers
+            .FirstOrDefaultAsync(u => u.Id == userId);
+        if (user == null)
+            throw new NotFoundException("User not found");
+        
+        if (module.Editors!.Contains(user))
+            throw new ConflictException("User already editor");
+        module.Editors.Add(user);
+       await _dbContext.SaveChangesAsync();
+    }
+
+    public async Task RemoveEditorFromModule(Guid userId, Guid moduleId) {
+        var module = await _dbContext.Modules
+            .Include(m=>m.Editors)
+            .FirstOrDefaultAsync(m => m.Id == moduleId && !m.ArchivedAt.HasValue);
+        if (module == null)
+            throw new NotFoundException("Module not found");
+        var user = await _dbContext.Teachers
+            .FirstOrDefaultAsync(u => u.Id == userId);
+        if (user == null)
+            throw new NotFoundException("User not found");
+
+        if (!module.Editors!.Contains(user))
+            throw new ConflictException("User is not editor");
+        module.Editors.Remove(user);
+        await _dbContext.SaveChangesAsync();
+    }
+
+    public async Task AddTeacherToModule(Guid userId, Guid moduleId) {
+        var module = await _dbContext.Modules
+            .Include(m=>m.Teachers)
+            .FirstOrDefaultAsync(m => m.Id == moduleId && !m.ArchivedAt.HasValue);
+        if (module == null)
+            throw new NotFoundException("Module not found");
+        var user = await _dbContext.Teachers
+            .FirstOrDefaultAsync(u => u.Id == userId);
+        if (user == null)
+            throw new NotFoundException("User not found");
+
+        if (module.Teachers!.Contains(user))
+            throw new ConflictException("User already teacher");
+        module.Teachers.Add(user);
+        await _dbContext.SaveChangesAsync();
+    }
+
+    public async Task RemoveTeacherFromModule(Guid userId, Guid moduleId) {
+        var module = await _dbContext.Modules
+            .Include(m=>m.Teachers)
+            .FirstOrDefaultAsync(m => m.Id == moduleId && !m.ArchivedAt.HasValue);
+        if (module == null)
+            throw new NotFoundException("Module not found");
+        var user = await _dbContext.Teachers
+            .FirstOrDefaultAsync(u => u.Id == userId);
+        if (user == null)
+            throw new NotFoundException("User not found");
+
+        if (!module.Teachers!.Contains(user))
+            throw new ConflictException("User is not teacher");
+        module.Teachers.Remove(user);
         await _dbContext.SaveChangesAsync();
     }
 
     public async Task ArchiveModule(Guid moduleId) {
         var module = await _dbContext.Modules
-            .FirstOrDefaultAsync(m => m.Id == moduleId);
-        if (module == null) 
-            throw new NotFoundException("Module not found");
-        if (module == null) 
-            throw new NotFoundException("Sub module not found");
-        module.ArchivedAt = DateTime.UtcNow;
-        _dbContext.Update(module);
-        await _dbContext.SaveChangesAsync();
-    }
-
-    public async Task AddSubModule(Guid moduleId, SubModuleCreateDto model) {
-        var module = await _dbContext.Modules
             .FirstOrDefaultAsync(m => m.Id == moduleId && !m.ArchivedAt.HasValue);
         if (module == null) 
             throw new NotFoundException("Module not found");
-        var subModule = new SubModule {
-            Name = model.Name,
-            Module = module,
-            SubModuleType = model.SubModuleType,
-        };
-        module.OrderedSubModules!.Add(subModule.Id);
-        await _dbContext.AddAsync(subModule);
+        module.ArchivedAt = DateTime.UtcNow;
+        _dbContext.Update(module);
+        await _dbContext.SaveChangesAsync();
         await _dbContext.SaveChangesAsync();
     }
-
-    public async Task EditSubModule(Guid subModuleId, SubModuleEditDto model) {
-        var subModule = await _dbContext.SubModules
-            .FirstOrDefaultAsync(m => m.Id == subModuleId && !m.ArchivedAt.HasValue);
-        if (subModule == null) 
-            throw new NotFoundException("Sub module not found");
-        subModule.Name = model.Name;
-        _dbContext.Update(subModule);
-        await _dbContext.SaveChangesAsync();
-    }
-
-    public async Task ArchiveSubModule(Guid subModuleId) {
-        var subModule = await _dbContext.SubModules
-            .Include(s=>s.Module)
-            .FirstOrDefaultAsync(m => m.Id == subModuleId);
-        if (subModule == null) 
-            throw new NotFoundException("Sub module not found");
-        if (subModule.ArchivedAt.HasValue) 
-            throw new ConflictException("Already archived");
-        subModule.ArchivedAt = DateTime.UtcNow;
-        subModule.Module.OrderedSubModules!.Remove(subModuleId);
-        _dbContext.Update(subModule);
-        await _dbContext.SaveChangesAsync();
-    }
-
-    public async Task CreateChapter(Guid subModuleId, ChapterCreateDto model) {
-        var subModule = await _dbContext.SubModules
-            .FirstOrDefaultAsync(m => m.Id == subModuleId && !m.ArchivedAt.HasValue);
-        if (subModule == null) 
-            throw new NotFoundException("Sub module not found");
-        var chapter = new Chapter {
-            Name = model.Name,
-            Content = model.Content,
-            SubModule = subModule,
-            ChapterType = model.ChapterType,
-            Files = model.FileIds
-        };
-        subModule.OrderedChapters!.Add(chapter.Id);
-        await _dbContext.AddAsync(chapter);
-        await _dbContext.SaveChangesAsync();
-    }
-
-    public async Task EditChapter(Guid chapterId, ChapterEditDto model) {
-        var chapter = await _dbContext.Chapters
-            .FirstOrDefaultAsync(m => m.Id == chapterId && !m.ArchivedAt.HasValue);
-        if (chapter == null) 
-            throw new NotFoundException("Chapter not found");
-        chapter.Name = model.Name;
-        chapter.Content = model.Content;
-        chapter.ChapterType = model.ChapterType;
-        chapter.Files = model.FileIds;
-        _dbContext.Update(chapter);
-        await _dbContext.SaveChangesAsync();
-    }
-
-    public async Task ArchiveChapter(Guid chapterId) {
-        var chapter = await _dbContext.Chapters
-            .Include(c=>c.SubModule)
-            .FirstOrDefaultAsync(m => m.Id == chapterId);
-        if (chapter == null) 
-            throw new NotFoundException("Chapter not found");
-        if (chapter.ArchivedAt.HasValue) 
-            throw new ConflictException("Already archived");
-        chapter.ArchivedAt = DateTime.UtcNow;
-        chapter.SubModule.OrderedChapters!.Remove(chapterId);
-        _dbContext.Update(chapter);
-        await _dbContext.SaveChangesAsync();    
-    }
+    
 }

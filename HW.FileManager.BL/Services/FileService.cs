@@ -54,13 +54,42 @@ public class FileService : IFileService {
                     _logger.LogInformation("Successfully uploaded " + fileKey.NewFileName + " " + file.FileName);
                         
                 }
-                catch (MinioException ex)
+                catch (Exception e)
                 {
-                    throw new BadRequestException($"Error uploading file: {ex.Message}");
+                    _logger.LogError("Minio not responding" + e.Message);
+                    throw new ServiceUnavailableException("Error uploading file");
                 }
             }
         }
         return fileNames;
+    }
+
+    public async Task RemoveFiles(List<string> fileIds) {
+        
+        var bucketNameWithFileIds = new Dictionary<string, List<string>>();
+        foreach (var fileId in fileIds) {
+           if (bucketNameWithFileIds.ContainsKey(GetBucketName(fileId))) 
+               bucketNameWithFileIds[GetBucketName(fileId)].Add(fileId);
+           else {
+               bucketNameWithFileIds[GetBucketName(fileId)] = new List<string>() { fileId };
+           }
+        }
+        
+        foreach (var keyValuePair in bucketNameWithFileIds) {
+
+            try {
+                var objArgs = new RemoveObjectsArgs()
+                    .WithBucket(keyValuePair.Key)
+                    .WithObjects(keyValuePair.Value);
+              await _minioClient.RemoveObjectsAsync(objArgs).ConfigureAwait(false);
+            }
+            catch (Exception e) {
+                _logger.LogError("Minio not responding" + e.Message);
+                throw new ServiceUnavailableException("Error removing file");
+            }
+           
+        }
+
     }
 
     public async Task<string?> GetAvatarLink(string avatarId) {
@@ -83,8 +112,13 @@ public class FileService : IFileService {
             .WithBucket(bucketName)
             .WithObject(fileId)
             .WithExpiry(1000);
-        var presignedUrl = await _minioClient.PresignedGetObjectAsync(args).ConfigureAwait(false);
-        return presignedUrl;
+        try {
+            var presignedUrl = await _minioClient.PresignedGetObjectAsync(args).ConfigureAwait(false);
+            return presignedUrl;
+        }
+        catch (Exception e) {
+            return null;
+        }
     }
 
     public async Task<List<FileDownloadDto>> GetFiles(List<string> fileNames) {
@@ -113,8 +147,8 @@ public class FileService : IFileService {
               };
               files.Add(file);
             }
-            catch (MinioException ex) {
-                throw new BadRequestException($"Error retrieving file: {ex.Message}");
+            catch (Exception e) {
+                throw new BadRequestException($"Error retrieving file: {e.Message}");
             }
         }
 

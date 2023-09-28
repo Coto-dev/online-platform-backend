@@ -69,11 +69,9 @@ public class AccountController : ControllerBase {
     /// </summary>
     /// <returns></returns>
     [HttpGet]
-    [Route("{userId}/short")]
-    [Authorize(AuthenticationSchemes = "Bearer")]
-
-    public async Task<ActionResult<ProfileShortDto>> GetUserShortProfile(Guid userId) {
-        return Ok(await _accountService.GetUserShortProfile(userId));
+    [Route("short/list")]
+    public async Task<ActionResult<ProfileShortDto>> GetUserShortProfile([FromQuery] List<Guid> userIds) {
+        return Ok(await _accountService.GetUserShortProfile(userIds));
     }
     
     /// <summary>

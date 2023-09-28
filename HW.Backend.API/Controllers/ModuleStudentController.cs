@@ -78,35 +78,17 @@ public class ModuleStudentController : ControllerBase {
     /// </remarks>
     [HttpGet]
     [Route("{moduleId}/content")]
-    [Authorize(AuthenticationSchemes = "Bearer", Roles = ApplicationRoleNames.Student)]
     public async Task<ActionResult<ModuleFullDto>> GetModuleContent(Guid moduleId) {
         if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false) {
-            throw new UnauthorizedException("User is not authorized");
+            userId = Guid.Empty;
         }
 
+        /*
         await _checkPermissionService.CheckStudentModulePermission(userId, moduleId);
+        */
         return Ok(await _moduleStudentService.GetModuleContent(moduleId, userId));
     }
     
-    /// <summary>
-    /// Get chapter content by chapterId [Student]
-    /// </summary>
-    ///<remarks>
-    /// 
-    /// </remarks>
-    [HttpGet]
-    [Route("chapter/{chapterId}")]
-    [Authorize(AuthenticationSchemes = "Bearer", Roles = ApplicationRoleNames.Student)]
-
-    public async Task<ActionResult<ChapterFullDto>> GetChapterContent(Guid chapterId) {
-        if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false) {
-            throw new UnauthorizedException("User is not authorized");
-        }
-        
-        await _checkPermissionService.CheckStudentChapterPermission(userId, chapterId);
-        return Ok(await _moduleStudentService.GetChapterContent(chapterId, userId));
-        
-    }
     
     /// <summary>
     /// Get module details by moduleId [Any(unauthorized)]
