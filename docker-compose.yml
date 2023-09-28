@@ -59,4 +59,4 @@ services:
         - "12010:80"
     restart: always
     volumes:
-      - /var/log/hw-online/hw-notification:/app/logs
+      - /var/log/hw-online/hw-admin:/app/logs
