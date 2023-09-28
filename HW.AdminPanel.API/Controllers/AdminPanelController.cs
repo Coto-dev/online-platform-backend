@@ -3,6 +3,7 @@ using HW.Common.Enums;
 using HW.Common.Exceptions;
 using HW.Common.Interfaces;
 using HW.Common.Other;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace HW.AdminPanel.API.Controllers;
@@ -11,7 +12,7 @@ namespace HW.AdminPanel.API.Controllers;
 /// Controller for admin
 /// </summary>
 [ApiController]
-//[Authorize(AuthenticationSchemes = "Bearer", Roles = ApplicationRoleNames.Administrator)]
+[Authorize(AuthenticationSchemes = "Bearer", Roles = ApplicationRoleNames.Administrator)]
 [Route("api/admin-panel")]
 public class AdminPanelController : ControllerBase
 {
@@ -41,7 +42,6 @@ public class AdminPanelController : ControllerBase
         [FromQuery] FilterRoleType? filter,
         [FromQuery] SearchType? sortUserType = SearchType.FullName)
     {
-
         return Ok(await _adminPanelService.GetUsers(pagination, filter, sortUserType,searchString));
     }
 
@@ -55,10 +55,6 @@ public class AdminPanelController : ControllerBase
         [FromQuery] string? sortByNameFilter,
         [FromQuery] SortModuleType? sortModuleType = SortModuleType.NameAsc)
     {
-        /*        if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false)
-                {
-                    throw new UnauthorizedException("User is not authorized");
-                }*/
         return Ok(await _adminPanelService.GetModules(pagination, filter, sortByNameFilter, sortModuleType));
     }
 
@@ -69,13 +65,8 @@ public class AdminPanelController : ControllerBase
     [Route("teacher/{userId}")]
     public async Task<ActionResult> AddTeacherRightsToUser(Guid userId)
     {
-        if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid user) == false)
-        {
-            throw new UnauthorizedException("User is not authorized");
-        }
         await _adminPanelService.AddTeacherRightsToUser(userId);
         return Ok();
-
     }
 
     /// <summary>
@@ -85,11 +76,6 @@ public class AdminPanelController : ControllerBase
     [Route("teacher/{userId}")]
     public async Task<ActionResult> DeleteTeacherRightsFromUser(Guid userId)
     {
-        if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid user) == false)
-        {
-            throw new UnauthorizedException("User is not authorized");
-        }
-
         await _adminPanelService.DeleteTeacherRightsFromUser(userId);
         return Ok();
 
@@ -103,11 +89,6 @@ public class AdminPanelController : ControllerBase
     [Route("teacher/{userId}/to/{moduleId}")]
     public async Task<ActionResult> AddTeacherRightsToUserOnModule(Guid userId, Guid moduleId)
     {
-        if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid user) == false)
-        {
-            throw new UnauthorizedException("User is not authorized");
-        }
-
         await _adminPanelService.AddTeacherRightsToUserOnModule(userId, moduleId);
         return Ok();
     }
@@ -119,11 +100,6 @@ public class AdminPanelController : ControllerBase
     [Route("teacher/{userId}/from/{moduleId}")]
     public async Task<ActionResult> DeleteTeacherRightsFromUserOnModule(Guid userId, Guid moduleId)
     {
-        if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid user) == false)
-        {
-            throw new UnauthorizedException("User is not authorized");
-        }
-
         await _adminPanelService.DeleteTeacherRightsFromUserOnModule(userId, moduleId);
         return Ok();
     }
@@ -135,11 +111,6 @@ public class AdminPanelController : ControllerBase
     [Route("editor/{userId}/to/{moduleId}")]
     public async Task<ActionResult> AddEditorRightsToUserOnModule(Guid userId, Guid moduleId)
     {
-        if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid user) == false)
-        {
-            throw new UnauthorizedException("User is not authorized");
-        }
-
         await _adminPanelService.AddEditorRightsToUserOnModule(userId, moduleId);
         return Ok();
     }
@@ -151,11 +122,6 @@ public class AdminPanelController : ControllerBase
     [Route("{moduleId}/delete-teacher/{userId}")]
     public async Task<ActionResult> DeleteEditorRightsFromUserOnModule(Guid userId, Guid moduleId)
     {
-        if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid user) == false)
-        {
-            throw new UnauthorizedException("User is not authorized");
-        }
-
         await _adminPanelService.DeleteEditorRightsFromUserOnModule(userId, moduleId);
         return Ok();
     }
@@ -167,11 +133,6 @@ public class AdminPanelController : ControllerBase
     [Route("student/{userId}/to/{moduleId}")]
     public async Task<ActionResult> AddStudentToModule(Guid userId, Guid moduleId)
     {
-        if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid user) == false)
-        {
-            throw new UnauthorizedException("User is not authorized");
-        }
-
         await _adminPanelService.AddStudentToModule(userId, moduleId);
         return Ok();
     }
@@ -183,11 +144,6 @@ public class AdminPanelController : ControllerBase
     [Route("student/{userId}/from/{moduleId}")]
     public async Task<ActionResult> DeleteStudentFromModule(Guid userId, Guid moduleId)
     {
-        if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid user) == false)
-        {
-            throw new UnauthorizedException("User is not authorized");
-        }
-
         await _adminPanelService.DeleteStudentFromModule(userId, moduleId);
         return Ok();
     }
@@ -221,11 +177,6 @@ public class AdminPanelController : ControllerBase
     [Route("ban/{userId}")]
     public async Task<ActionResult> BanUser(Guid userId)
     {
-        if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid user) == false)
-        {
-            throw new UnauthorizedException("User is not authorized");
-        }
-
         await _adminPanelService.BanUser(userId);
         return Ok();
     }
@@ -237,11 +188,6 @@ public class AdminPanelController : ControllerBase
     [Route("unban/{userId}")]
     public async Task<ActionResult> UnbanUser(Guid userId)
     {
-        if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid user) == false)
-        {
-            throw new UnauthorizedException("User is not authorized");
-        }
-
         await _adminPanelService.UnbanUser(userId);
         return Ok();
     }

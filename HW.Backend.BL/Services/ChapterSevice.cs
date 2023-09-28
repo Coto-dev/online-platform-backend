@@ -219,7 +219,7 @@ public class ChapterService : IChapterService
             FileUrls = chapter.Files.IsNullOrEmpty()
                 ? new List<string>()
                 : chapter.Files!.Select(async f=> await _fileService.GetFileLink(f)).Select(task=>task.Result).ToList()!, 
-            Comments = chapter.ChapterComments == null  
+             Comments = chapter.ChapterComments == null  
                 ? new List<ChapterCommentDto>()
                 : chapter.ChapterComments.Select(com => new ChapterCommentDto {
                     Id = com.Id,
