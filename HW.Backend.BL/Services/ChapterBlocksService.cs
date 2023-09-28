@@ -55,7 +55,7 @@ public class ChapterBlocksService : IChapterBlocksService {
         await _dbContext.SaveChangesAsync();    
     }
     
-    public async Task CreateChapterBlock(Guid chapterId, ChapterBlockCreateDto model) {
+    public async Task<Guid> CreateChapterBlock(Guid chapterId, ChapterBlockCreateDto model) {
         var chapter = await _dbContext.Chapters
             .FirstOrDefaultAsync(m => m.Id == chapterId && !m.ArchivedAt.HasValue);
         if (chapter == null) 
@@ -68,6 +68,7 @@ public class ChapterBlocksService : IChapterBlocksService {
         chapter.OrderedBlocks!.Add(chapterBlock.Id);
         await _dbContext.AddAsync(chapterBlock);
         await _dbContext.SaveChangesAsync();
+        return chapterBlock.Id;
     }
 
     public async Task EditChapterBlock(Guid chapterBlockId, ChapterBlockEditDto model) {

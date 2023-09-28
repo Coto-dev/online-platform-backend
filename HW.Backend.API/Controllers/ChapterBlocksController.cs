@@ -34,13 +34,13 @@ public class ChapterBlocksController: ControllerBase {
     /// <returns></returns>
     [HttpPost]
     [Route("chapter/{chapterId}/chapter-block")]
-    public async Task<ActionResult> CreateChapterBlock(Guid chapterId,[FromBody] ChapterBlockCreateDto model) {
+    public async Task<ActionResult<Guid>> CreateChapterBlock(Guid chapterId,[FromBody] ChapterBlockCreateDto model) {
         if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false) {
             throw new UnauthorizedException("User is not authorized");
         }
         await _checkPermissionService.CheckCreatorChapterPermission(userId, chapterId);
-        await _chapterBlocksService.CreateChapterBlock(chapterId, model);
-        return Ok();
+        return Ok(await _chapterBlocksService.CreateChapterBlock(chapterId, model));
+        
     }
     
     /// <summary>
