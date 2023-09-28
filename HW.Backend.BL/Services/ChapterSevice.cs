@@ -140,7 +140,8 @@ public class ChapterService : IChapterService
                 }).ToList(),
             Comments = chapter.ChapterComments == null
                 ? new List<ChapterCommentDto>()
-                : chapter.ChapterComments.Select(com => new ChapterCommentDto {
+                : chapter.ChapterComments
+                    .Select(com => new ChapterCommentDto {
                     Id = com.Id,
                     UserId = com.User.Id,
                     IsTeacherComment = com.IsTeacherComment,
@@ -150,6 +151,7 @@ public class ChapterService : IChapterService
             ChapterBlocks = chapter.ChapterBlocks == null
                 ? new List<ChapterBlockTeacherDto>()
                 : chapter.ChapterBlocks
+                    .Where(cb=>!cb.ArchivedAt.HasValue)
                     .OrderBy(cb=> chapter.OrderedBlocks!.IndexOf(cb.Id))
                     .Select(cb=> new ChapterBlockTeacherDto {
                     Content = SwapFileIdsWithUrls(cb.Content, cb.Files).Result,
@@ -163,6 +165,7 @@ public class ChapterService : IChapterService
             Tests = chapter.ChapterTests == null
                 ? new List<TestTeacherDto>()
                 : chapter.ChapterTests
+                    .Where(t=>!t.ArchivedAt.HasValue)
                     .OrderBy(t=> chapter.OrderedTests!.IndexOf(t.Id))
                     .Select(t => new TestTeacherDto {
                     Id = t.Id,
@@ -228,6 +231,7 @@ public class ChapterService : IChapterService
             ChapterBlocks = chapter.ChapterBlocks == null
                 ? new List<ChapterBlockDto>()
                 : chapter.ChapterBlocks
+                    .Where(cb=>!cb.ArchivedAt.HasValue)
                     .OrderBy(cb=> chapter.OrderedBlocks!.IndexOf(cb.Id))
                     .Select(cb=> new ChapterBlockDto {
                     Content = SwapFileIdsWithUrls(cb.Content, cb.Files).Result,
@@ -238,6 +242,7 @@ public class ChapterService : IChapterService
             Tests = chapter.ChapterTests == null
                 ? new List<TestDto>()
                 : chapter.ChapterTests
+                    .Where(t=>!t.ArchivedAt.HasValue)
                     .OrderBy(t=> chapter.OrderedTests!.IndexOf(t.Id))
                     .Select(t => new TestDto {
                     Id = t.Id,

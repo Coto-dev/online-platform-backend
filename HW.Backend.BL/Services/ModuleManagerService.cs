@@ -71,11 +71,13 @@ public class ModuleManagerService : IModuleManagerService {
         return new ModuleFullTeacherDto {
             Id = module.Id,
             SubModules = module.SubModules!
+                .Where(s=>!s.ArchivedAt.HasValue)
                 .OrderBy(x=> module.OrderedSubModules!.IndexOf(x.Id))
                 .Select(s=> new SubModuleFullDto {
                 Id = s.Id,
                 Name = s.Name,
                 Chapters = s.Chapters != null ? s.Chapters
+                    .Where(с=>!с.ArchivedAt.HasValue)
                     .OrderBy(c=> s.OrderedChapters!.IndexOf(c.Id))
                     .Select(c=> new ChapterShrotDto {
                     Id = c.Id,
