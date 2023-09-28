@@ -56,7 +56,7 @@ services:
         context: .
         dockerfile: HW.AdminPanel.API/Dockerfile
     ports:
-        - "12000:80"
+        - "12010:80"
     restart: always
     volumes:
       - /var/log/hw-online/hw-notification:/app/logs
