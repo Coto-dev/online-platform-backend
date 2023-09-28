@@ -183,15 +183,16 @@ jobs:
       - run:  docker context use remote
 
       - run: docker-compose --context remote down
+      - name: Docker image rm
+        run: |
+            docker image rm hw-backend_hw-account
+            docker image rm hw-backend_hw-backend
+            docker image rm hw-backend_hw-email-reciever
+            docker image rm hw-backend_hw-file-manager
+            docker image rm hw-backend_hw-notification
+            docker image rm hw-backend_hw-admin
 
-      - run: docker image rm hw-backend_hw-account
-      - run: docker image rm hw-backend_hw-backend
-      - run: docker image rm hw-backend_hw-email-reciever
-      - run: docker image rm hw-backend_hw-file-manager
-      - run: docker image rm hw-backend_hw-notification
-      - run: docker image rm hw-backend_hw-admin
-
-      
       - name: docker-compose run
+        if: always()
         run: docker-compose --context remote up -d --force-recreate
           
