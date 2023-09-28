@@ -154,6 +154,7 @@ public class ChapterService : IChapterService
                     .Where(cb=>!cb.ArchivedAt.HasValue)
                     .OrderBy(cb=> chapter.OrderedBlocks!.IndexOf(cb.Id))
                     .Select(cb=> new ChapterBlockTeacherDto {
+                        Id = cb.Id,
                     Content = SwapFileIdsWithUrls(cb.Content, cb.Files).Result,
                     FileIds = cb.Files == null
                         ? new List<FileLinkDto>()
@@ -235,6 +236,7 @@ public class ChapterService : IChapterService
                     .OrderBy(cb=> chapter.OrderedBlocks!.IndexOf(cb.Id))
                     .Select(cb=> new ChapterBlockDto {
                     Content = SwapFileIdsWithUrls(cb.Content, cb.Files).Result,
+                    Id = cb.Id
                     // FilesUrls = cb.Files.IsNullOrEmpty()
                     //     ? new List<string>()
                     //     : cb.Files!.Select(async f=> await _fileService.GetFileLink(f)).Select(task=>task.Result).ToList()!
