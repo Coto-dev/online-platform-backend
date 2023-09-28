@@ -130,6 +130,30 @@ jobs:
       - name: Build
         working-directory: ./HW.Notification.API
         run: dotnet build "HW.Notification.API.csproj" -c Release
+
+  build-admin-api:
+    runs-on: ubuntu-latest
+  
+    strategy:
+      matrix:
+        dotnet-version: [ '7.0.x' ]
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        
+      - name: Setup .NET Core SDK ${{ matrix.dotnet-version }}
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: ${{ matrix.dotnet-version }}
+          
+      - name: Restore
+        working-directory: ./HW.AdminPanel.API
+        run: dotnet restore "HW.AdminPanel.API.csproj"
+        
+      - name: Build
+        working-directory: ./HW.AdminPanel.API
+        run: dotnet build "HW.AdminPanel.API.csproj" -c Release
         
   deploy:
     needs:
@@ -138,6 +162,7 @@ jobs:
       - build-email-reciever-mvc
       - build-file-manager-api
       - build-notification-api
+      - build-admin-api
     
     runs-on: ubuntu-latest
     steps:
@@ -164,6 +189,8 @@ jobs:
       - run: docker image rm hw-backend_hw-email-reciever
       - run: docker image rm hw-backend_hw-file-manager
       - run: docker image rm hw-backend_hw-notification
+      - run: docker image rm hw-backend_hw-admin
+
       
       - name: docker-compose run
         run: docker-compose --context remote up -d --force-recreate
