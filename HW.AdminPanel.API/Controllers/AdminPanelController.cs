@@ -37,11 +37,12 @@ public class AdminPanelController : ControllerBase
     [HttpGet]
     [Route("users/list")]
     public async Task<ActionResult<PagedList<UserShortDto>>> GetUsers([FromQuery] PaginationParamsDto pagination,
+        [FromQuery] string? searchString,
         [FromQuery] FilterRoleType? filter,
-        [FromQuery] SortUserType? sortUserType = SortUserType.Name)
+        [FromQuery] SearchType? sortUserType = SearchType.FullName)
     {
 
-        return Ok(await _adminPanelService.GetUsers(pagination, filter, sortUserType));
+        return Ok(await _adminPanelService.GetUsers(pagination, filter, sortUserType,searchString));
     }
 
     /// <summary>

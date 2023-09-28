@@ -34,39 +34,57 @@ public class AdminPanelService : IAdminPanelService
     }
 
     public async Task<PagedList<UserShortDto>> GetUsers(PaginationParamsDto pagination, FilterRoleType? roleFilter,
-        SortUserType? sortUserType)
+        SearchType? sortUserType, string? searchString)
     {
         if (pagination.PageNumber <= 0)
             throw new BadRequestException("Wrong page");
 
         var users = _userManager.Users
-            .OrderBy(s => sortUserType == SortUserType.Name ? s.FullName : s.Email)
-            .AsQueryable()
+            .OrderBy(u => sortUserType == SearchType.FullName ? u.FullName : u.Email)
+            .Where(u => searchString == null || (sortUserType == SearchType.FullName
+                ? u.FullName!.ToLower().Contains(searchString.ToLower())
+                : u.Email!.ToLower().Contains(searchString.ToLower())))
             .AsNoTracking();
 
-        var shortUsers = users.Select(user => new UserShortDto
+        var shortUsers =  users.Select( user => new UserShortDto
         {
             Id = user.Id,
             FullName = user.FullName,
             NickName = user.NickName,
             AvatarId = user.AvatarId,
             Email = user.Email!,
-            IsEmailConfirm = user.EmailConfirmed
-        });
-
-        var response = await PagedList<UserShortDto>.ToPagedList(shortUsers, pagination.PageNumber, pagination.PageSize);
+            IsEmailConfirm = user.EmailConfirmed,
+        }).ToList();
+        var ListWithRoles = new List<UserShortDto>();
+        foreach (var userShortDto in shortUsers) {
+            var user = await _userManager.FindByIdAsync(userShortDto.Id.ToString());
+            var roles = await _userManager.GetRolesAsync(user!);
+            if (roles.All(r => !roleFilter!.RoleTypes!.Select(rt => rt.ToString()).Contains(r)))
+                continue;
+            else {
+                userShortDto.Role = roles.Contains(ApplicationRoleNames.Administrator)
+                    ? ApplicationRoleNames.Administrator
+                    : roles.Contains(ApplicationRoleNames.Teacher)
+                        ? ApplicationRoleNames.Teacher
+                        : roles.Contains(ApplicationRoleNames.Student)
+                            ? ApplicationRoleNames.Student
+                            : null;
+                ListWithRoles.Add(userShortDto);
+            }
+        }
+        
+        var response = await PagedListObsolete<UserShortDto>.ToPagedList(ListWithRoles, pagination.PageNumber, pagination.PageSize);
         foreach (var userShortDto in response.Items)
         {
             userShortDto.AvatarId = userShortDto.AvatarId == null
                 ? userShortDto.AvatarId
                 : await _fileService.GetAvatarLink(userShortDto.AvatarId);
-
-            var user = await _userManager.FindByIdAsync(userShortDto.Id.ToString());
-            userShortDto.Roles = await _userManager.GetRolesAsync(user!);
-            userShortDto.IsBanned = await _userManager.IsLockedOutAsync(user!);
+            userShortDto.IsBanned =
+                await _userManager.IsLockedOutAsync((await _userManager.FindByIdAsync(userShortDto.Id.ToString()))!);
         }
         return response;
     }
+
 
     public async Task<PagedList<ModuleShortAdminDto>> GetModules(PaginationParamsDto pagination, FilterModuleType? filter,
             string? sortByNameFilter, SortModuleType? sortModuleType)
@@ -110,7 +128,25 @@ public class AdminPanelService : IAdminPanelService
             await _userManager.AddToRoleAsync(userM, ApplicationRoleNames.Teacher);
         };
 
-        await _userManager.UpdateAsync(userM);
+        var user = await _backendDbContext.UserBackends
+            .Include(u=>u.Teacher)
+            .FirstOrDefaultAsync(u => u.Id == userId);
+        
+        if (user == null) {
+            var newUser = new UserBackend() {
+                Id = userId
+            };
+            user = newUser;
+            await _backendDbContext.AddAsync(user);
+        }
+        user.Teacher ??= new Teacher {
+            Id = user.Id,
+            UserBackend = user
+        };
+
+        var result = await _userManager.UpdateAsync(userM);
+        if (result.Succeeded)
+            await _backendDbContext.SaveChangesAsync();
     }
 
     public async Task DeleteTeacherRightsFromUser(Guid  userId)
@@ -129,10 +165,11 @@ public class AdminPanelService : IAdminPanelService
         }
 
         var teacher = await _backendDbContext.Teachers
-            .FirstOrDefaultAsync(t => t.Id == userId) ?? throw new NotFoundException("User with this Id not found.");
-
-        _backendDbContext.Remove(teacher);
-        await _backendDbContext.SaveChangesAsync();
+            .FirstOrDefaultAsync(t => t.Id == userId);
+        if (teacher != null) {
+            _backendDbContext.Remove(teacher);
+            await _backendDbContext.SaveChangesAsync();
+        }
     }
 
     public async Task AddTeacherRightsToUserOnModule(Guid userId, Guid moduleId)
@@ -147,35 +184,27 @@ public class AdminPanelService : IAdminPanelService
         };
 
         var user = await _backendDbContext.UserBackends
-            .Include(t => t.Teacher)!
-            .ThenInclude(m => m.ControlledModules)!
-            .FirstOrDefaultAsync(u => u.Id == userId) ?? throw new NotFoundException("User with this Id not found.");
+            .Include(u=>u.Teacher)
+            .FirstOrDefaultAsync(u => u.Id == userId);
+        
+        if (user == null) {
+            var newUser = new UserBackend() {
+                Id = userId
+            };
+            user = newUser;
+            await _backendDbContext.AddAsync(user);
+        }
+        user.Teacher ??= new Teacher {
+            Id = user.Id,
+            UserBackend = user
+        };
 
         var module = await _backendDbContext.Modules
             .Include(t => t.Teachers)!
             .FirstOrDefaultAsync(m => m.Id == moduleId)
             ?? throw new NotFoundException("Module with this Id not found.");
-
-        if (user.Teacher == null)
-        {
-            user.Teacher = new Teacher
-            {
-                Id = userId,
-                UserBackend = user,
-                ControlledModules = new List<Module> { module },
-            };
-        }
-        else
-        {
-            if (user.Teacher.ControlledModules == null)
-            {
-                user.Teacher.ControlledModules = new List<Module> { module };
-            }
-            else
-            {
-                user.Teacher.ControlledModules.Add(module);
-            }
-        }
+        if (module.Teachers!.Contains(user.Teacher))
+            throw new ConflictException("User is already teacher on this module");
 
         if (module.Teachers == null)
         {
@@ -186,42 +215,25 @@ public class AdminPanelService : IAdminPanelService
             module.Teachers.Add(user.Teacher);
         }
 
-        _backendDbContext.Update(user);
         _backendDbContext.Update(module);
         await _backendDbContext.SaveChangesAsync();
     }
 
     public async Task DeleteTeacherRightsFromUserOnModule(Guid userId, Guid moduleId)
     {
-        var userM = await _userManager.FindByIdAsync(userId.ToString()) ?? throw new NotFoundException("User with this Id not found.");
-        var userRoles = await _userManager.GetRolesAsync(userM);
-
-        if (!userRoles.Contains(RoleType.Teacher.ToString()))
-        {
-            throw new BadRequestException("User doesn't have teacher permissions.");
-        }
-
         var user = await _backendDbContext.UserBackends
-            .Include(t => t.Teacher)!
-            .ThenInclude(m => m.ControlledModules)!
+            .Include(t => t.Teacher)
             .FirstOrDefaultAsync(u => u.Id == userId) ?? throw new NotFoundException("User with this Id not found.");
 
         var module = await _backendDbContext.Modules
-            .Include(t => t.Teachers)!
-            .FirstOrDefaultAsync(m => m.Id == moduleId)
-            ?? throw new NotFoundException("Module with this Id not found.");
+                         .Include(e => e.Teachers)!
+                         .FirstOrDefaultAsync(m => m.Id == moduleId)
+                     ?? throw new NotFoundException("Module with this Id not found.");
 
-        if (user.Teacher.ControlledModules == null || !user.Teacher.ControlledModules.Contains(module))
-        {
-            throw new BadRequestException("User doesn't have teacher permissions on this module.");
-        }
-        else
-        {
-            user.Teacher.ControlledModules.Remove(module);
-            module.Teachers.Remove(user.Teacher);
-        };
-
-        _backendDbContext.Update(user);
+        if (user.Teacher == null || !module.Teachers!.Contains(user.Teacher))
+            throw new ConflictException("User is not teacher");
+        
+        module.Teachers.Remove(user.Teacher);
         _backendDbContext.Update(module);
         await _backendDbContext.SaveChangesAsync();
     }
@@ -238,46 +250,28 @@ public class AdminPanelService : IAdminPanelService
         };
 
         var user = await _backendDbContext.UserBackends
-            .Include(t => t.Teacher)!
-            .ThenInclude(m => m.ControlledModules)!
-            .FirstOrDefaultAsync(u => u.Id == userId) ?? throw new NotFoundException("User with this Id not found.");
+            .Include(u=>u.Teacher)
+            .FirstOrDefaultAsync(u => u.Id == userId);
+        
+        if (user == null) {
+            var newUser = new UserBackend() {
+                Id = userId
+            };
+            user = newUser;
+            await _backendDbContext.AddAsync(user);
+        }
+        user.Teacher ??= new Teacher {
+            Id = user.Id,
+            UserBackend = user
+        };
 
         var module = await _backendDbContext.Modules
-            .Include(t => t.Teachers)!
-            .Include(e => e.Editors)!
-            .FirstOrDefaultAsync(m => m.Id == moduleId)
-            ?? throw new NotFoundException("Module with this Id not found.");
-
-        if (user.Teacher == null)
-        {
-            user.Teacher = new Teacher
-            {
-                Id = userId,
-                UserBackend = user,
-                ControlledModules = new List<Module> { module },
-            };
-        }
-        else
-        {
-            if (user.Teacher.ControlledModules == null)
-            {
-                user.Teacher.ControlledModules = new List<Module> { module };
-            }
-            else
-            {
-                user.Teacher.ControlledModules.Add(module);
-            }
-        }
-
-
-        if (module.Teachers == null)
-        {
-            module.Teachers = new List<Teacher> { user.Teacher };
-        }
-        else
-        {
-            module.Teachers.Add(user.Teacher);
-        }
+                         .Include(t => t.Editors)!
+                         .FirstOrDefaultAsync(m => m.Id == moduleId)
+                     ?? throw new NotFoundException("Module with this Id not found.");
+        
+        if (module.Teachers!.Contains(user.Teacher))
+            throw new ConflictException("User already editor");
 
         if (module.Editors == null)
         {
@@ -287,41 +281,27 @@ public class AdminPanelService : IAdminPanelService
         {
             module.Editors.Add(user.Teacher);
         }
-        _backendDbContext.Update(user);
+
         _backendDbContext.Update(module);
         await _backendDbContext.SaveChangesAsync();
+      
     }
 
     public async Task DeleteEditorRightsFromUserOnModule(Guid userId, Guid moduleId)
     {
-        var userM = await _userManager.FindByIdAsync(userId.ToString()) ?? throw new NotFoundException("User with this Id not found.");
-        var userRoles = await _userManager.GetRolesAsync(userM);
-
-        if (!userRoles.Contains(RoleType.Teacher.ToString()))
-        {
-            throw new BadRequestException("User doesn't have teacher permissions.");
-        }
-
         var user = await _backendDbContext.UserBackends
             .Include(t => t.Teacher)!
-            .ThenInclude(m => m.ControlledModules)!
             .FirstOrDefaultAsync(u => u.Id == userId) ?? throw new NotFoundException("User with this Id not found.");
 
         var module = await _backendDbContext.Modules
-            .Include(t => t.Teachers)!
             .Include(e => e.Editors)!
             .FirstOrDefaultAsync(m => m.Id == moduleId)
             ?? throw new NotFoundException("Module with this Id not found.");
 
-        if (user.Teacher.ControlledModules == null || !user.Teacher.ControlledModules.Contains(module) || !module.Editors.Contains(user.Teacher))
-        {
-            throw new BadRequestException("User doesn't have teacher permissions on this module.");
-        }
-        else
-        {
-            module.Editors.Remove(user.Teacher);
-        };
-
+        if (user.Teacher == null || !module.Editors!.Contains(user.Teacher))
+            throw new ConflictException("User is not editor");
+        
+        module.Editors.Remove(user.Teacher);
         _backendDbContext.Update(module);
         await _backendDbContext.SaveChangesAsync();
     }

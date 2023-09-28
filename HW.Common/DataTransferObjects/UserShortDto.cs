@@ -10,7 +10,7 @@ public class UserShortDto
     public string NickName { get; set; }
     public string? AvatarId { get; set; }
     public string Email { get; set; }
-    public IList<string> Roles { get; set; }
+    public string? Role { get; set; }
     public bool IsEmailConfirm { get; set; }
     public bool IsBanned { get; set; }
 }

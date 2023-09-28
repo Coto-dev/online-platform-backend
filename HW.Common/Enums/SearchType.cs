@@ -1,7 +1,7 @@
 ﻿namespace HW.Common.Enums;
 
-public enum SortUserType
+public enum SearchType
 {
-    Name, 
+    FullName, 
     Mail
 }
