@@ -34,7 +34,7 @@ public class TestController : ControllerBase {
     }
     
     /// <summary>
-    /// Add simple test to chapter 
+    /// Add simple test to chapter [Editor]
     /// </summary>
     [HttpPost]
     [Authorize(AuthenticationSchemes = "Bearer", Roles = ApplicationRoleNames.Teacher + "," + ApplicationRoleNames.Administrator)]
@@ -51,7 +51,7 @@ public class TestController : ControllerBase {
     }
 
     /// <summary>
-    /// Edit simple test 
+    /// Edit simple test [Editor]
     /// </summary>
     [HttpPut]
     [Authorize(AuthenticationSchemes = "Bearer", Roles = ApplicationRoleNames.Teacher + "," + ApplicationRoleNames.Administrator)]
@@ -68,7 +68,7 @@ public class TestController : ControllerBase {
     }
     
     /// <summary>
-    /// Save answer for simple test type
+    /// Save answer for simple test type [Student]
     /// </summary>
     [HttpPut]
     [Authorize(AuthenticationSchemes = "Bearer")]
@@ -85,7 +85,7 @@ public class TestController : ControllerBase {
     }
     
     /// <summary>
-    /// Answer the simple test 
+    /// Answer the simple test [Student]
     /// </summary>
     [HttpPost]
     [Authorize(AuthenticationSchemes = "Bearer")]
@@ -102,7 +102,7 @@ public class TestController : ControllerBase {
     }
 
     /// <summary>
-    /// Add answer to simple test 
+    /// Add answer to simple test [Editor]
     /// </summary>
     [HttpPost]
     [Authorize(AuthenticationSchemes = "Bearer", Roles = ApplicationRoleNames.Teacher + "," + ApplicationRoleNames.Administrator)]
@@ -120,9 +120,9 @@ public class TestController : ControllerBase {
     }
 
     /// <summary>
-    /// Edit answer in simple test 
+    /// Edit answer in simple test [Editor]
     /// </summary>
-    [HttpPost]
+    [HttpPut]
     [Authorize(AuthenticationSchemes = "Bearer", Roles = ApplicationRoleNames.Teacher + "," + ApplicationRoleNames.Administrator)]
     [Route("{testId}/simple/answer/edit")]
     public async Task<ActionResult> EditAnswerInSimpleTest(Guid testId, Guid answerId, [FromBody] SimpleAnswerDto answer)
@@ -138,7 +138,7 @@ public class TestController : ControllerBase {
     }
 
     /// <summary>
-    /// Delete answer from simple test 
+    /// Delete answer from simple test [Editor]
     /// </summary>
     [HttpDelete]
     [Authorize(AuthenticationSchemes = "Bearer", Roles = ApplicationRoleNames.Teacher + "," + ApplicationRoleNames.Administrator)]
@@ -157,7 +157,7 @@ public class TestController : ControllerBase {
 
 
     /// <summary>
-    /// Add correct sequence test to chapter 
+    /// Add correct sequence test to chapter [Editor]
     /// </summary>
     [HttpPost]
     [Authorize(AuthenticationSchemes = "Bearer", Roles = ApplicationRoleNames.Teacher + "," + ApplicationRoleNames.Administrator)]
@@ -174,7 +174,7 @@ public class TestController : ControllerBase {
     }
 
     /// <summary>
-    /// Save answer for correct sequence test type
+    /// Save answer for correct sequence test type [Student]
     /// </summary>
     [HttpPut]
     [Authorize(AuthenticationSchemes = "Bearer")]
@@ -192,7 +192,7 @@ public class TestController : ControllerBase {
     }
 
     /// <summary>
-    /// Answer the correct sequence test 
+    /// Answer the correct sequence test [Student]
     /// </summary>
     [HttpPost]
     [Authorize(AuthenticationSchemes = "Bearer")]
@@ -209,7 +209,7 @@ public class TestController : ControllerBase {
     }
 
     /// <summary>
-    /// Add answer to sequence test 
+    /// Add answer to sequence test [Editor]
     /// </summary>
     [HttpPost]
     [Authorize(AuthenticationSchemes = "Bearer", Roles = ApplicationRoleNames.Teacher + "," + ApplicationRoleNames.Administrator)]
@@ -227,9 +227,9 @@ public class TestController : ControllerBase {
     }
 
     /// <summary>
-    /// Edit answer in sequence test 
+    /// Edit answer in sequence test [Editor]
     /// </summary>
-    [HttpPost]
+    [HttpPut]
     [Authorize(AuthenticationSchemes = "Bearer", Roles = ApplicationRoleNames.Teacher + "," + ApplicationRoleNames.Administrator)]
     [Route("{testId}/correct-sequence/answer/edit")]
     public async Task<ActionResult> EditAnswerInSequenceTest(Guid testId, Guid answerId, [FromBody] CorrectSequenceAnswerDto answerModel)
@@ -245,7 +245,7 @@ public class TestController : ControllerBase {
     }
 
     /// <summary>
-    /// Delete answer from sequence test 
+    /// Delete answer from sequence test [Editor]
     /// </summary>
     [HttpDelete]
     [Authorize(AuthenticationSchemes = "Bearer", Roles = ApplicationRoleNames.Teacher + "," + ApplicationRoleNames.Administrator)]
@@ -263,7 +263,7 @@ public class TestController : ControllerBase {
     }
 
     /// <summary>
-    /// Add detailed test to chapter 
+    /// Add detailed test to chapter [Editor]
     /// </summary>
     [HttpPost]
     [Authorize(AuthenticationSchemes = "Bearer", Roles = ApplicationRoleNames.Teacher + "," + ApplicationRoleNames.Administrator)]
@@ -281,7 +281,7 @@ public class TestController : ControllerBase {
     }
 
     /// <summary>
-    /// Answer the detailed test 
+    /// Answer the detailed test [Student]
     /// </summary>
     [HttpPost]
     [Authorize(AuthenticationSchemes = "Bearer")]
@@ -299,7 +299,7 @@ public class TestController : ControllerBase {
     }
 
     /// <summary>
-    /// Save answer for detailed test
+    /// Save answer for detailed test [Student]
     /// </summary>
     [HttpPut]
     [Authorize(AuthenticationSchemes = "Bearer")]
@@ -317,7 +317,7 @@ public class TestController : ControllerBase {
     }
 
     /// <summary>
-    /// Archive test 
+    /// Archive test [Editor]
     /// </summary>
     [HttpDelete]
     [Authorize(AuthenticationSchemes = "Bearer", Roles = ApplicationRoleNames.Teacher + "," + ApplicationRoleNames.Administrator)]
