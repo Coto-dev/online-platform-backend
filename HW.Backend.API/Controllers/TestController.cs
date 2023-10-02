@@ -45,7 +45,7 @@ public class TestController : ControllerBase {
            throw new UnauthorizedException("User is not authorized");
        }
 
-       await _checkPermissionService.CheckCreatorChapterPermission(chapterId, userId);
+       await _checkPermissionService.CheckCreatorChapterPermission(userId, chapterId);
        await _testService.AddSimpleTestToChapter(chapterId, testModel);
         return Ok();
     }
@@ -168,7 +168,7 @@ public class TestController : ControllerBase {
             throw new UnauthorizedException("User is not authorized");
         }
 
-        await _checkPermissionService.CheckCreatorChapterPermission(chapterId, userId);
+        await _checkPermissionService.CheckCreatorChapterPermission(userId, chapterId);
         await _testService.AddCorrectSequenceTestToChapter(chapterId, model);
         return Ok();
     }
@@ -275,7 +275,7 @@ public class TestController : ControllerBase {
             throw new UnauthorizedException("User is not authorized");
         }
 
-        await _checkPermissionService.CheckCreatorChapterPermission(chapterId, userId);
+        await _checkPermissionService.CheckCreatorChapterPermission(userId, chapterId);
         await _testService.AddDetailedTestToChapter(chapterId, testModel);
         return Ok();
     }
