@@ -8,13 +8,5 @@ public enum TestSimpleType {
     /// <summary>
     /// Несколько правильных вариантов
     /// </summary>
-    MultipleAnswer,
-    /// <summary>
-    /// Исключи один лишний
-    /// </summary>
-    ExtraAnswer,
-    /// <summary>
-    /// Исключи несколько лишних
-    /// </summary>
-    MultipleExtraAnswer
+    MultipleAnswer
 }

@@ -10,4 +10,6 @@ public class TestSimpleCreateDto {
     public string Question { get; set; }
     [Required]
     public List<string>? FileIds { get; set; }
+    [Required]
+    public TestSimpleType testType { get; set; }
 }

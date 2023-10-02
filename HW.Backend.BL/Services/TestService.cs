@@ -40,7 +40,10 @@ public class TestService : ITestService
             Chapter = chapter,
             Question = testModel.Question ?? throw new BadRequestException("Test has no question"),
             Files = testModel.FileIds,
-            PossibleAnswers = new List<SimpleAnswer>()
+            PossibleAnswers = new List<SimpleAnswer>(),
+            TestType = testModel.testType == TestSimpleType.SingleAnswer 
+                ? TestType.SingleAnswer 
+                : TestType.MultipleAnswer
         };
 
         await _dbContext.AddAsync(newTest);
