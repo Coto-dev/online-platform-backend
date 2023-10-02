@@ -107,7 +107,7 @@ public class TestController : ControllerBase {
     [HttpPost]
     [Authorize(AuthenticationSchemes = "Bearer", Roles = ApplicationRoleNames.Teacher + "," + ApplicationRoleNames.Administrator)]
     [Route("{testId}/simple/answer/add")]
-    public async Task<ActionResult> AddAnswerToSimpleTest(Guid testId, [FromBody] SimpleAnswerDto newAnswer)
+    public async Task<ActionResult> AddAnswerToSimpleTest(Guid testId, [FromBody] SimpleAnswerCreateDto newAnswer)
     {
         if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false)
         {
@@ -125,7 +125,7 @@ public class TestController : ControllerBase {
     [HttpPut]
     [Authorize(AuthenticationSchemes = "Bearer", Roles = ApplicationRoleNames.Teacher + "," + ApplicationRoleNames.Administrator)]
     [Route("{testId}/simple/answer/edit")]
-    public async Task<ActionResult> EditAnswerInSimpleTest(Guid testId, Guid answerId, [FromBody] SimpleAnswerDto answer)
+    public async Task<ActionResult> EditAnswerInSimpleTest(Guid testId, Guid answerId, [FromBody] SimpleAnswerCreateDto answer)
     {
         if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false)
         {
@@ -214,7 +214,7 @@ public class TestController : ControllerBase {
     [HttpPost]
     [Authorize(AuthenticationSchemes = "Bearer", Roles = ApplicationRoleNames.Teacher + "," + ApplicationRoleNames.Administrator)]
     [Route("{testId}/correct-sequence/answer/add")]
-    public async Task<ActionResult> AddAnswerToSequenceTest(Guid testId, [FromBody] CorrectSequenceAnswerDto newAnswerModel)
+    public async Task<ActionResult> AddAnswerToSequenceTest(Guid testId, [FromBody] CorrectSequenceAnswerCreateDto newAnswerCreateModel)
     {
         if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false)
         {
@@ -222,7 +222,7 @@ public class TestController : ControllerBase {
         }
 
         await _checkPermissionService.CheckCreatorTestPermission(userId, testId);
-        await _testService.AddAnswerToSequenceTest(testId, newAnswerModel);
+        await _testService.AddAnswerToSequenceTest(testId, newAnswerCreateModel);
         return Ok();
     }
 
@@ -232,7 +232,7 @@ public class TestController : ControllerBase {
     [HttpPut]
     [Authorize(AuthenticationSchemes = "Bearer", Roles = ApplicationRoleNames.Teacher + "," + ApplicationRoleNames.Administrator)]
     [Route("{testId}/correct-sequence/answer/edit")]
-    public async Task<ActionResult> EditAnswerInSequenceTest(Guid testId, Guid answerId, [FromBody] CorrectSequenceAnswerDto answerModel)
+    public async Task<ActionResult> EditAnswerInSequenceTest(Guid testId, Guid answerId, [FromBody] CorrectSequenceAnswerCreateDto answerCreateModel)
     {
         if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false)
         {
@@ -240,7 +240,7 @@ public class TestController : ControllerBase {
         }
 
         await _checkPermissionService.CheckCreatorTestPermission(userId, testId);
-        await _testService.EditAnswerInSequenceTest(answerId, answerModel);
+        await _testService.EditAnswerInSequenceTest(answerId, answerCreateModel);
         return Ok();
     }
 
@@ -330,6 +330,21 @@ public class TestController : ControllerBase {
 
         await _checkPermissionService.CheckCreatorTestPermission(userId, testId);
         await _testService.ArchiveTest(testId);
+        return Ok();
+    }
+    
+    /// <summary>
+    /// Edit order of chapter tests [Editor]
+    /// </summary>
+    [HttpPut]
+    [Route("chapter/{chapterId}/chapter-tests/order")]
+    public async Task<ActionResult> EditTestOrder([FromBody] List<Guid> orderedChapterTests, Guid chapterId) {
+        if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false) {
+            throw new UnauthorizedException("User is not authorized");
+        }
+        if (!User.IsInRole(ApplicationRoleNames.Administrator))
+            await _checkPermissionService.CheckCreatorChapterPermission(userId, chapterId);
+        await _testService.EditChapterTestsOrder(orderedChapterTests , chapterId);
         return Ok();
     }
 }

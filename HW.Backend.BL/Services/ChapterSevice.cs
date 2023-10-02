@@ -177,13 +177,17 @@ public class ChapterService : IChapterService
                             FileId = f,
                             Url = null 
                         }).ToList(),
-                    PossibleSimpleAnswers = t is SimpleAnswerTest simpleAnswerTest ? simpleAnswerTest.PossibleAnswers
+                    PossibleSimpleAnswers = t is SimpleAnswerTest { PossibleAnswers: not null } simpleAnswerTest
+                        ? simpleAnswerTest.PossibleAnswers
                         .Select(uat=> new SimpleAnswerDto {
+                            Id = uat.Id,
                             AnswerContent = uat.AnswerContent,
                             isRight = uat.IsRight
                         }).ToList():new List<SimpleAnswerDto>(),
-                    PossibleCorrectSequenceAnswers = t is CorrectSequenceTest correctSequenceTest ? correctSequenceTest.PossibleAnswers
+                    PossibleCorrectSequenceAnswers = t is CorrectSequenceTest { PossibleAnswers: not null } correctSequenceTest
+                        ? correctSequenceTest.PossibleAnswers
                         .Select(uat=> new CorrectSequenceAnswerDto {
+                            Id = uat.Id,
                             AnswerContent = uat.AnswerContent,
                             RightOrder = uat.RightOrder
                         }).ToList():new List<CorrectSequenceAnswerDto>(),
@@ -253,12 +257,17 @@ public class ChapterService : IChapterService
                         ? new List<string>()
                         : t.Files!.Select(async f=> await _fileService.GetFileLink(f)).Select(task=>task.Result).ToList()!, 
                     PossibleAnswers = t switch {
-                        SimpleAnswerTest simpleTest => simpleTest.PossibleAnswers
+                        SimpleAnswerTest simpleTest => simpleTest.PossibleAnswers.IsNullOrEmpty() 
+                            ? new List<PossibleAnswerDto>() 
+                            : simpleTest.PossibleAnswers
                             .Select(pa => new PossibleAnswerDto {
                                 Id = pa.Id,
                                 AnswerContent = pa.AnswerContent
                             }).ToList(),
-                        CorrectSequenceTest correctSequenceTest => correctSequenceTest.PossibleAnswers
+                        CorrectSequenceTest correctSequenceTest =>
+                            correctSequenceTest.PossibleAnswers.IsNullOrEmpty() 
+                            ? new List<PossibleAnswerDto>()
+                            : correctSequenceTest.PossibleAnswers
                             .Select(pa => new PossibleAnswerDto {
                                 Id = pa.Id,
                                 AnswerContent = pa.AnswerContent
