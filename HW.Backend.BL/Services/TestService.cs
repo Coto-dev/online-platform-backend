@@ -168,7 +168,8 @@ public class TestService : ITestService
             Chapter = chapter,
             Question = testModel.Question,
             Files = testModel.FileIds, 
-            PossibleAnswers = new List<CorrectSequenceAnswer>()
+            PossibleAnswers = new List<CorrectSequenceAnswer>(),
+            TestType = TestType.CorrectSequenceAnswer
         };
 
         await _dbContext.AddAsync(newTest);
