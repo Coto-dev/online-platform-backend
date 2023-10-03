@@ -184,8 +184,7 @@ public class CheckPermissionService: ICheckPermissionService {
             .Include(c => c.Chapter)
             .ThenInclude(f => f.SubModule)
             .ThenInclude(s => s.Module)
-            .ThenInclude(m => m.UserModules)!                                  //<------------------------
-            .ThenInclude(u => u.Student)
+            .ThenInclude(m=>m.Editors)
             .FirstOrDefaultAsync(u => u.Id == testId);
         if (test == null)
             throw new NotFoundException("Test not found");
