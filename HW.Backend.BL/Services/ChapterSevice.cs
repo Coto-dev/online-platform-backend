@@ -120,11 +120,12 @@ public class ChapterService : IChapterService
     }
     public async Task<ChapterFullTeacherDto> GetChapterContentTeacher(Guid chapterId, Guid userId) {
         var chapter = await _dbContext.Chapters
-            .Include(c=>c.ChapterTests)
             .Include(c=>c.ChapterBlocks)
             .Include(c=>c.ChapterComments)!
             .ThenInclude(com=>com.User)
+            .Include(c=>c.ChapterTests)
             .FirstOrDefaultAsync(m => m.Id == chapterId);
+        
         var user = await _dbContext.Students
             .Include(u=>u.LearnedChapters)
             .FirstOrDefaultAsync(u => u.Id == userId);
@@ -177,15 +178,17 @@ public class ChapterService : IChapterService
                             FileId = f,
                             Url = null 
                         }).ToList(),
-                    PossibleSimpleAnswers = t is SimpleAnswerTest { PossibleAnswers: not null } simpleAnswerTest
-                        ? simpleAnswerTest.PossibleAnswers
+                    PossibleSimpleAnswers = t is SimpleAnswerTest
+                        ? _dbContext.SimpleAnswerTests.Include(s=>s.PossibleAnswers)
+                            .FirstOrDefaultAsync(x=>x.Id == t.Id).Result?.PossibleAnswers
                         .Select(uat=> new SimpleAnswerDto {
                             Id = uat.Id,
                             AnswerContent = uat.AnswerContent,
                             isRight = uat.IsRight
                         }).ToList():new List<SimpleAnswerDto>(),
-                    PossibleCorrectSequenceAnswers = t is CorrectSequenceTest { PossibleAnswers: not null } correctSequenceTest
-                        ? correctSequenceTest.PossibleAnswers
+                    PossibleCorrectSequenceAnswers = t is CorrectSequenceTest
+                        ? _dbContext.CorrectSequenceTest.Include(s=>s.PossibleAnswers)
+                            .FirstOrDefaultAsync(x=>x.Id == t.Id).Result?.PossibleAnswers
                         .Select(uat=> new CorrectSequenceAnswerDto {
                             Id = uat.Id,
                             AnswerContent = uat.AnswerContent,
@@ -257,17 +260,15 @@ public class ChapterService : IChapterService
                         ? new List<string>()
                         : t.Files!.Select(async f=> await _fileService.GetFileLink(f)).Select(task=>task.Result).ToList()!, 
                     PossibleAnswers = t switch {
-                        SimpleAnswerTest simpleTest => simpleTest.PossibleAnswers.IsNullOrEmpty() 
-                            ? new List<PossibleAnswerDto>() 
-                            : simpleTest.PossibleAnswers
+                        SimpleAnswerTest simpleTest => _dbContext.SimpleAnswerTests.Include(s=>s.PossibleAnswers)
+                            .FirstOrDefaultAsync(x=>x.Id == t.Id).Result?.PossibleAnswers
                             .Select(pa => new PossibleAnswerDto {
                                 Id = pa.Id,
                                 AnswerContent = pa.AnswerContent
                             }).ToList(),
                         CorrectSequenceTest correctSequenceTest =>
-                            correctSequenceTest.PossibleAnswers.IsNullOrEmpty() 
-                            ? new List<PossibleAnswerDto>()
-                            : correctSequenceTest.PossibleAnswers
+                            _dbContext.CorrectSequenceTest.Include(s=>s.PossibleAnswers)
+                                .FirstOrDefaultAsync(x=>x.Id == t.Id).Result?.PossibleAnswers
                             .Select(pa => new PossibleAnswerDto {
                                 Id = pa.Id,
                                 AnswerContent = pa.AnswerContent

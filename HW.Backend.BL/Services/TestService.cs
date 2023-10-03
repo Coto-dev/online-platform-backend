@@ -441,7 +441,6 @@ public class TestService : ITestService
 
         answer.AnswerContent = answerModel.AnswerContent;
         answer.IsRight = answerModel.isRight;
-
         _dbContext.Update(answer); 
         await _dbContext.SaveChangesAsync();
     }

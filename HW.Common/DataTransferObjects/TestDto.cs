@@ -12,7 +12,7 @@ public class TestDto {
     public string Question { get; set; }
 
     public List<string>? FileUrls { get; set; } = new();
-    public List<PossibleAnswerDto> PossibleAnswers { get; set; } = new();
+    public List<PossibleAnswerDto>? PossibleAnswers { get; set; } = new();
     /// <summary>
     /// если у пользователя не было ответов на тест то пустой список
     /// </summary>
