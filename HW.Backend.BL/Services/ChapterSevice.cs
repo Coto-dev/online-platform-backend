@@ -294,6 +294,7 @@ public class ChapterService : IChapterService
                             }).ToList(),
                         IsAnswered =  _dbContext.UserAnswerTests
                             .Where(uat=>uat.Student == user && uat.Test == t)
+                            .AsEnumerable()
                             .MaxBy(uat=>uat.NumberOfAttempt)!.AnsweredAt.HasValue 
                     } : t.TestType is TestType.CorrectSequenceAnswer ? new UserAnswerFullDto {
                                 UserAnswerCorrectSequences = _dbContext.UserAnswers.OfType<CorrectSequenceUserAnswer>()
@@ -304,6 +305,7 @@ public class ChapterService : IChapterService
                                 }).ToList(),
                                 IsAnswered = _dbContext.UserAnswerTests
                                     .Where(uat=>uat.Student == user && uat.Test == t)
+                                    .AsEnumerable()
                                     .MaxBy(uat=>uat.NumberOfAttempt)!.AnsweredAt.HasValue 
                             } : t.TestType is TestType.DetailedAnswer ? new UserAnswerFullDto {
                                 DetailedAnswer = _dbContext.UserAnswers.OfType<DetailedAnswer>()
@@ -311,6 +313,7 @@ public class ChapterService : IChapterService
                                     .AnswerContent,
                                 IsAnswered = _dbContext.UserAnswerTests
                                     .Where(uat=>uat.Student == user && uat.Test == t)
+                                    .AsEnumerable()
                                     .MaxBy(uat=>uat.NumberOfAttempt)!.AnsweredAt.HasValue
                             } : null : null,
                     Type = t.TestType,

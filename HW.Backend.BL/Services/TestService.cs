@@ -46,6 +46,11 @@ public class TestService : ITestService
                 ? TestType.SingleAnswer 
                 : TestType.MultipleAnswer
         };
+        newTest.PossibleAnswers.Add(new SimpleAnswer {
+            AnswerContent = "Новый вариант ответа",
+            IsRight = false,
+            SimpleAnswerTest = newTest
+        });
         chapter.OrderedTests!.Add(newTest.Id);
         await _dbContext.AddAsync(newTest);
         await _dbContext.SaveChangesAsync();
@@ -70,6 +75,7 @@ public class TestService : ITestService
         var existingUserAnswerTest = _dbContext.UserAnswerTests
             .Include(n => n.UserAnswers)!
             .Where(n => n.Test == test && n.Student == student)
+            .AsEnumerable()
             .MaxBy(n => n.NumberOfAttempt);
 
         if (test.TestType == TestType.SingleAnswer && (userAnswers.Count != 1))
@@ -171,6 +177,11 @@ public class TestService : ITestService
             PossibleAnswers = new List<CorrectSequenceAnswer>(),
             TestType = TestType.CorrectSequenceAnswer
         };
+        newTest.PossibleAnswers.Add(new CorrectSequenceAnswer {
+            AnswerContent = "Новый вариант ответа",
+            RightOrder = 1,
+            CorrectSequenceTest = newTest,
+        });
         chapter.OrderedTests!.Add(newTest.Id);
         await _dbContext.AddAsync(newTest);
         await _dbContext.SaveChangesAsync();
@@ -198,6 +209,7 @@ public class TestService : ITestService
         var existingUserAnswerTest = _dbContext.UserAnswerTests
             .Include(n => n.UserAnswers)!
             .Where(n => n.Test == test && n.Student == student)
+            .AsEnumerable()
             .MaxBy(n => n.NumberOfAttempt);
         
         if (existingUserAnswerTest == null) {
@@ -347,9 +359,11 @@ public class TestService : ITestService
         if (test.ArchivedAt.HasValue)
             throw new NotFoundException("Test was deleted");
 
-        var existingUserAnswerTest = await _dbContext.UserAnswerTests
+        var existingUserAnswerTest =  _dbContext.UserAnswerTests
             .Include(n => n.UserAnswers)!
-            .FirstOrDefaultAsync(n => n.Test == test && n.Student == student);
+            .Where(n => n.Test == test && n.Student == student)
+            .AsEnumerable()
+            .MaxBy(uat => uat.NumberOfAttempt);
 
         if (existingUserAnswerTest == null)
         {
