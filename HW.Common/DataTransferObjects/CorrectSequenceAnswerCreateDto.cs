@@ -7,10 +7,5 @@ namespace HW.Common.DataTransferObjects;
 public class CorrectSequenceAnswerCreateDto {
     [Required]
     public string AnswerContent { get; set; }
-    /// <summary>
-    /// 0 - если пользователь не расположил ответ нигде
-    /// </summary>
-    [Required]
-    [Range(0,15)]
-    public int RightOrder { get; set; }
+   
 }

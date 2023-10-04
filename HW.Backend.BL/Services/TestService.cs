@@ -176,7 +176,7 @@ public class TestService : ITestService
         await _dbContext.SaveChangesAsync();
     }
 
-    public async Task SaveAnswerCorrectSequenceTest(Guid testId, List<UserAnswerCorrectSequenceDto> userAnswers, Guid userId)
+    public async Task SaveAnswerCorrectSequenceTest(Guid testId, List<Guid> userAnswerIds, Guid userId)
     {
         var student = await _dbContext.Students
             .FirstOrDefaultAsync(n => n.Id == userId);
@@ -192,7 +192,7 @@ public class TestService : ITestService
         if (test.ArchivedAt.HasValue)
             throw new NotFoundException("Test was deleted");
 
-        if (test.PossibleAnswers.Count < userAnswers.Count)
+        if (test.PossibleAnswers.Count < userAnswerIds.Count)
             throw new ConflictException("The number of answers is more then maximum");
 
         var existingUserAnswerTest = _dbContext.UserAnswerTests
@@ -210,13 +210,13 @@ public class TestService : ITestService
                 UserAnswers = new List<UserAnswer>() 
             };
 
-            foreach (var userAnswer in userAnswers) {
+            foreach (var userAnswer in userAnswerIds) {
                 var userAnswerInOrder = new CorrectSequenceUserAnswer
                 {
                     UserAnswerTest = newUserAnswerTest,
-                    CorrectSequenceAnswer = test.PossibleAnswers.FirstOrDefault(n => n.Id == userAnswer.Id)
+                    CorrectSequenceAnswer = test.PossibleAnswers.FirstOrDefault(n => n.Id == userAnswer)
                           ?? throw new NotFoundException("Answer not found"),
-                    Order = userAnswer.Order,
+                    Order = userAnswerIds.IndexOf(userAnswer),
                 };
                 newUserAnswerTest.UserAnswers.Add(userAnswerInOrder);
             }
@@ -225,25 +225,63 @@ public class TestService : ITestService
             await _dbContext.SaveChangesAsync();
         }
         else {
-            //foreach (var existAnswer in existingUserAnswerTest.UserAnswers) //clear
-            //{
-            //    _dbContext.Remove(existAnswer);
-            //}
+            if (existingUserAnswerTest.AnsweredAt.HasValue)
+                throw new ForbiddenException("Already answered");
+            
             existingUserAnswerTest.UserAnswers = new List<UserAnswer>();
-            foreach (var userAnswer in userAnswers)
+            foreach (var userAnswer in userAnswerIds)
             {
                 var userAnswersInOrder = new CorrectSequenceUserAnswer
                 {
                     UserAnswerTest = existingUserAnswerTest,
-                    CorrectSequenceAnswer = test.PossibleAnswers.FirstOrDefault(n => n.Id == userAnswer.Id)
+                    CorrectSequenceAnswer = test.PossibleAnswers.FirstOrDefault(n => n.Id == userAnswer)
                           ?? throw new NotFoundException("Answer not found"),
-                    Order = userAnswer.Order,
+                    Order = userAnswerIds.IndexOf(userAnswer),
                 };
                 existingUserAnswerTest.UserAnswers.Add(userAnswersInOrder);
             }
             _dbContext.Update(existingUserAnswerTest);
             await _dbContext.SaveChangesAsync();
         }
+    }
+
+    public async Task OrderAnswersInCorrectSequenceTest(Guid testId, List<Guid> answerIds) {
+        var test = await _dbContext.CorrectSequenceTest
+            .Include(n => n.PossibleAnswers)
+            .FirstOrDefaultAsync(n => n.Id == testId);
+        if (test == null)
+            throw new NotFoundException("Test not found");
+        var duplicates = answerIds.GroupBy(x => x)
+            .Where(g => g.Count() > 1)
+            .Select(y => y.Key)
+            .ToList();
+        if (duplicates.Count > 0)
+            throw new BadRequestException("There are duplicates: " + string.Join(", ", duplicates.Select(x => x)));
+        
+        if (test.PossibleAnswers.IsNullOrEmpty() || test.PossibleAnswers!.All(c => c.ArchivedAt.HasValue))
+            throw new ConflictException("There are no existing chapter tests");
+        var missingAnswers = test.PossibleAnswers!
+            .Where(c=>!c.ArchivedAt.HasValue)
+            .Select(c=>c.Id)
+            .Except(answerIds)
+            .ToList();
+        if (missingAnswers.Any())
+            throw new ConflictException("These answers are missing: " 
+                                        + string.Join(", ", missingAnswers.Select(x => x)));
+        var notExistingAnswers = answerIds.Except(test.PossibleAnswers!
+                .Where(c=>!c.ArchivedAt.HasValue)
+                .Select(c=>c.Id)
+                .ToList())
+            .ToList();
+        if (notExistingAnswers.Any())
+            throw new ConflictException("These answers do not exist: " 
+                                        + string.Join(", ", notExistingAnswers.Select(x => x)));
+        foreach (var correctSequenceAnswer in test.PossibleAnswers) {
+            correctSequenceAnswer.RightOrder = answerIds.IndexOf(correctSequenceAnswer.Id) + 1;
+        }
+        
+        _dbContext.Update(test);
+        await _dbContext.SaveChangesAsync();
     }
 
     public async Task AnswerCorrectSequenceTest(Guid testId, Guid userId)
@@ -478,12 +516,13 @@ public class TestService : ITestService
         var newAnswer = new CorrectSequenceAnswer
         {
             AnswerContent = newAnswerCreateModel.AnswerContent,
-            RightOrder = newAnswerCreateModel.RightOrder,
+            RightOrder = !test!.PossibleAnswers.IsNullOrEmpty()
+                ? test.PossibleAnswers.MaxBy(pa=>pa.RightOrder)!.RightOrder + 1
+                 : 1,
             CorrectSequenceTest = test ?? throw new NotFoundException("Test not found")
         };
 
         test.PossibleAnswers.Add(newAnswer);
-        _dbContext.Update(test);
         await _dbContext.AddAsync(newAnswer);
         await _dbContext.SaveChangesAsync();
     }
@@ -494,7 +533,6 @@ public class TestService : ITestService
             .FirstOrDefaultAsync(n => n.Id == answerId) ?? throw new NotFoundException("Answer not found");
 
         answer.AnswerContent = answerCreateModel.AnswerContent;
-        answer.RightOrder = answerCreateModel.RightOrder;
 
         _dbContext.Update(answer);
         await _dbContext.SaveChangesAsync();

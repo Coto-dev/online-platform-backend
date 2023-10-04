@@ -179,7 +179,7 @@ public class TestController : ControllerBase {
     [HttpPut]
     [Authorize(AuthenticationSchemes = "Bearer")]
     [Route("{testId}/correct-sequence/save")]
-    public async Task<ActionResult> SaveAnswerCorrectSequenceTest(Guid testId, List<UserAnswerCorrectSequenceDto> userAnswers)
+    public async Task<ActionResult> SaveAnswerCorrectSequenceTest(Guid testId, List<Guid> userAnswerIds)
     {
         if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false)
         {
@@ -187,7 +187,7 @@ public class TestController : ControllerBase {
         }
 
         await _checkPermissionService.CheckStudentTestPermission(userId, testId);
-        await _testService.SaveAnswerCorrectSequenceTest(testId, userAnswers, userId);
+        await _testService.SaveAnswerCorrectSequenceTest(testId, userAnswerIds, userId);
         return Ok();
     }
 
@@ -243,7 +243,23 @@ public class TestController : ControllerBase {
         await _testService.EditAnswerInSequenceTest(answerId, answerCreateModel);
         return Ok();
     }
+    /// <summary>
+    /// Edit answer's order in sequence test [Editor]
+    /// </summary>
+    [HttpPut]
+    [Authorize(AuthenticationSchemes = "Bearer", Roles = ApplicationRoleNames.Teacher + "," + ApplicationRoleNames.Administrator)]
+    [Route("{testId}/correct-sequence/answers/order")]
+    public async Task<ActionResult> EditAnswersOrderInTest(Guid testId,[FromBody] List<Guid> orderedAnswerIds)
+    {
+        if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false)
+        {
+            throw new UnauthorizedException("User is not authorized");
+        }
 
+        await _checkPermissionService.CheckCreatorTestPermission(userId, testId);
+        await _testService.OrderAnswersInCorrectSequenceTest(testId, orderedAnswerIds);
+        return Ok();
+    }
     /// <summary>
     /// Delete answer from sequence test [Editor]
     /// </summary>
