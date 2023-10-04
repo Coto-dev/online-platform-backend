@@ -133,7 +133,7 @@ public class TestController : ControllerBase {
         }
 
         await _checkPermissionService.CheckCreatorTestPermission(userId, testId);
-        await _testService.EditAnswerInSimpleTest(answerId, answer);
+        await _testService.EditAnswerInSimpleTest(answerId, testId, answer);
         return Ok();
     }
 

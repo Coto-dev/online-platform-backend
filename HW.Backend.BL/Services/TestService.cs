@@ -46,7 +46,7 @@ public class TestService : ITestService
                 ? TestType.SingleAnswer 
                 : TestType.MultipleAnswer
         };
-
+        chapter.OrderedTests!.Add(newTest.Id);
         await _dbContext.AddAsync(newTest);
         await _dbContext.SaveChangesAsync();
     }
@@ -171,7 +171,7 @@ public class TestService : ITestService
             PossibleAnswers = new List<CorrectSequenceAnswer>(),
             TestType = TestType.CorrectSequenceAnswer
         };
-
+        chapter.OrderedTests!.Add(newTest.Id);
         await _dbContext.AddAsync(newTest);
         await _dbContext.SaveChangesAsync();
     }
@@ -273,7 +273,7 @@ public class TestService : ITestService
         _dbContext.Update(existingUserAnswerTest);
         await _dbContext.SaveChangesAsync();
     }
-
+    
     public async Task AddDetailedTestToChapter(Guid chapterId, TestDetailedCreateDto testModel)
     {
         var chapter = await _dbContext.Chapters
@@ -289,7 +289,7 @@ public class TestService : ITestService
             Files = testModel.FileIds,
             TestType = TestType.DetailedAnswer
         };
-
+        chapter.OrderedTests!.Add(newTest.Id);
         await _dbContext.AddAsync(newTest);
         await _dbContext.SaveChangesAsync();
     }
@@ -391,6 +391,7 @@ public class TestService : ITestService
     public async Task ArchiveTest(Guid testId)
     {
         var test = await _dbContext.Tests
+            .Include(t=>t.Chapter)
             .FirstOrDefaultAsync(n => n.Id == testId);
         if (test == null)
             throw new NotFoundException("Test not found");
@@ -398,6 +399,7 @@ public class TestService : ITestService
             throw new ConflictException("Test already archived");
         test.ArchivedAt = DateTime.UtcNow;
         _dbContext.Update(test);
+        test.Chapter.OrderedTests!.Remove(test.Id);
         await _dbContext.SaveChangesAsync();
     }
 
@@ -434,10 +436,17 @@ public class TestService : ITestService
         await _dbContext.SaveChangesAsync();
     }
 
-    public async Task EditAnswerInSimpleTest(Guid answerId, SimpleAnswerCreateDto answerModel)
+    public async Task EditAnswerInSimpleTest(Guid answerId, Guid testId, SimpleAnswerCreateDto answerModel)
     {
         var answer = await _dbContext.SimpleAnswers
             .FirstOrDefaultAsync(n => n.Id == answerId) ?? throw new NotFoundException("Answer not found");
+        var test = await _dbContext.SimpleAnswerTests
+            .Include(t=>t.PossibleAnswers)
+            .FirstOrDefaultAsync(n => n.Id == testId);
+        if (test!.TestType == TestType.SingleAnswer)
+            foreach (var simpleAnswer in test.PossibleAnswers.Where(pa=>pa.IsRight)) {
+                simpleAnswer.IsRight = false;
+            }
 
         answer.AnswerContent = answerModel.AnswerContent;
         answer.IsRight = answerModel.isRight;

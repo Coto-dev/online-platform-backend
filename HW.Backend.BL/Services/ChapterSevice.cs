@@ -181,6 +181,7 @@ public class ChapterService : IChapterService
                     PossibleSimpleAnswers = t is SimpleAnswerTest
                         ? _dbContext.SimpleAnswerTests.Include(s=>s.PossibleAnswers)
                             .FirstOrDefaultAsync(x=>x.Id == t.Id).Result?.PossibleAnswers
+                            .OrderBy(s=>s.CreatedAt)
                         .Select(uat=> new SimpleAnswerDto {
                             Id = uat.Id,
                             AnswerContent = uat.AnswerContent,
@@ -189,7 +190,8 @@ public class ChapterService : IChapterService
                     PossibleCorrectSequenceAnswers = t is CorrectSequenceTest
                         ? _dbContext.CorrectSequenceTest.Include(s=>s.PossibleAnswers)
                             .FirstOrDefaultAsync(x=>x.Id == t.Id).Result?.PossibleAnswers
-                        .Select(uat=> new CorrectSequenceAnswerDto {
+                            .OrderBy(s=>s.CreatedAt)
+                            .Select(uat=> new CorrectSequenceAnswerDto {
                             Id = uat.Id,
                             AnswerContent = uat.AnswerContent,
                             RightOrder = uat.RightOrder
@@ -262,6 +264,7 @@ public class ChapterService : IChapterService
                     PossibleAnswers = t switch {
                         SimpleAnswerTest simpleTest => _dbContext.SimpleAnswerTests.Include(s=>s.PossibleAnswers)
                             .FirstOrDefaultAsync(x=>x.Id == t.Id).Result?.PossibleAnswers
+                            .OrderBy(s=>s.CreatedAt)
                             .Select(pa => new PossibleAnswerDto {
                                 Id = pa.Id,
                                 AnswerContent = pa.AnswerContent
@@ -269,7 +272,8 @@ public class ChapterService : IChapterService
                         CorrectSequenceTest correctSequenceTest =>
                             _dbContext.CorrectSequenceTest.Include(s=>s.PossibleAnswers)
                                 .FirstOrDefaultAsync(x=>x.Id == t.Id).Result?.PossibleAnswers
-                            .Select(pa => new PossibleAnswerDto {
+                                .OrderBy(s=>s.CreatedAt)
+                                .Select(pa => new PossibleAnswerDto {
                                 Id = pa.Id,
                                 AnswerContent = pa.AnswerContent
                             }).ToList(),

@@ -13,7 +13,7 @@ namespace HW.Common.Interfaces
         public Task AddSimpleTestToChapter(Guid chapterId, TestSimpleCreateDto testModel); 
         public Task EditTest(Guid testId, EditTestDto testModel); 
         public Task AddAnswerToSimpleTest(Guid testId, SimpleAnswerCreateDto newAnswer); 
-        public Task EditAnswerInSimpleTest(Guid answerId, SimpleAnswerCreateDto answer); 
+        public Task EditAnswerInSimpleTest(Guid answerId, Guid testId, SimpleAnswerCreateDto answer); 
         public Task DeleteAnswerFromSimpleTest(Guid testId, Guid answerId); 
         public Task SaveAnswerSimpleTest(Guid testId, List<UserAnswerSimpleDto> userAnswers, Guid userId); 
         public Task AnswerSimpleTest(Guid testId, Guid userId); 
