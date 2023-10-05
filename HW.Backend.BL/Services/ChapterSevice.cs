@@ -24,6 +24,34 @@ public class ChapterService : IChapterService
         _fileService = fileService;
     }
 
+    public async Task AnswerChapter(Guid chapterId, Guid userId) {
+        var user = await _dbContext.Students
+            .FirstOrDefaultAsync(c => c.Id == userId);
+        if (user == null) 
+            throw new NotFoundException("User with this id not found");
+
+        var chapter = await _dbContext.Chapters
+            .Include(c=>c.ChapterTests)
+            .FirstOrDefaultAsync(c => c.Id == chapterId);
+        if (chapter == null)
+            throw new NotFoundException("Chapter with this id not found");
+        if (chapter.ChapterType != ChapterType.ExamChapter && chapter.ChapterType != ChapterType.TestChapter)
+            throw new ForbiddenException("Incorrect chapter type");
+        var numberOfAttempt = _dbContext.UserAnswerTests
+            .Where(uat => chapter.ChapterTests!.Contains(uat.Test) && uat.Student == user)
+            .Max(uat => uat.NumberOfAttempt);
+        var userAnswers = _dbContext.UserAnswerTests
+            .Where(uat => chapter.ChapterTests!.Contains(uat.Test)
+                          && uat.Student == user
+                          && uat.NumberOfAttempt == numberOfAttempt)
+            .ToList();
+        if (userAnswers.Count < chapter.ChapterTests!.Count)
+            throw new ForbiddenException($"User answers: {userAnswers.Count}, but {chapter.ChapterTests.Count}");
+        userAnswers.ForEach(ua=>ua.AnsweredAt = DateTime.UtcNow);
+        _dbContext.Update(userAnswers);
+        await _dbContext.SaveChangesAsync();
+    }
+    
     public async Task LearnChapter(Guid chapterId, Guid userId)
     {
         var user = await _dbContext.Students
@@ -286,9 +314,7 @@ public class ChapterService : IChapterService
                         or TestType.MultipleExtraAnswer ? new UserAnswerFullDto {
                         UserAnswerSimples = _dbContext.UserAnswers.OfType<SimpleUserAnswer>()
                             .Where(u=>u.UserAnswerTest.Test == t && u.UserAnswerTest.Student == user)
-                            .Select(s=> new UserAnswerSimpleDto {
-                                Id = s.SimpleAnswer.Id
-                            }).ToList(),
+                            .Select(s=> s.Id).ToList(),
                         IsAnswered =  _dbContext.UserAnswerTests
                             .Where(uat=>uat.Student == user && uat.Test == t)
                             .AsEnumerable()
@@ -323,6 +349,10 @@ public class ChapterService : IChapterService
                    .UserAnswerCorrectSequences?.FirstOrDefault(x=>x.Id == pa.Id)?.Order)
                .ToList();
        }
+
+       response.IsCanCheckAnswer = response.Tests.All(t => t.UserAnswer != null);
+       response.IsAnswered = response.Tests.All(t => t.UserAnswer != null) 
+                             && response.Tests.All(t => t.UserAnswer!.IsAnswered);
        return response;
      }
 

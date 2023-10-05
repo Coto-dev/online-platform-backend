@@ -56,7 +56,7 @@ public class TestService : ITestService
         await _dbContext.SaveChangesAsync();
     }
 
-    public async Task SaveAnswerSimpleTest(Guid testId, List<UserAnswerSimpleDto> userAnswers, Guid userId)
+    public async Task SaveAnswerSimpleTest(Guid testId, List<Guid> userAnswers, Guid userId)
     { 
         var student = await _dbContext.Students
             .FirstOrDefaultAsync(n => n.Id == userId);
@@ -96,7 +96,7 @@ public class TestService : ITestService
             {
                 var newSimpleUserAnswer = new SimpleUserAnswer
                 {
-                    SimpleAnswer = test.PossibleAnswers.FirstOrDefault(n => n.Id == userAnswer.Id)
+                    SimpleAnswer = test.PossibleAnswers.FirstOrDefault(n => n.Id == userAnswer)
                           ?? throw new NotFoundException("Answer not found"),
                     UserAnswerTest = newUserAnswerTest
                 };
@@ -108,19 +108,14 @@ public class TestService : ITestService
             await _dbContext.SaveChangesAsync();
         }
         else {
-
-            //foreach (var existAnswer in existingUserAnswerTest.UserAnswers) //clear
-            //{
-            //    _dbContext.Remove(existAnswer);
-            //}
-
+            
             existingUserAnswerTest.UserAnswers = new List<UserAnswer>();
 
             foreach (var userAnswer in userAnswers)
             {
                 var newSimpleUserAnswer = new SimpleUserAnswer
                 {
-                    SimpleAnswer = test.PossibleAnswers.FirstOrDefault(n => n.Id == userAnswer.Id)
+                    SimpleAnswer = test.PossibleAnswers.FirstOrDefault(n => n.Id == userAnswer)
                         ?? throw new NotFoundException("Answer not found"),
                     UserAnswerTest = existingUserAnswerTest
                 };

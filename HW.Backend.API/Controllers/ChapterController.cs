@@ -186,4 +186,19 @@ public class ChapterController : ControllerBase {
         await _chapterService.EditComment(message, commentId, userId);
         return Ok();
     }
+    
+    /// <summary>
+    /// Answer on test chapter
+    /// </summary>
+    [HttpPost]
+    [Route("chapter/{chapterId}/test-chapter/answer")]
+    public async Task<ActionResult> AnswerOnTestChapter(Guid chapterId) {
+        if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false)
+        {
+            throw new UnauthorizedException("User is not authorized");
+        }
+        await _checkPermissionService.CheckStudentChapterPermission(userId, chapterId);
+        await _chapterService.AnswerChapter(chapterId, userId);
+        return Ok();
+    }
 }

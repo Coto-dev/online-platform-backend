@@ -15,7 +15,7 @@ namespace HW.Common.Interfaces
         public Task AddAnswerToSimpleTest(Guid testId, SimpleAnswerCreateDto newAnswer); 
         public Task EditAnswerInSimpleTest(Guid answerId, Guid testId, SimpleAnswerCreateDto answer); 
         public Task DeleteAnswerFromSimpleTest(Guid testId, Guid answerId); 
-        public Task SaveAnswerSimpleTest(Guid testId, List<UserAnswerSimpleDto> userAnswers, Guid userId); 
+        public Task SaveAnswerSimpleTest(Guid testId, List<Guid> userAnswers, Guid userId); 
         public Task AnswerSimpleTest(Guid testId, Guid userId); 
         public Task AddCorrectSequenceTestToChapter(Guid chapterId, TestCorrectSequenceCreateDto model); 
         public Task AnswerCorrectSequenceTest(Guid testId, Guid userId); 
@@ -28,6 +28,6 @@ namespace HW.Common.Interfaces
         public Task SaveAnswerDetailedTest (Guid testId, DetailedAnswerDto userAnswer, Guid userId);
         public Task AnswerDetailedTest(Guid testId, Guid userId); 
         public Task ArchiveTest(Guid testId); 
-        Task EditChapterTestsOrder(List<Guid> orderedChapterTests, Guid chapterId);
+        public Task EditChapterTestsOrder(List<Guid> orderedChapterTests, Guid chapterId);
     }
 }
