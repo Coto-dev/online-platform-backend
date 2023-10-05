@@ -222,7 +222,7 @@ public class ChapterService : IChapterService
         var user = await _dbContext.Students
             .Include(u=>u.LearnedChapters)
             .FirstOrDefaultAsync(u => u.Id == userId);
-        return new ChapterFullDto {
+       var response =  new ChapterFullDto {
             Id = chapter!.Id,
             Name = chapter.Name,
             Content = chapter.Content ?? "",
@@ -265,7 +265,6 @@ public class ChapterService : IChapterService
                     PossibleAnswers = t switch {
                         SimpleAnswerTest simpleTest => _dbContext.SimpleAnswerTests.Include(s=>s.PossibleAnswers)
                             .FirstOrDefaultAsync(x=>x.Id == t.Id).Result?.PossibleAnswers
-                            .OrderBy(s=>s.CreatedAt)
                             .Select(pa => new PossibleAnswerDto {
                                 Id = pa.Id,
                                 AnswerContent = pa.AnswerContent
@@ -273,8 +272,6 @@ public class ChapterService : IChapterService
                         CorrectSequenceTest correctSequenceTest =>
                             _dbContext.CorrectSequenceTest.Include(s=>s.PossibleAnswers)
                                 .FirstOrDefaultAsync(x=>x.Id == t.Id).Result?.PossibleAnswers
-                                .OrderBy(s=>s.RightOrder)
-                                .ThenBy(s=>s.CreatedAt)
                                 .Select(pa => new PossibleAnswerDto {
                                 Id = pa.Id,
                                 AnswerContent = pa.AnswerContent
@@ -299,6 +296,7 @@ public class ChapterService : IChapterService
                     } : t.TestType is TestType.CorrectSequenceAnswer ? new UserAnswerFullDto {
                                 UserAnswerCorrectSequences = _dbContext.UserAnswers.OfType<CorrectSequenceUserAnswer>()
                                 .Where(u=>u.UserAnswerTest.Test == t && u.UserAnswerTest.Student == user)
+                                .OrderBy(u=>u.Order)
                                 .Select(s=> new UserAnswerCorrectSequenceDto() {
                                 Id = s.CorrectSequenceAnswer.Id,
                                 Order = s.Order
@@ -319,7 +317,14 @@ public class ChapterService : IChapterService
                     Type = t.TestType,
                 }).ToList()
         };
-    }
+       foreach (var responseTest in response.Tests.Where(t=>t is { Type: TestType.CorrectSequenceAnswer, UserAnswer: not null })) {
+           responseTest.PossibleAnswers = responseTest.PossibleAnswers?
+               .OrderBy(pa => responseTest.UserAnswer?
+                   .UserAnswerCorrectSequences?.FirstOrDefault(x=>x.Id == pa.Id)?.Order)
+               .ToList();
+       }
+       return response;
+     }
 
      private async Task<string?> SwapFileIdsWithUrls(string? content, List<string>? FileIds) {
          if (content == null) return content;

@@ -228,7 +228,7 @@ public class TestService : ITestService
                     UserAnswerTest = newUserAnswerTest,
                     CorrectSequenceAnswer = test.PossibleAnswers.FirstOrDefault(n => n.Id == userAnswer)
                           ?? throw new NotFoundException("Answer not found"),
-                    Order = userAnswerIds.IndexOf(userAnswer),
+                    Order = userAnswerIds.IndexOf(userAnswer) + 1,
                 };
                 newUserAnswerTest.UserAnswers.Add(userAnswerInOrder);
             }
@@ -248,7 +248,7 @@ public class TestService : ITestService
                     UserAnswerTest = existingUserAnswerTest,
                     CorrectSequenceAnswer = test.PossibleAnswers.FirstOrDefault(n => n.Id == userAnswer)
                           ?? throw new NotFoundException("Answer not found"),
-                    Order = userAnswerIds.IndexOf(userAnswer),
+                    Order = userAnswerIds.IndexOf(userAnswer) + 1,
                 };
                 existingUserAnswerTest.UserAnswers.Add(userAnswersInOrder);
             }
@@ -495,7 +495,7 @@ public class TestService : ITestService
         var test = await _dbContext.SimpleAnswerTests
             .Include(t=>t.PossibleAnswers)
             .FirstOrDefaultAsync(n => n.Id == testId);
-        if (test!.TestType == TestType.SingleAnswer)
+        if (test!.TestType == TestType.SingleAnswer && answerModel.isRight)
             foreach (var simpleAnswer in test.PossibleAnswers.Where(pa=>pa.IsRight)) {
                 simpleAnswer.IsRight = false;
             }
