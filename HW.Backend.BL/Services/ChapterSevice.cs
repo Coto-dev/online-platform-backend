@@ -48,7 +48,7 @@ public class ChapterService : IChapterService
         if (userAnswers.Count < chapter.ChapterTests!.Count)
             throw new ForbiddenException($"User answers: {userAnswers.Count}, but {chapter.ChapterTests.Count}");
         userAnswers.ForEach(ua=>ua.AnsweredAt = DateTime.UtcNow);
-        _dbContext.Update(userAnswers);
+        _dbContext.UpdateRange(userAnswers);
         await _dbContext.SaveChangesAsync();
     }
     
@@ -314,7 +314,7 @@ public class ChapterService : IChapterService
                         or TestType.MultipleExtraAnswer ? new UserAnswerFullDto {
                         UserAnswerSimples = _dbContext.UserAnswers.OfType<SimpleUserAnswer>()
                             .Where(u=>u.UserAnswerTest.Test == t && u.UserAnswerTest.Student == user)
-                            .Select(s=> s.Id).ToList(),
+                            .Select(s=> s.SimpleAnswer.Id).ToList(),
                         IsAnswered =  _dbContext.UserAnswerTests
                             .Where(uat=>uat.Student == user && uat.Test == t)
                             .AsEnumerable()
