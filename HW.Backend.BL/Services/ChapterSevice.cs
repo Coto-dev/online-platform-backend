@@ -275,10 +275,7 @@ public class ChapterService : IChapterService
                     .Select(cb=> new ChapterBlockDto {
                     Content = SwapFileIdsWithUrls(cb.Content, cb.Files).Result,
                     Id = cb.Id
-                    // FilesUrls = cb.Files.IsNullOrEmpty()
-                    //     ? new List<string>()
-                    //     : cb.Files!.Select(async f=> await _fileService.GetFileLink(f)).Select(task=>task.Result).ToList()!
-                }).ToList(),
+                    }).ToList(),
             Tests = chapter.ChapterTests == null
                 ? new List<TestDto>()
                 : chapter.ChapterTests
@@ -295,14 +292,16 @@ public class ChapterService : IChapterService
                             .FirstOrDefaultAsync(x=>x.Id == t.Id).Result?.PossibleAnswers
                             .Select(pa => new PossibleAnswerDto {
                                 Id = pa.Id,
-                                AnswerContent = pa.AnswerContent
+                                AnswerContent = pa.AnswerContent,
+                                IsRight = pa.IsRight
                             }).ToList(),
                         CorrectSequenceTest correctSequenceTest =>
                             _dbContext.CorrectSequenceTest.Include(s=>s.PossibleAnswers)
                                 .FirstOrDefaultAsync(x=>x.Id == t.Id).Result?.PossibleAnswers
                                 .Select(pa => new PossibleAnswerDto {
                                 Id = pa.Id,
-                                AnswerContent = pa.AnswerContent
+                                AnswerContent = pa.AnswerContent,
+                                RightOrder = pa.RightOrder
                             }).ToList(),
                         _ => new List<PossibleAnswerDto>()
                     },
@@ -325,6 +324,7 @@ public class ChapterService : IChapterService
                                 .OrderBy(u=>u.Order)
                                 .Select(s=> new UserAnswerCorrectSequenceDto() {
                                 Id = s.CorrectSequenceAnswer.Id,
+                                AnswerContent = s.CorrectSequenceAnswer.AnswerContent,
                                 Order = s.Order
                                 }).ToList(),
                                 IsAnswered = _dbContext.UserAnswerTests
@@ -333,8 +333,17 @@ public class ChapterService : IChapterService
                                     .MaxBy(uat=>uat.NumberOfAttempt)!.AnsweredAt.HasValue 
                             } : t.TestType is TestType.DetailedAnswer ? new UserAnswerFullDto {
                                 DetailedAnswer = _dbContext.UserAnswers.OfType<DetailedAnswer>()
-                                    .FirstOrDefault(u=>u.UserAnswerTest.Test == t && u.UserAnswerTest.Student == user)!
-                                    .AnswerContent,
+                                    .Where(u=>u.UserAnswerTest.Test == t && u.UserAnswerTest.Student == user)!
+                                    .Select(d=> new DetailedAnswerFullDto() {
+                                        AnswerContent = d.AnswerContent,
+                                        Accuracy = d.Accuracy,
+                                        /*Files = d.Files == null
+                                            ? new List<FileLinkDto>()
+                                            : d.Files.Select(f => new FileLinkDto {
+                                                FileId = f,
+                                                Url = null 
+                                            }).ToList()*/
+                                    }).FirstOrDefault(),
                                 IsAnswered = _dbContext.UserAnswerTests
                                     .Where(uat=>uat.Student == user && uat.Test == t)
                                     .AsEnumerable()
@@ -343,16 +352,46 @@ public class ChapterService : IChapterService
                     Type = t.TestType,
                 }).ToList()
         };
-       foreach (var responseTest in response.Tests.Where(t=>t is { Type: TestType.CorrectSequenceAnswer, UserAnswer: not null })) {
+       // Сортировка возможных ответов в том порядке который выбрал пользователь
+       /*foreach (var responseTest in response.Tests.Where(t=>t is { Type: TestType.CorrectSequenceAnswer, UserAnswer: not null })) {
            responseTest.PossibleAnswers = responseTest.PossibleAnswers?
                .OrderBy(pa => responseTest.UserAnswer?
                    .UserAnswerCorrectSequences?.FirstOrDefault(x=>x.Id == pa.Id)?.Order)
                .ToList();
-       }
+       }*/
 
        response.IsCanCheckAnswer = response.Tests.All(t => t.UserAnswer != null);
        response.IsAnswered = response.Tests.All(t => t.UserAnswer != null) 
                              && response.Tests.All(t => t.UserAnswer!.IsAnswered);
+      
+       foreach (var responseTest in response.Tests) {
+           if (responseTest.Type == TestType.CorrectSequenceAnswer
+               && responseTest.PossibleAnswers?.Count > responseTest.UserAnswer?.UserAnswerCorrectSequences?.Count) {
+               var count = responseTest.UserAnswer.UserAnswerCorrectSequences.Count;
+               responseTest.UserAnswer?.UserAnswerCorrectSequences?
+                   .AddRange(responseTest.PossibleAnswers?
+                       .Where(pa => responseTest.UserAnswer.UserAnswerCorrectSequences
+                           .All(ua => ua.Id != pa.Id))
+                       .Select(pa => new UserAnswerCorrectSequenceDto {
+                           Id = pa.Id,
+                           Order = count = count + 1,
+                           AnswerContent = pa.AnswerContent
+                       })!);
+           }
+           responseTest.UserAnswer?.DetailedAnswer?.Files.ForEach(async f=>await _fileService.GetFileLink(f.FileId));
+           
+           if (response.IsAnswered) 
+               responseTest.PossibleAnswers = responseTest.PossibleAnswers?
+               .OrderBy(pa => pa.RightOrder)
+               .ToList();
+           else
+           {
+               responseTest.PossibleAnswers?.ForEach(pa=> {
+                   pa.RightOrder = null;
+                   pa.IsRight = null;
+               });
+           }
+       }
        return response;
      }
 
