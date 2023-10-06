@@ -41,17 +41,20 @@ public class ChapterService : IChapterService
             .Where(uat => chapter.ChapterTests!.Contains(uat.Test) && uat.Student == user)
             .Max(uat => uat.NumberOfAttempt);
         var userAnswers = _dbContext.UserAnswerTests
+            .Include(ua=>ua.UserAnswers)
             .Where(uat => chapter.ChapterTests!.Contains(uat.Test)
                           && uat.Student == user
                           && uat.NumberOfAttempt == numberOfAttempt)
             .ToList();
-        if (userAnswers.Count < chapter.ChapterTests!.Count)
-            throw new ForbiddenException($"User answers: {userAnswers.Count}, but {chapter.ChapterTests.Count}");
+        if (userAnswers.Any(uat => uat.AnsweredAt.HasValue))
+            throw new ForbiddenException("Already answered");
+        if (userAnswers.Where(uat=>!uat.UserAnswers.IsNullOrEmpty()).ToList().Count < chapter.ChapterTests!.Count)
+            throw new ForbiddenException($"User answers: {userAnswers.Count}, but tests: {chapter.ChapterTests.Count}");
         userAnswers.ForEach(ua=>ua.AnsweredAt = DateTime.UtcNow);
         _dbContext.UpdateRange(userAnswers);
         await _dbContext.SaveChangesAsync();
     }
-    
+
     public async Task LearnChapter(Guid chapterId, Guid userId)
     {
         var user = await _dbContext.Students
@@ -334,15 +337,16 @@ public class ChapterService : IChapterService
                             } : t.TestType is TestType.DetailedAnswer ? new UserAnswerFullDto {
                                 DetailedAnswer = _dbContext.UserAnswers.OfType<DetailedAnswer>()
                                     .Where(u=>u.UserAnswerTest.Test == t && u.UserAnswerTest.Student == user)!
+                                    .AsEnumerable()
                                     .Select(d=> new DetailedAnswerFullDto() {
                                         AnswerContent = d.AnswerContent,
                                         Accuracy = d.Accuracy,
-                                        /*Files = d.Files == null
+                                        Files = d.Files == null
                                             ? new List<FileLinkDto>()
                                             : d.Files.Select(f => new FileLinkDto {
                                                 FileId = f,
                                                 Url = null 
-                                            }).ToList()*/
+                                            }).ToList()
                                     }).FirstOrDefault(),
                                 IsAnswered = _dbContext.UserAnswerTests
                                     .Where(uat=>uat.Student == user && uat.Test == t)
@@ -360,25 +364,30 @@ public class ChapterService : IChapterService
                .ToList();
        }*/
 
-       response.IsCanCheckAnswer = response.Tests.All(t => t.UserAnswer != null);
+       response.IsCanCheckAnswer = response.Tests.All(t => t.UserAnswer != null 
+                                                           && (!t.UserAnswer.UserAnswerCorrectSequences.IsNullOrEmpty()
+                                                               || t.UserAnswer.DetailedAnswer != null
+                                                               || !t.UserAnswer.UserAnswerSimples.IsNullOrEmpty()));
        response.IsAnswered = response.Tests.All(t => t.UserAnswer != null) 
                              && response.Tests.All(t => t.UserAnswer!.IsAnswered);
       
        foreach (var responseTest in response.Tests) {
-           if (responseTest.Type == TestType.CorrectSequenceAnswer
-               && responseTest.PossibleAnswers?.Count > responseTest.UserAnswer?.UserAnswerCorrectSequences?.Count) {
-               var count = responseTest.UserAnswer.UserAnswerCorrectSequences.Count;
+           if (responseTest.Type == TestType.CorrectSequenceAnswer 
+               || (responseTest.UserAnswer?.UserAnswerCorrectSequences == null
+               && responseTest.PossibleAnswers?.Count > responseTest.UserAnswer?.UserAnswerCorrectSequences?.Count)) {
+               var count = responseTest.UserAnswer?.UserAnswerCorrectSequences?.Count ?? 0;
                responseTest.UserAnswer?.UserAnswerCorrectSequences?
                    .AddRange(responseTest.PossibleAnswers?
                        .Where(pa => responseTest.UserAnswer.UserAnswerCorrectSequences
                            .All(ua => ua.Id != pa.Id))
                        .Select(pa => new UserAnswerCorrectSequenceDto {
                            Id = pa.Id,
-                           Order = count = count + 1,
+                           Order = count += 1,
                            AnswerContent = pa.AnswerContent
                        })!);
            }
-           responseTest.UserAnswer?.DetailedAnswer?.Files.ForEach(async f=>await _fileService.GetFileLink(f.FileId));
+           responseTest.UserAnswer?.DetailedAnswer?.Files?
+               .ForEach(async f=>await _fileService.GetFileLink(f.FileId!));
            
            if (response.IsAnswered) 
                responseTest.PossibleAnswers = responseTest.PossibleAnswers?
