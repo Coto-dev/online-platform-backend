@@ -48,8 +48,8 @@ public class ChapterService : IChapterService
             .ToList();
         if (userAnswers.Any(uat => uat.AnsweredAt.HasValue))
             throw new ForbiddenException("Already answered");
-        if (userAnswers.Where(uat=>!uat.UserAnswers.IsNullOrEmpty()).ToList().Count < chapter.ChapterTests!.Count)
-            throw new ForbiddenException($"User answers: {userAnswers.Count}, but tests: {chapter.ChapterTests.Count}");
+        if (userAnswers.Where(uat=>!uat.UserAnswers.IsNullOrEmpty()).ToList().Count < chapter.ChapterTests!.Count(ct => !ct.ArchivedAt.HasValue))
+            throw new ForbiddenException($"User answers: {userAnswers.Count}, but tests: {chapter.ChapterTests!.Count(ct => !ct.ArchivedAt.HasValue)}");
         userAnswers.ForEach(ua=>ua.AnsweredAt = DateTime.UtcNow);
         _dbContext.UpdateRange(userAnswers);
         await _dbContext.SaveChangesAsync();
