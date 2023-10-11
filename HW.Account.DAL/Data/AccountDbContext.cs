@@ -8,13 +8,15 @@ namespace HW.Account.DAL.Data;
 /// <summary>
 /// Auth database context
 /// </summary>
-public class AccountDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid, IdentityUserClaim<Guid>,
-    IdentityUserRole<Guid>, IdentityUserLogin<Guid>, IdentityRoleClaim<Guid>, IdentityUserToken<Guid>> {
+public class AccountDbContext : IdentityDbContext<User, Role, Guid, IdentityUserClaim<Guid>,
+    UserRole, IdentityUserLogin<Guid>, IdentityRoleClaim<Guid>, IdentityUserToken<Guid>> {
     
     /// <summary>
     /// Users table
     /// </summary>
-    public new DbSet<User> Users { get; set; } = null!; 
+    public override DbSet<User> Users { get; set; } 
+    public override DbSet<Role> Roles { get; set; }
+    public override DbSet<UserRole> UserRoles { get; set; }
     public DbSet<EducationInfo> EducationInfos { get; set; }
     public DbSet<WorkExperienceInfo> WorkExperienceInfos { get; set; }
     public DbSet<Location> Locations { get; set; }
@@ -43,11 +45,14 @@ public class AccountDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid
             .WithOne(c => c.User)
             .HasForeignKey<Education>();
         
+        base.OnModelCreating(modelBuilder);
+        
         modelBuilder.Entity<Role>(o => {
-            o.ToTable("Roles");
+         //   o.ToTable("Roles");
         });
+        
         modelBuilder.Entity<UserRole>(o => {
-            o.ToTable("UserRoles");
+           // o.ToTable("UserRoles");
             o.HasOne(x => x.Role)
                 .WithMany(x => x.Users)
                 .HasForeignKey(x => x.RoleId)
@@ -58,7 +63,7 @@ public class AccountDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid
                 .OnDelete(DeleteBehavior.Cascade);
         });
         
-        base.OnModelCreating(modelBuilder);
+        
     }
 
     /// <summary>

@@ -155,6 +155,36 @@ namespace HW.Account.DAL.Migrations
                     b.ToTable("PhotoIds");
                 });
 
+            modelBuilder.Entity("HW.Account.DAL.Data.Entities.Role", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("ConcurrencyStamp")
+                        .IsConcurrencyToken()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Name")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<string>("NormalizedName")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<int>("RoleType")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("NormalizedName")
+                        .IsUnique()
+                        .HasDatabaseName("RoleNameIndex");
+
+                    b.ToTable("AspNetRoles", (string)null);
+                });
+
             modelBuilder.Entity("HW.Account.DAL.Data.Entities.User", b =>
                 {
                     b.Property<Guid>("Id")
@@ -239,6 +269,21 @@ namespace HW.Account.DAL.Migrations
                     b.ToTable("AspNetUsers", (string)null);
                 });
 
+            modelBuilder.Entity("HW.Account.DAL.Data.Entities.UserRole", b =>
+                {
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("RoleId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("UserId", "RoleId");
+
+                    b.HasIndex("RoleId");
+
+                    b.ToTable("AspNetUserRoles", (string)null);
+                });
+
             modelBuilder.Entity("HW.Account.DAL.Data.Entities.WorkExperience", b =>
                 {
                     b.Property<Guid>("Id")
@@ -278,35 +323,6 @@ namespace HW.Account.DAL.Migrations
                     b.HasIndex("WorkExperienceId");
 
                     b.ToTable("WorkExperienceInfos");
-                });
-
-            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole<System.Guid>", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("ConcurrencyStamp")
-                        .IsConcurrencyToken()
-                        .HasColumnType("text");
-
-                    b.Property<string>("Name")
-                        .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
-
-                    b.Property<string>("NormalizedName")
-                        .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("NormalizedName")
-                        .IsUnique()
-                        .HasDatabaseName("RoleNameIndex");
-
-                    b.ToTable("AspNetRoles", (string)null);
-
-                    b.UseTptMappingStrategy();
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<System.Guid>", b =>
@@ -378,23 +394,6 @@ namespace HW.Account.DAL.Migrations
                     b.ToTable("AspNetUserLogins", (string)null);
                 });
 
-            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<System.Guid>", b =>
-                {
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("RoleId")
-                        .HasColumnType("uuid");
-
-                    b.HasKey("UserId", "RoleId");
-
-                    b.HasIndex("RoleId");
-
-                    b.ToTable("AspNetUserRoles", (string)null);
-
-                    b.UseTptMappingStrategy();
-                });
-
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<System.Guid>", b =>
                 {
                     b.Property<Guid>("UserId")
@@ -412,28 +411,6 @@ namespace HW.Account.DAL.Migrations
                     b.HasKey("UserId", "LoginProvider", "Name");
 
                     b.ToTable("AspNetUserTokens", (string)null);
-                });
-
-            modelBuilder.Entity("HW.Account.DAL.Data.Entities.Role", b =>
-                {
-                    b.HasBaseType("Microsoft.AspNetCore.Identity.IdentityRole<System.Guid>");
-
-                    b.Property<int>("RoleType")
-                        .HasColumnType("integer");
-
-                    b.ToTable("Roles", (string)null);
-                });
-
-            modelBuilder.Entity("HW.Account.DAL.Data.Entities.UserRole", b =>
-                {
-                    b.HasBaseType("Microsoft.AspNetCore.Identity.IdentityUserRole<System.Guid>");
-
-                    b.Property<Guid>("UserId1")
-                        .HasColumnType("uuid");
-
-                    b.HasIndex("UserId1");
-
-                    b.ToTable("UserRoles", (string)null);
                 });
 
             modelBuilder.Entity("HW.Account.DAL.Data.Entities.BirthDate", b =>
@@ -491,6 +468,25 @@ namespace HW.Account.DAL.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("HW.Account.DAL.Data.Entities.UserRole", b =>
+                {
+                    b.HasOne("HW.Account.DAL.Data.Entities.Role", "Role")
+                        .WithMany("Users")
+                        .HasForeignKey("RoleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("HW.Account.DAL.Data.Entities.User", "User")
+                        .WithMany("Roles")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Role");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("HW.Account.DAL.Data.Entities.WorkExperience", b =>
                 {
                     b.HasOne("HW.Account.DAL.Data.Entities.User", "User")
@@ -515,7 +511,7 @@ namespace HW.Account.DAL.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<System.Guid>", b =>
                 {
-                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole<System.Guid>", null)
+                    b.HasOne("HW.Account.DAL.Data.Entities.Role", null)
                         .WithMany()
                         .HasForeignKey("RoleId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -540,21 +536,6 @@ namespace HW.Account.DAL.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<System.Guid>", b =>
-                {
-                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole<System.Guid>", null)
-                        .WithMany()
-                        .HasForeignKey("RoleId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("HW.Account.DAL.Data.Entities.User", null)
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<System.Guid>", b =>
                 {
                     b.HasOne("HW.Account.DAL.Data.Entities.User", null)
@@ -564,43 +545,14 @@ namespace HW.Account.DAL.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("HW.Account.DAL.Data.Entities.Role", b =>
-                {
-                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole<System.Guid>", null)
-                        .WithOne()
-                        .HasForeignKey("HW.Account.DAL.Data.Entities.Role", "Id")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("HW.Account.DAL.Data.Entities.UserRole", b =>
-                {
-                    b.HasOne("HW.Account.DAL.Data.Entities.Role", "Role")
-                        .WithMany("Users")
-                        .HasForeignKey("RoleId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("HW.Account.DAL.Data.Entities.User", "User")
-                        .WithMany("Roles")
-                        .HasForeignKey("UserId1")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUserRole<System.Guid>", null)
-                        .WithOne()
-                        .HasForeignKey("HW.Account.DAL.Data.Entities.UserRole", "UserId", "RoleId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Role");
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("HW.Account.DAL.Data.Entities.Education", b =>
                 {
                     b.Navigation("EducationInfos");
+                });
+
+            modelBuilder.Entity("HW.Account.DAL.Data.Entities.Role", b =>
+                {
+                    b.Navigation("Users");
                 });
 
             modelBuilder.Entity("HW.Account.DAL.Data.Entities.User", b =>
@@ -625,11 +577,6 @@ namespace HW.Account.DAL.Migrations
             modelBuilder.Entity("HW.Account.DAL.Data.Entities.WorkExperience", b =>
                 {
                     b.Navigation("WorkExperiencesInfos");
-                });
-
-            modelBuilder.Entity("HW.Account.DAL.Data.Entities.Role", b =>
-                {
-                    b.Navigation("Users");
                 });
 #pragma warning restore 612, 618
         }

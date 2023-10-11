@@ -24,7 +24,7 @@ public static class ConfigureIdentityRoles {
             throw new ArgumentNullException(nameof(userManager));
         }
 
-        var roleManager = serviceScope.ServiceProvider.GetService<RoleManager<IdentityRole<Guid>>>();
+        var roleManager = serviceScope.ServiceProvider.GetService<RoleManager<Role>>();
         if (roleManager == null) {
             throw new ArgumentNullException(nameof(roleManager));
         }
@@ -39,7 +39,10 @@ public static class ConfigureIdentityRoles {
             var role = await roleManager.FindByNameAsync(strRoleName);
             if (role == null) {
                 var roleResult =
-                    await roleManager.CreateAsync(new IdentityRole<Guid>(strRoleName));
+                    await roleManager.CreateAsync(new Role {
+                        Name = strRoleName,
+                        RoleType = (RoleType)Enum.Parse(typeof(RoleType), strRoleName),
+                    });
                 if (!roleResult.Succeeded) {
                     throw new InvalidOperationException($"Unable to create {strRoleName} role.");
                 }

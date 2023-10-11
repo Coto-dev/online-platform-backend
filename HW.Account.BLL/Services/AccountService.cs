@@ -144,6 +144,7 @@ public class AccountService: IAccountService {
         if (requester == null) {
             throw new NotFoundException("Requester not found");
         }
+        
         var requesterRoles = await _userManager.GetRolesAsync(requester);
         var userTarget = await _userManager.FindByIdAsync(targetUserId.ToString());
         var user = await _authDb.Users
@@ -228,7 +229,6 @@ public class AccountService: IAccountService {
     public async Task<List<ProfileShortDto>> GetUserShortProfile(List<Guid> userIds) {
         var users = await _authDb.Users.Where(u => userIds.Contains(u.Id))
             .ToListAsync();
-        
         var profileTasks = users.Select(async u => new ProfileShortDto
         {
             Id = u.Id,

@@ -34,19 +34,28 @@ public class AdminPanelService : IAdminPanelService
     }
 
     public async Task<PagedList<UserShortDto>> GetUsers(PaginationParamsDto pagination, FilterRoleType? roleFilter,
-        SearchType? sortUserType, string? searchString)
+        SearchType? sortUserType, string? searchString, Guid? moduleId)
     {
+        var module = await _backendDbContext.Modules
+            .Include(m=>m.Teachers)
+            .Include(m=>m.Editors)
+            .Include(m=>m.UserModules)!
+            .ThenInclude(um=>um.Student)
+            .FirstOrDefaultAsync(m => m.Id == moduleId && !m.ArchivedAt.HasValue);
+        
         if (pagination.PageNumber <= 0)
             throw new BadRequestException("Wrong page");
 
-        var users = _userManager.Users
+        var users1 = _userManager.Users
             .OrderBy(u => sortUserType == SearchType.FullName ? u.FullName : u.Email)
             .Where(u => searchString == null || (sortUserType == SearchType.FullName
                 ? u.FullName!.ToLower().Contains(searchString.ToLower())
                 : u.Email!.ToLower().Contains(searchString.ToLower())))
+            .UserRoleFilter(roleFilter)
             .AsNoTracking();
+        
 
-        var shortUsers =  users.Select( user => new UserShortDto
+        var shortUsers =  users1.Select( user => new UserShortDto
         {
             Id = user.Id,
             FullName = user.FullName,
@@ -54,26 +63,16 @@ public class AdminPanelService : IAdminPanelService
             AvatarId = user.AvatarId,
             Email = user.Email!,
             IsEmailConfirm = user.EmailConfirmed,
-        }).ToList();
-        var ListWithRoles = new List<UserShortDto>();
-        foreach (var userShortDto in shortUsers) {
-            var user = await _userManager.FindByIdAsync(userShortDto.Id.ToString());
-            var roles = await _userManager.GetRolesAsync(user!);
-            if (roles.All(r => !roleFilter!.RoleTypes!.Select(rt => rt.ToString()).Contains(r)))
-                continue;
-            else {
-                userShortDto.Role = roles.Contains(ApplicationRoleNames.Administrator)
-                    ? ApplicationRoleNames.Administrator
-                    : roles.Contains(ApplicationRoleNames.Teacher)
-                        ? ApplicationRoleNames.Teacher
-                        : roles.Contains(ApplicationRoleNames.Student)
-                            ? ApplicationRoleNames.Student
-                            : null;
-                ListWithRoles.Add(userShortDto);
-            }
-        }
-        
-        var response = await PagedListObsolete<UserShortDto>.ToPagedList(ListWithRoles, pagination.PageNumber, pagination.PageSize);
+            Role = user.Roles.Any(r=>r.Role.RoleType == RoleType.Administrator)
+                ? ApplicationRoleNames.Administrator
+                : user.Roles.Any(r=>r.Role.RoleType == RoleType.Teacher)
+                    ? ApplicationRoleNames.Teacher
+                    : user.Roles.Any(r=>r.Role.RoleType == RoleType.Student)
+                        ? ApplicationRoleNames.Student
+                        : null
+        });
+
+        var response = await PagedList<UserShortDto>.ToPagedList(shortUsers, pagination.PageNumber, pagination.PageSize);
         foreach (var userShortDto in response.Items)
         {
             userShortDto.AvatarId = userShortDto.AvatarId == null
@@ -81,6 +80,16 @@ public class AdminPanelService : IAdminPanelService
                 : await _fileService.GetAvatarLink(userShortDto.AvatarId);
             userShortDto.IsBanned =
                 await _userManager.IsLockedOutAsync((await _userManager.FindByIdAsync(userShortDto.Id.ToString()))!);
+
+            if (module == null) continue;
+            var userRoles = new List<ModuleUserRoleType>();
+            if (module.Teachers!.Any(t => t.Id == userShortDto.Id))
+                userRoles.Add(ModuleUserRoleType.Teacher);
+            if (module.Editors!.Any(t => t.Id == userShortDto.Id))
+                userRoles.Add(ModuleUserRoleType.Editor);
+            if (module.UserModules!.Any(t => t.Student.Id == userShortDto.Id))
+                userRoles.Add(ModuleUserRoleType.Student);
+            userShortDto.UserModuleRoles = userRoles;
         }
         return response;
     }

@@ -7,7 +7,7 @@ namespace HW.Common.Interfaces;
 public interface IAdminPanelService
 {
     public Task<PagedList<UserShortDto>> GetUsers(PaginationParamsDto pagination, FilterRoleType? filter,
-        SearchType? sortUserType, string? searchString);
+        SearchType? sortUserType, string? searchString, Guid? moduleId);
     public Task<PagedList<ModuleShortAdminDto>> GetModules(PaginationParamsDto pagination, FilterModuleType? filter,
             string? sortByNameFilter, SortModuleType? sortModuleType, bool withArchived);
     public Task AddTeacherRightsToUser(Guid userId);

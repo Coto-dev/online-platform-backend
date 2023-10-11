@@ -33,19 +33,6 @@ public class AdminPanelController : ControllerBase
     }
 
     /// <summary>
-    /// Get users list [Admin]
-    /// </summary>
-    [HttpGet]
-    [Route("users/list")]
-    public async Task<ActionResult<PagedList<UserShortDto>>> GetUsers([FromQuery] PaginationParamsDto pagination,
-        [FromQuery] string? searchString,
-        [FromQuery] FilterRoleType? filter,
-        [FromQuery] SearchType? sortUserType = SearchType.FullName)
-    {
-        return Ok(await _adminPanelService.GetUsers(pagination, filter, sortUserType,searchString));
-    }
-
-    /// <summary>
     /// Get all modules list [Admin]
     /// </summary>
     [HttpGet]

@@ -9,8 +9,7 @@ public static class QueryableExtensions
 {
     public static IQueryable<Module> ModuleOrderBy(this IQueryable<Module> source, SortModuleType? sort)
     {
-        return sort switch
-        {
+        return sort switch {
             SortModuleType.PriceAsc => source.OrderBy(x => x.Price),
             SortModuleType.PriceDesc => source.OrderByDescending(x => x.Price),
             SortModuleType.NameAsc => source.OrderBy(x => x.Name),
@@ -22,8 +21,7 @@ public static class QueryableExtensions
     }
 
     public static IQueryable<Module> ModuleAdminFilter(this IQueryable<Module> source, FilterModuleType? filter,
-        string? sortByNameFilter)
-    {
+        string? sortByNameFilter) {
 
         return source.Where(x =>
             (filter == null || (filter.ModuleTypes!.Contains(ModuleType.StreamingModule)
@@ -33,4 +31,14 @@ public static class QueryableExtensions
                            && (sortByNameFilter == null || x.Name.ToLower().Contains(sortByNameFilter.ToLower())));
     }
 
+    public static IQueryable<User> UserRoleFilter(this IQueryable<User> source,  FilterRoleType? roleFilter) {
+        return source.Where(u =>
+            (roleFilter!.RoleTypes!.Contains(RoleType.Student) && u.Roles.All(r => r.Role.RoleType == RoleType.Student))
+            || (roleFilter!.RoleTypes!.Contains(RoleType.Teacher) && u.Roles.Any(r =>
+                                                                      r.Role.RoleType == RoleType.Teacher)
+                                                                  && u.Roles.All(r =>
+                                                                      r.Role.RoleType != RoleType.Administrator))
+            || (roleFilter!.RoleTypes!.Contains(RoleType.Administrator) &&
+                u.Roles.Any(r => r.Role.RoleType == RoleType.Administrator)));
+    }
 }

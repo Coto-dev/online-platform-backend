@@ -13,4 +13,5 @@ public class UserShortDto
     public string? Role { get; set; }
     public bool IsEmailConfirm { get; set; }
     public bool IsBanned { get; set; }
+    public List<ModuleUserRoleType> UserModuleRoles { get; set; } = new();
 }
