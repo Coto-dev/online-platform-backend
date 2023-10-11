@@ -5,4 +5,6 @@ namespace HW.Common.DataTransferObjects;
 public class PossibleAnswerDto {
     public Guid Id { get; set; }
     public string AnswerContent { get; set; }
+    public bool? IsRight { get; set; }
+    public int? RightOrder { get; set; }
 }

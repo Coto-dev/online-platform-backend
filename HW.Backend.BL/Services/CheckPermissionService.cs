@@ -184,8 +184,7 @@ public class CheckPermissionService: ICheckPermissionService {
             .Include(c => c.Chapter)
             .ThenInclude(f => f.SubModule)
             .ThenInclude(s => s.Module)
-            .ThenInclude(m => m.UserModules)!                                  //<------------------------
-            .ThenInclude(u => u.Student)
+            .ThenInclude(m=>m.Editors)
             .FirstOrDefaultAsync(u => u.Id == testId);
         if (test == null)
             throw new NotFoundException("Test not found");
@@ -207,7 +206,7 @@ public class CheckPermissionService: ICheckPermissionService {
             .ThenInclude(m => m.Teachers)
             .FirstOrDefaultAsync(u => u.Id == testId);
         if (test == null)
-            throw new NotFoundException("Chapter not found");
+            throw new NotFoundException("Test not found");
         if (test.Chapter.SubModule.Module.Teachers == null || !test.Chapter.SubModule.Module.Teachers.Contains(user))
             throw new ForbiddenException("User do not have permission");
     }
@@ -226,7 +225,7 @@ public class CheckPermissionService: ICheckPermissionService {
             .ThenInclude(u => u.Student)
             .FirstOrDefaultAsync(u => u.Id == testId);
         if (test == null)
-            throw new NotFoundException("Chapter not found");
+            throw new NotFoundException("Test not found");
         if (!test.Chapter.SubModule.Module.UserModules!.Any(u => u.Student == user && u.ModuleStatus != ModuleStatusType.InCart))
             throw new ForbiddenException("User do not have permission");
     }

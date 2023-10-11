@@ -34,7 +34,7 @@ public class TestController : ControllerBase {
     }
     
     /// <summary>
-    /// Add simple test to chapter 
+    /// Add simple test to chapter [Editor]
     /// </summary>
     [HttpPost]
     [Authorize(AuthenticationSchemes = "Bearer", Roles = ApplicationRoleNames.Teacher + "," + ApplicationRoleNames.Administrator)]
@@ -45,13 +45,13 @@ public class TestController : ControllerBase {
            throw new UnauthorizedException("User is not authorized");
        }
 
-       await _checkPermissionService.CheckCreatorChapterPermission(chapterId, userId);
+       await _checkPermissionService.CheckCreatorChapterPermission(userId, chapterId);
        await _testService.AddSimpleTestToChapter(chapterId, testModel);
         return Ok();
     }
 
     /// <summary>
-    /// Edit simple test 
+    /// Edit simple test [Editor]
     /// </summary>
     [HttpPut]
     [Authorize(AuthenticationSchemes = "Bearer", Roles = ApplicationRoleNames.Teacher + "," + ApplicationRoleNames.Administrator)]
@@ -68,12 +68,12 @@ public class TestController : ControllerBase {
     }
     
     /// <summary>
-    /// Save answer for simple test type
+    /// Save answer for simple test type [Student]
     /// </summary>
     [HttpPut]
     [Authorize(AuthenticationSchemes = "Bearer")]
     [Route("{testId}/simple/save")]
-    public async Task<ActionResult> SaveAnswerSimpleTest(Guid testId, [FromBody] List<UserAnswerSimpleDto> userAnswers) {
+    public async Task<ActionResult> SaveAnswerSimpleTest(Guid testId, [FromBody] List<Guid> userAnswers) {
         if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false)
         {
             throw new UnauthorizedException("User is not authorized");
@@ -85,7 +85,7 @@ public class TestController : ControllerBase {
     }
     
     /// <summary>
-    /// Answer the simple test 
+    /// Answer the simple test [Student]
     /// </summary>
     [HttpPost]
     [Authorize(AuthenticationSchemes = "Bearer")]
@@ -102,12 +102,12 @@ public class TestController : ControllerBase {
     }
 
     /// <summary>
-    /// Add answer to simple test 
+    /// Add answer to simple test [Editor]
     /// </summary>
     [HttpPost]
     [Authorize(AuthenticationSchemes = "Bearer", Roles = ApplicationRoleNames.Teacher + "," + ApplicationRoleNames.Administrator)]
     [Route("{testId}/simple/answer/add")]
-    public async Task<ActionResult> AddAnswerToSimpleTest(Guid testId, [FromBody] SimpleAnswerDto newAnswer)
+    public async Task<ActionResult> AddAnswerToSimpleTest(Guid testId, [FromBody] SimpleAnswerCreateDto newAnswer)
     {
         if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false)
         {
@@ -120,12 +120,12 @@ public class TestController : ControllerBase {
     }
 
     /// <summary>
-    /// Edit answer in simple test 
+    /// Edit answer in simple test [Editor]
     /// </summary>
-    [HttpPost]
+    [HttpPut]
     [Authorize(AuthenticationSchemes = "Bearer", Roles = ApplicationRoleNames.Teacher + "," + ApplicationRoleNames.Administrator)]
     [Route("{testId}/simple/answer/edit")]
-    public async Task<ActionResult> EditAnswerInSimpleTest(Guid testId, Guid answerId, [FromBody] SimpleAnswerDto answer)
+    public async Task<ActionResult> EditAnswerInSimpleTest(Guid testId, Guid answerId, [FromBody] SimpleAnswerCreateDto answer)
     {
         if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false)
         {
@@ -133,12 +133,12 @@ public class TestController : ControllerBase {
         }
 
         await _checkPermissionService.CheckCreatorTestPermission(userId, testId);
-        await _testService.EditAnswerInSimpleTest(answerId, answer);
+        await _testService.EditAnswerInSimpleTest(answerId, testId, answer);
         return Ok();
     }
 
     /// <summary>
-    /// Delete answer from simple test 
+    /// Delete answer from simple test [Editor]
     /// </summary>
     [HttpDelete]
     [Authorize(AuthenticationSchemes = "Bearer", Roles = ApplicationRoleNames.Teacher + "," + ApplicationRoleNames.Administrator)]
@@ -157,7 +157,7 @@ public class TestController : ControllerBase {
 
 
     /// <summary>
-    /// Add correct sequence test to chapter 
+    /// Add correct sequence test to chapter [Editor]
     /// </summary>
     [HttpPost]
     [Authorize(AuthenticationSchemes = "Bearer", Roles = ApplicationRoleNames.Teacher + "," + ApplicationRoleNames.Administrator)]
@@ -168,18 +168,18 @@ public class TestController : ControllerBase {
             throw new UnauthorizedException("User is not authorized");
         }
 
-        await _checkPermissionService.CheckCreatorChapterPermission(chapterId, userId);
+        await _checkPermissionService.CheckCreatorChapterPermission(userId, chapterId);
         await _testService.AddCorrectSequenceTestToChapter(chapterId, model);
         return Ok();
     }
 
     /// <summary>
-    /// Save answer for correct sequence test type
+    /// Save answer for correct sequence test type [Student]
     /// </summary>
     [HttpPut]
     [Authorize(AuthenticationSchemes = "Bearer")]
     [Route("{testId}/correct-sequence/save")]
-    public async Task<ActionResult> SaveAnswerCorrectSequenceTest(Guid testId, List<UserAnswerCorrectSequenceDto> userAnswers)
+    public async Task<ActionResult> SaveAnswerCorrectSequenceTest(Guid testId, List<Guid> userAnswerIds)
     {
         if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false)
         {
@@ -187,12 +187,12 @@ public class TestController : ControllerBase {
         }
 
         await _checkPermissionService.CheckStudentTestPermission(userId, testId);
-        await _testService.SaveAnswerCorrectSequenceTest(testId, userAnswers, userId);
+        await _testService.SaveAnswerCorrectSequenceTest(testId, userAnswerIds, userId);
         return Ok();
     }
 
     /// <summary>
-    /// Answer the correct sequence test 
+    /// Answer the correct sequence test [Student]
     /// </summary>
     [HttpPost]
     [Authorize(AuthenticationSchemes = "Bearer")]
@@ -209,12 +209,12 @@ public class TestController : ControllerBase {
     }
 
     /// <summary>
-    /// Add answer to sequence test 
+    /// Add answer to sequence test [Editor]
     /// </summary>
     [HttpPost]
     [Authorize(AuthenticationSchemes = "Bearer", Roles = ApplicationRoleNames.Teacher + "," + ApplicationRoleNames.Administrator)]
     [Route("{testId}/correct-sequence/answer/add")]
-    public async Task<ActionResult> AddAnswerToSequenceTest(Guid testId, [FromBody] CorrectSequenceAnswerDto newAnswerModel)
+    public async Task<ActionResult> AddAnswerToSequenceTest(Guid testId, [FromBody] CorrectSequenceAnswerCreateDto newAnswerCreateModel)
     {
         if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false)
         {
@@ -222,17 +222,17 @@ public class TestController : ControllerBase {
         }
 
         await _checkPermissionService.CheckCreatorTestPermission(userId, testId);
-        await _testService.AddAnswerToSequenceTest(testId, newAnswerModel);
+        await _testService.AddAnswerToSequenceTest(testId, newAnswerCreateModel);
         return Ok();
     }
 
     /// <summary>
-    /// Edit answer in sequence test 
+    /// Edit answer in sequence test [Editor]
     /// </summary>
-    [HttpPost]
+    [HttpPut]
     [Authorize(AuthenticationSchemes = "Bearer", Roles = ApplicationRoleNames.Teacher + "," + ApplicationRoleNames.Administrator)]
     [Route("{testId}/correct-sequence/answer/edit")]
-    public async Task<ActionResult> EditAnswerInSequenceTest(Guid testId, Guid answerId, [FromBody] CorrectSequenceAnswerDto answerModel)
+    public async Task<ActionResult> EditAnswerInSequenceTest(Guid testId, Guid answerId, [FromBody] CorrectSequenceAnswerCreateDto answerCreateModel)
     {
         if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false)
         {
@@ -240,12 +240,28 @@ public class TestController : ControllerBase {
         }
 
         await _checkPermissionService.CheckCreatorTestPermission(userId, testId);
-        await _testService.EditAnswerInSequenceTest(answerId, answerModel);
+        await _testService.EditAnswerInSequenceTest(answerId, answerCreateModel);
         return Ok();
     }
-
     /// <summary>
-    /// Delete answer from sequence test 
+    /// Edit answer's order in sequence test [Editor]
+    /// </summary>
+    [HttpPut]
+    [Authorize(AuthenticationSchemes = "Bearer", Roles = ApplicationRoleNames.Teacher + "," + ApplicationRoleNames.Administrator)]
+    [Route("{testId}/correct-sequence/answers/order")]
+    public async Task<ActionResult> EditAnswersOrderInTest(Guid testId,[FromBody] List<Guid> orderedAnswerIds)
+    {
+        if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false)
+        {
+            throw new UnauthorizedException("User is not authorized");
+        }
+
+        await _checkPermissionService.CheckCreatorTestPermission(userId, testId);
+        await _testService.OrderAnswersInCorrectSequenceTest(testId, orderedAnswerIds);
+        return Ok();
+    }
+    /// <summary>
+    /// Delete answer from sequence test [Editor]
     /// </summary>
     [HttpDelete]
     [Authorize(AuthenticationSchemes = "Bearer", Roles = ApplicationRoleNames.Teacher + "," + ApplicationRoleNames.Administrator)]
@@ -263,7 +279,7 @@ public class TestController : ControllerBase {
     }
 
     /// <summary>
-    /// Add detailed test to chapter 
+    /// Add detailed test to chapter [Editor]
     /// </summary>
     [HttpPost]
     [Authorize(AuthenticationSchemes = "Bearer", Roles = ApplicationRoleNames.Teacher + "," + ApplicationRoleNames.Administrator)]
@@ -275,13 +291,13 @@ public class TestController : ControllerBase {
             throw new UnauthorizedException("User is not authorized");
         }
 
-        await _checkPermissionService.CheckCreatorChapterPermission(chapterId, userId);
+        await _checkPermissionService.CheckCreatorChapterPermission(userId, chapterId);
         await _testService.AddDetailedTestToChapter(chapterId, testModel);
         return Ok();
     }
 
     /// <summary>
-    /// Answer the detailed test 
+    /// Answer the detailed test [Student]
     /// </summary>
     [HttpPost]
     [Authorize(AuthenticationSchemes = "Bearer")]
@@ -299,7 +315,7 @@ public class TestController : ControllerBase {
     }
 
     /// <summary>
-    /// Save answer for detailed test
+    /// Save answer for detailed test [Student]
     /// </summary>
     [HttpPut]
     [Authorize(AuthenticationSchemes = "Bearer")]
@@ -317,7 +333,7 @@ public class TestController : ControllerBase {
     }
 
     /// <summary>
-    /// Archive test 
+    /// Archive test [Editor]
     /// </summary>
     [HttpDelete]
     [Authorize(AuthenticationSchemes = "Bearer", Roles = ApplicationRoleNames.Teacher + "," + ApplicationRoleNames.Administrator)]
@@ -330,6 +346,21 @@ public class TestController : ControllerBase {
 
         await _checkPermissionService.CheckCreatorTestPermission(userId, testId);
         await _testService.ArchiveTest(testId);
+        return Ok();
+    }
+    
+    /// <summary>
+    /// Edit order of chapter tests [Editor]
+    /// </summary>
+    [HttpPut]
+    [Route("chapter/{chapterId}/chapter-tests/order")]
+    public async Task<ActionResult> EditTestOrder([FromBody] List<Guid> orderedChapterTests, Guid chapterId) {
+        if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false) {
+            throw new UnauthorizedException("User is not authorized");
+        }
+        if (!User.IsInRole(ApplicationRoleNames.Administrator))
+            await _checkPermissionService.CheckCreatorChapterPermission(userId, chapterId);
+        await _testService.EditChapterTestsOrder(orderedChapterTests , chapterId);
         return Ok();
     }
 }

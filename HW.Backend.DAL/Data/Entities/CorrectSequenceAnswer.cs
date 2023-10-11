@@ -21,5 +21,17 @@ public class CorrectSequenceAnswer
     /// CorrectSequenceTest identifier
     /// </summary>
     public required CorrectSequenceTest CorrectSequenceTest { get; set; }
+    /// <summary>
+    /// Date and time the answer was created
+    /// </summary>
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    /// <summary>
+    /// Date and time the answer was edited
+    /// </summary>
+    public DateTime? EditedAt { get; set; }
+    /// <summary>
+    /// Date and time the answer was archived
+    /// </summary>
+    public DateTime? ArchivedAt { get; set; }
 
 }

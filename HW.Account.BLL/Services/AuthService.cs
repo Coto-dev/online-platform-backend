@@ -132,7 +132,11 @@ public class AuthService : IAuthService {
         if (user == null) {
             throw new NotFoundException("User not found");
         }
-
+        
+        if (await _userManager.IsLockedOutAsync(user)) {
+            throw new UnauthorizedException("User is banned");
+        }
+        
         var ipAddress = httpContext.Connection.RemoteIpAddress?.ToString() ?? "";
         var userAgent = httpContext.Request.Headers["User-Agent"].ToString();
         

@@ -24,6 +24,37 @@ public class ChapterService : IChapterService
         _fileService = fileService;
     }
 
+    public async Task AnswerChapter(Guid chapterId, Guid userId) {
+        var user = await _dbContext.Students
+            .FirstOrDefaultAsync(c => c.Id == userId);
+        if (user == null) 
+            throw new NotFoundException("User with this id not found");
+
+        var chapter = await _dbContext.Chapters
+            .Include(c=>c.ChapterTests)
+            .FirstOrDefaultAsync(c => c.Id == chapterId);
+        if (chapter == null)
+            throw new NotFoundException("Chapter with this id not found");
+        if (chapter.ChapterType != ChapterType.ExamChapter && chapter.ChapterType != ChapterType.TestChapter)
+            throw new ForbiddenException("Incorrect chapter type");
+        var numberOfAttempt = _dbContext.UserAnswerTests
+            .Where(uat => chapter.ChapterTests!.Contains(uat.Test) && uat.Student == user)
+            .Max(uat => uat.NumberOfAttempt);
+        var userAnswers = _dbContext.UserAnswerTests
+            .Include(ua=>ua.UserAnswers)
+            .Where(uat => chapter.ChapterTests!.Contains(uat.Test)
+                          && uat.Student == user
+                          && uat.NumberOfAttempt == numberOfAttempt)
+            .ToList();
+        if (userAnswers.Any(uat => uat.AnsweredAt.HasValue))
+            throw new ForbiddenException("Already answered");
+        if (userAnswers.Where(uat=>!uat.UserAnswers.IsNullOrEmpty()).ToList().Count < chapter.ChapterTests!.Count(ct => !ct.ArchivedAt.HasValue))
+            throw new ForbiddenException($"User answers: {userAnswers.Count}, but tests: {chapter.ChapterTests!.Count(ct => !ct.ArchivedAt.HasValue)}");
+        userAnswers.ForEach(ua=>ua.AnsweredAt = DateTime.UtcNow);
+        _dbContext.UpdateRange(userAnswers);
+        await _dbContext.SaveChangesAsync();
+    }
+
     public async Task LearnChapter(Guid chapterId, Guid userId)
     {
         var user = await _dbContext.Students
@@ -120,11 +151,12 @@ public class ChapterService : IChapterService
     }
     public async Task<ChapterFullTeacherDto> GetChapterContentTeacher(Guid chapterId, Guid userId) {
         var chapter = await _dbContext.Chapters
-            .Include(c=>c.ChapterTests)
             .Include(c=>c.ChapterBlocks)
             .Include(c=>c.ChapterComments)!
             .ThenInclude(com=>com.User)
+            .Include(c=>c.ChapterTests)
             .FirstOrDefaultAsync(m => m.Id == chapterId);
+        
         var user = await _dbContext.Students
             .Include(u=>u.LearnedChapters)
             .FirstOrDefaultAsync(u => u.Id == userId);
@@ -140,7 +172,8 @@ public class ChapterService : IChapterService
                 }).ToList(),
             Comments = chapter.ChapterComments == null
                 ? new List<ChapterCommentDto>()
-                : chapter.ChapterComments.Select(com => new ChapterCommentDto {
+                : chapter.ChapterComments
+                    .Select(com => new ChapterCommentDto {
                     Id = com.Id,
                     UserId = com.User.Id,
                     IsTeacherComment = com.IsTeacherComment,
@@ -150,8 +183,10 @@ public class ChapterService : IChapterService
             ChapterBlocks = chapter.ChapterBlocks == null
                 ? new List<ChapterBlockTeacherDto>()
                 : chapter.ChapterBlocks
+                    .Where(cb=>!cb.ArchivedAt.HasValue)
                     .OrderBy(cb=> chapter.OrderedBlocks!.IndexOf(cb.Id))
                     .Select(cb=> new ChapterBlockTeacherDto {
+                        Id = cb.Id,
                     Content = SwapFileIdsWithUrls(cb.Content, cb.Files).Result,
                     FileIds = cb.Files == null
                         ? new List<FileLinkDto>()
@@ -163,6 +198,7 @@ public class ChapterService : IChapterService
             Tests = chapter.ChapterTests == null
                 ? new List<TestTeacherDto>()
                 : chapter.ChapterTests
+                    .Where(t=>!t.ArchivedAt.HasValue)
                     .OrderBy(t=> chapter.OrderedTests!.IndexOf(t.Id))
                     .Select(t => new TestTeacherDto {
                     Id = t.Id,
@@ -173,13 +209,22 @@ public class ChapterService : IChapterService
                             FileId = f,
                             Url = null 
                         }).ToList(),
-                    PossibleSimpleAnswers = t is SimpleAnswerTest simpleAnswerTest ? simpleAnswerTest.PossibleAnswers
+                    PossibleSimpleAnswers = t is SimpleAnswerTest
+                        ? _dbContext.SimpleAnswerTests.Include(s=>s.PossibleAnswers)
+                            .FirstOrDefaultAsync(x=>x.Id == t.Id).Result?.PossibleAnswers
+                            .OrderBy(s=>s.CreatedAt)
                         .Select(uat=> new SimpleAnswerDto {
+                            Id = uat.Id,
                             AnswerContent = uat.AnswerContent,
                             isRight = uat.IsRight
                         }).ToList():new List<SimpleAnswerDto>(),
-                    PossibleCorrectSequenceAnswers = t is CorrectSequenceTest correctSequenceTest ? correctSequenceTest.PossibleAnswers
-                        .Select(uat=> new CorrectSequenceAnswerDto {
+                    PossibleCorrectSequenceAnswers = t is CorrectSequenceTest
+                        ? _dbContext.CorrectSequenceTest.Include(s=>s.PossibleAnswers)
+                            .FirstOrDefaultAsync(x=>x.Id == t.Id).Result?.PossibleAnswers
+                            .OrderBy(s=>s.RightOrder)
+                            .ThenBy(s=>s.CreatedAt)
+                            .Select(uat=> new CorrectSequenceAnswerDto {
+                            Id = uat.Id,
                             AnswerContent = uat.AnswerContent,
                             RightOrder = uat.RightOrder
                         }).ToList():new List<CorrectSequenceAnswerDto>(),
@@ -208,14 +253,14 @@ public class ChapterService : IChapterService
         var user = await _dbContext.Students
             .Include(u=>u.LearnedChapters)
             .FirstOrDefaultAsync(u => u.Id == userId);
-        return new ChapterFullDto {
+       var response =  new ChapterFullDto {
             Id = chapter!.Id,
             Name = chapter.Name,
             Content = chapter.Content ?? "",
             FileUrls = chapter.Files.IsNullOrEmpty()
                 ? new List<string>()
                 : chapter.Files!.Select(async f=> await _fileService.GetFileLink(f)).Select(task=>task.Result).ToList()!, 
-            Comments = chapter.ChapterComments == null  
+             Comments = chapter.ChapterComments == null  
                 ? new List<ChapterCommentDto>()
                 : chapter.ChapterComments.Select(com => new ChapterCommentDto {
                     Id = com.Id,
@@ -228,16 +273,16 @@ public class ChapterService : IChapterService
             ChapterBlocks = chapter.ChapterBlocks == null
                 ? new List<ChapterBlockDto>()
                 : chapter.ChapterBlocks
+                    .Where(cb=>!cb.ArchivedAt.HasValue)
                     .OrderBy(cb=> chapter.OrderedBlocks!.IndexOf(cb.Id))
                     .Select(cb=> new ChapterBlockDto {
                     Content = SwapFileIdsWithUrls(cb.Content, cb.Files).Result,
-                    // FilesUrls = cb.Files.IsNullOrEmpty()
-                    //     ? new List<string>()
-                    //     : cb.Files!.Select(async f=> await _fileService.GetFileLink(f)).Select(task=>task.Result).ToList()!
-                }).ToList(),
+                    Id = cb.Id
+                    }).ToList(),
             Tests = chapter.ChapterTests == null
                 ? new List<TestDto>()
                 : chapter.ChapterTests
+                    .Where(t=>!t.ArchivedAt.HasValue)
                     .OrderBy(t=> chapter.OrderedTests!.IndexOf(t.Id))
                     .Select(t => new TestDto {
                     Id = t.Id,
@@ -246,15 +291,20 @@ public class ChapterService : IChapterService
                         ? new List<string>()
                         : t.Files!.Select(async f=> await _fileService.GetFileLink(f)).Select(task=>task.Result).ToList()!, 
                     PossibleAnswers = t switch {
-                        SimpleAnswerTest simpleTest => simpleTest.PossibleAnswers
+                        SimpleAnswerTest simpleTest => _dbContext.SimpleAnswerTests.Include(s=>s.PossibleAnswers)
+                            .FirstOrDefaultAsync(x=>x.Id == t.Id).Result?.PossibleAnswers
                             .Select(pa => new PossibleAnswerDto {
                                 Id = pa.Id,
-                                AnswerContent = pa.AnswerContent
+                                AnswerContent = pa.AnswerContent,
+                                IsRight = pa.IsRight
                             }).ToList(),
-                        CorrectSequenceTest correctSequenceTest => correctSequenceTest.PossibleAnswers
-                            .Select(pa => new PossibleAnswerDto {
+                        CorrectSequenceTest correctSequenceTest =>
+                            _dbContext.CorrectSequenceTest.Include(s=>s.PossibleAnswers)
+                                .FirstOrDefaultAsync(x=>x.Id == t.Id).Result?.PossibleAnswers
+                                .Select(pa => new PossibleAnswerDto {
                                 Id = pa.Id,
-                                AnswerContent = pa.AnswerContent
+                                AnswerContent = pa.AnswerContent,
+                                RightOrder = pa.RightOrder
                             }).ToList(),
                         _ => new List<PossibleAnswerDto>()
                     },
@@ -266,34 +316,93 @@ public class ChapterService : IChapterService
                         or TestType.MultipleExtraAnswer ? new UserAnswerFullDto {
                         UserAnswerSimples = _dbContext.UserAnswers.OfType<SimpleUserAnswer>()
                             .Where(u=>u.UserAnswerTest.Test == t && u.UserAnswerTest.Student == user)
-                            .Select(s=> new UserAnswerSimpleDto {
-                                Id = s.SimpleAnswer.Id
-                            }).ToList(),
+                            .Select(s=> s.SimpleAnswer.Id).ToList(),
                         IsAnswered =  _dbContext.UserAnswerTests
                             .Where(uat=>uat.Student == user && uat.Test == t)
+                            .AsEnumerable()
                             .MaxBy(uat=>uat.NumberOfAttempt)!.AnsweredAt.HasValue 
                     } : t.TestType is TestType.CorrectSequenceAnswer ? new UserAnswerFullDto {
                                 UserAnswerCorrectSequences = _dbContext.UserAnswers.OfType<CorrectSequenceUserAnswer>()
                                 .Where(u=>u.UserAnswerTest.Test == t && u.UserAnswerTest.Student == user)
+                                .OrderBy(u=>u.Order)
                                 .Select(s=> new UserAnswerCorrectSequenceDto() {
                                 Id = s.CorrectSequenceAnswer.Id,
+                                AnswerContent = s.CorrectSequenceAnswer.AnswerContent,
                                 Order = s.Order
                                 }).ToList(),
                                 IsAnswered = _dbContext.UserAnswerTests
                                     .Where(uat=>uat.Student == user && uat.Test == t)
+                                    .AsEnumerable()
                                     .MaxBy(uat=>uat.NumberOfAttempt)!.AnsweredAt.HasValue 
                             } : t.TestType is TestType.DetailedAnswer ? new UserAnswerFullDto {
                                 DetailedAnswer = _dbContext.UserAnswers.OfType<DetailedAnswer>()
-                                    .FirstOrDefault(u=>u.UserAnswerTest.Test == t && u.UserAnswerTest.Student == user)!
-                                    .AnswerContent,
+                                    .Where(u=>u.UserAnswerTest.Test == t && u.UserAnswerTest.Student == user)!
+                                    .AsEnumerable()
+                                    .Select(d=> new DetailedAnswerFullDto() {
+                                        AnswerContent = d.AnswerContent,
+                                        Accuracy = d.Accuracy,
+                                        Files = d.Files == null
+                                            ? new List<FileLinkDto>()
+                                            : d.Files.Select(f => new FileLinkDto {
+                                                FileId = f,
+                                                Url = null 
+                                            }).ToList()
+                                    }).FirstOrDefault(),
                                 IsAnswered = _dbContext.UserAnswerTests
                                     .Where(uat=>uat.Student == user && uat.Test == t)
+                                    .AsEnumerable()
                                     .MaxBy(uat=>uat.NumberOfAttempt)!.AnsweredAt.HasValue
                             } : null : null,
                     Type = t.TestType,
                 }).ToList()
         };
-    }
+       // Сортировка возможных ответов в том порядке который выбрал пользователь
+       /*foreach (var responseTest in response.Tests.Where(t=>t is { Type: TestType.CorrectSequenceAnswer, UserAnswer: not null })) {
+           responseTest.PossibleAnswers = responseTest.PossibleAnswers?
+               .OrderBy(pa => responseTest.UserAnswer?
+                   .UserAnswerCorrectSequences?.FirstOrDefault(x=>x.Id == pa.Id)?.Order)
+               .ToList();
+       }*/
+
+       response.IsCanCheckAnswer = response.Tests.All(t => t.UserAnswer != null 
+                                                           && (!t.UserAnswer.UserAnswerCorrectSequences.IsNullOrEmpty()
+                                                               || t.UserAnswer.DetailedAnswer != null
+                                                               || !t.UserAnswer.UserAnswerSimples.IsNullOrEmpty()));
+       response.IsAnswered = response.Tests.All(t => t.UserAnswer != null) 
+                             && response.Tests.All(t => t.UserAnswer!.IsAnswered);
+      
+       foreach (var responseTest in response.Tests) {
+           if (responseTest.Type == TestType.CorrectSequenceAnswer 
+               || (responseTest.UserAnswer?.UserAnswerCorrectSequences == null
+               && responseTest.PossibleAnswers?.Count > responseTest.UserAnswer?.UserAnswerCorrectSequences?.Count)) {
+               var count = responseTest.UserAnswer?.UserAnswerCorrectSequences?.Count ?? 0;
+               responseTest.UserAnswer?.UserAnswerCorrectSequences?
+                   .AddRange(responseTest.PossibleAnswers?
+                       .Where(pa => responseTest.UserAnswer.UserAnswerCorrectSequences
+                           .All(ua => ua.Id != pa.Id))
+                       .Select(pa => new UserAnswerCorrectSequenceDto {
+                           Id = pa.Id,
+                           Order = count += 1,
+                           AnswerContent = pa.AnswerContent
+                       })!);
+           }
+           responseTest.UserAnswer?.DetailedAnswer?.Files?
+               .ForEach(async f=>await _fileService.GetFileLink(f.FileId!));
+           
+           if (response.IsAnswered) 
+               responseTest.PossibleAnswers = responseTest.PossibleAnswers?
+               .OrderBy(pa => pa.RightOrder)
+               .ToList();
+           else
+           {
+               responseTest.PossibleAnswers?.ForEach(pa=> {
+                   pa.RightOrder = null;
+                   pa.IsRight = null;
+               });
+           }
+       }
+       return response;
+     }
 
      private async Task<string?> SwapFileIdsWithUrls(string? content, List<string>? FileIds) {
          if (content == null) return content;

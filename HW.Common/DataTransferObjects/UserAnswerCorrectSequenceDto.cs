@@ -9,4 +9,5 @@ public class UserAnswerCorrectSequenceDto {
     public Guid Id { get; set; }
     [Required]
     public int Order { get; set; }
+    public string AnswerContent { get; set; }
 }

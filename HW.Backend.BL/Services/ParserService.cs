@@ -57,20 +57,21 @@ public class ParserService : IParserService {
                     break;
                 case "2":
                     if (subModules.IsNullOrEmpty())
-                        throw new InvalidOperationException("Not found heading 1: " +
-                                                            sourceDoc.Paragraphs.IndexOf(paragraph));
-                    subModules.Last()!.Chapters!.Add(new Chapter {
+                        throw new WordException("Not found heading 1: " +
+                                                sourceDoc.Paragraphs.IndexOf(paragraph));
+                    subModules.Last().Chapters!.Add(new Chapter {
                         Name = paragraph.Text,
                         SubModule = subModules.Last(),
                         ChapterType = ChapterType.DefaultChapter
                     });
+                    subModules.Last().OrderedChapters!.Add(subModules.Last().Chapters!.Last().Id);
                     break;
                 default:
                     if (subModules.IsNullOrEmpty())
-                        throw new InvalidOperationException("Not found heading 1 in paragraph: " +
+                        throw new WordException("Not found heading 1 in paragraph: " +
                                                             sourceDoc.Paragraphs.IndexOf(paragraph));
                     if (subModules.Last().Chapters.IsNullOrEmpty())
-                        throw new InvalidOperationException("Not found heading 2: " +
+                        throw new WordException("Not found heading 2: " +
                                                             sourceDoc.Paragraphs.IndexOf(paragraph));
                     var chapterBlocks = subModules.Last().Chapters!.Last().ChapterBlocks;
                     

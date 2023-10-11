@@ -13,6 +13,7 @@ using HW.Common.Exceptions;
 using HW.Backend.DAL.Data.Entities;
 using static System.Net.Mime.MediaTypeNames;
 using HW.Common.Enums;
+using Microsoft.IdentityModel.Tokens;
 
 namespace HW.Backend.BL.Services;
 
@@ -40,14 +41,22 @@ public class TestService : ITestService
             Chapter = chapter,
             Question = testModel.Question ?? throw new BadRequestException("Test has no question"),
             Files = testModel.FileIds,
-            PossibleAnswers = new List<SimpleAnswer>()
+            PossibleAnswers = new List<SimpleAnswer>(),
+            TestType = testModel.testType == TestSimpleType.SingleAnswer 
+                ? TestType.SingleAnswer 
+                : TestType.MultipleAnswer
         };
-
+        newTest.PossibleAnswers.Add(new SimpleAnswer {
+            AnswerContent = "Новый вариант ответа",
+            IsRight = false,
+            SimpleAnswerTest = newTest
+        });
+        chapter.OrderedTests!.Add(newTest.Id);
         await _dbContext.AddAsync(newTest);
         await _dbContext.SaveChangesAsync();
     }
 
-    public async Task SaveAnswerSimpleTest(Guid testId, List<UserAnswerSimpleDto> userAnswers, Guid userId)
+    public async Task SaveAnswerSimpleTest(Guid testId, List<Guid> userAnswers, Guid userId)
     { 
         var student = await _dbContext.Students
             .FirstOrDefaultAsync(n => n.Id == userId);
@@ -66,6 +75,7 @@ public class TestService : ITestService
         var existingUserAnswerTest = _dbContext.UserAnswerTests
             .Include(n => n.UserAnswers)!
             .Where(n => n.Test == test && n.Student == student)
+            .AsEnumerable()
             .MaxBy(n => n.NumberOfAttempt);
 
         if (test.TestType == TestType.SingleAnswer && (userAnswers.Count != 1))
@@ -86,7 +96,7 @@ public class TestService : ITestService
             {
                 var newSimpleUserAnswer = new SimpleUserAnswer
                 {
-                    SimpleAnswer = test.PossibleAnswers.FirstOrDefault(n => n.Id == userAnswer.Id)
+                    SimpleAnswer = test.PossibleAnswers.FirstOrDefault(n => n.Id == userAnswer)
                           ?? throw new NotFoundException("Answer not found"),
                     UserAnswerTest = newUserAnswerTest
                 };
@@ -98,19 +108,14 @@ public class TestService : ITestService
             await _dbContext.SaveChangesAsync();
         }
         else {
-
-            //foreach (var existAnswer in existingUserAnswerTest.UserAnswers) //clear
-            //{
-            //    _dbContext.Remove(existAnswer);
-            //}
-
+            
             existingUserAnswerTest.UserAnswers = new List<UserAnswer>();
 
             foreach (var userAnswer in userAnswers)
             {
                 var newSimpleUserAnswer = new SimpleUserAnswer
                 {
-                    SimpleAnswer = test.PossibleAnswers.FirstOrDefault(n => n.Id == userAnswer.Id)
+                    SimpleAnswer = test.PossibleAnswers.FirstOrDefault(n => n.Id == userAnswer)
                         ?? throw new NotFoundException("Answer not found"),
                     UserAnswerTest = existingUserAnswerTest
                 };
@@ -164,14 +169,20 @@ public class TestService : ITestService
             Chapter = chapter,
             Question = testModel.Question,
             Files = testModel.FileIds, 
-            PossibleAnswers = new List<CorrectSequenceAnswer>()
+            PossibleAnswers = new List<CorrectSequenceAnswer>(),
+            TestType = TestType.CorrectSequenceAnswer
         };
-
+        newTest.PossibleAnswers.Add(new CorrectSequenceAnswer {
+            AnswerContent = "Новый вариант ответа",
+            RightOrder = 1,
+            CorrectSequenceTest = newTest,
+        });
+        chapter.OrderedTests!.Add(newTest.Id);
         await _dbContext.AddAsync(newTest);
         await _dbContext.SaveChangesAsync();
     }
 
-    public async Task SaveAnswerCorrectSequenceTest(Guid testId, List<UserAnswerCorrectSequenceDto> userAnswers, Guid userId)
+    public async Task SaveAnswerCorrectSequenceTest(Guid testId, List<Guid> userAnswerIds, Guid userId)
     {
         var student = await _dbContext.Students
             .FirstOrDefaultAsync(n => n.Id == userId);
@@ -187,12 +198,13 @@ public class TestService : ITestService
         if (test.ArchivedAt.HasValue)
             throw new NotFoundException("Test was deleted");
 
-        if (test.PossibleAnswers.Count < userAnswers.Count)
+        if (test.PossibleAnswers.Count < userAnswerIds.Count)
             throw new ConflictException("The number of answers is more then maximum");
 
         var existingUserAnswerTest = _dbContext.UserAnswerTests
             .Include(n => n.UserAnswers)!
             .Where(n => n.Test == test && n.Student == student)
+            .AsEnumerable()
             .MaxBy(n => n.NumberOfAttempt);
         
         if (existingUserAnswerTest == null) {
@@ -205,13 +217,13 @@ public class TestService : ITestService
                 UserAnswers = new List<UserAnswer>() 
             };
 
-            foreach (var userAnswer in userAnswers) {
+            foreach (var userAnswer in userAnswerIds) {
                 var userAnswerInOrder = new CorrectSequenceUserAnswer
                 {
                     UserAnswerTest = newUserAnswerTest,
-                    CorrectSequenceAnswer = test.PossibleAnswers.FirstOrDefault(n => n.Id == userAnswer.Id)
+                    CorrectSequenceAnswer = test.PossibleAnswers.FirstOrDefault(n => n.Id == userAnswer)
                           ?? throw new NotFoundException("Answer not found"),
-                    Order = userAnswer.Order,
+                    Order = userAnswerIds.IndexOf(userAnswer) + 1,
                 };
                 newUserAnswerTest.UserAnswers.Add(userAnswerInOrder);
             }
@@ -220,25 +232,63 @@ public class TestService : ITestService
             await _dbContext.SaveChangesAsync();
         }
         else {
-            //foreach (var existAnswer in existingUserAnswerTest.UserAnswers) //clear
-            //{
-            //    _dbContext.Remove(existAnswer);
-            //}
+            if (existingUserAnswerTest.AnsweredAt.HasValue)
+                throw new ForbiddenException("Already answered");
+            
             existingUserAnswerTest.UserAnswers = new List<UserAnswer>();
-            foreach (var userAnswer in userAnswers)
+            foreach (var userAnswer in userAnswerIds)
             {
                 var userAnswersInOrder = new CorrectSequenceUserAnswer
                 {
                     UserAnswerTest = existingUserAnswerTest,
-                    CorrectSequenceAnswer = test.PossibleAnswers.FirstOrDefault(n => n.Id == userAnswer.Id)
+                    CorrectSequenceAnswer = test.PossibleAnswers.FirstOrDefault(n => n.Id == userAnswer)
                           ?? throw new NotFoundException("Answer not found"),
-                    Order = userAnswer.Order,
+                    Order = userAnswerIds.IndexOf(userAnswer) + 1,
                 };
                 existingUserAnswerTest.UserAnswers.Add(userAnswersInOrder);
             }
             _dbContext.Update(existingUserAnswerTest);
             await _dbContext.SaveChangesAsync();
         }
+    }
+
+    public async Task OrderAnswersInCorrectSequenceTest(Guid testId, List<Guid> answerIds) {
+        var test = await _dbContext.CorrectSequenceTest
+            .Include(n => n.PossibleAnswers)
+            .FirstOrDefaultAsync(n => n.Id == testId);
+        if (test == null)
+            throw new NotFoundException("Test not found");
+        var duplicates = answerIds.GroupBy(x => x)
+            .Where(g => g.Count() > 1)
+            .Select(y => y.Key)
+            .ToList();
+        if (duplicates.Count > 0)
+            throw new BadRequestException("There are duplicates: " + string.Join(", ", duplicates.Select(x => x)));
+        
+        if (test.PossibleAnswers.IsNullOrEmpty() || test.PossibleAnswers!.All(c => c.ArchivedAt.HasValue))
+            throw new ConflictException("There are no existing chapter tests");
+        var missingAnswers = test.PossibleAnswers!
+            .Where(c=>!c.ArchivedAt.HasValue)
+            .Select(c=>c.Id)
+            .Except(answerIds)
+            .ToList();
+        if (missingAnswers.Any())
+            throw new ConflictException("These answers are missing: " 
+                                        + string.Join(", ", missingAnswers.Select(x => x)));
+        var notExistingAnswers = answerIds.Except(test.PossibleAnswers!
+                .Where(c=>!c.ArchivedAt.HasValue)
+                .Select(c=>c.Id)
+                .ToList())
+            .ToList();
+        if (notExistingAnswers.Any())
+            throw new ConflictException("These answers do not exist: " 
+                                        + string.Join(", ", notExistingAnswers.Select(x => x)));
+        foreach (var correctSequenceAnswer in test.PossibleAnswers) {
+            correctSequenceAnswer.RightOrder = answerIds.IndexOf(correctSequenceAnswer.Id) + 1;
+        }
+        
+        _dbContext.Update(test);
+        await _dbContext.SaveChangesAsync();
     }
 
     public async Task AnswerCorrectSequenceTest(Guid testId, Guid userId)
@@ -268,7 +318,7 @@ public class TestService : ITestService
         _dbContext.Update(existingUserAnswerTest);
         await _dbContext.SaveChangesAsync();
     }
-
+    
     public async Task AddDetailedTestToChapter(Guid chapterId, TestDetailedCreateDto testModel)
     {
         var chapter = await _dbContext.Chapters
@@ -284,7 +334,7 @@ public class TestService : ITestService
             Files = testModel.FileIds,
             TestType = TestType.DetailedAnswer
         };
-
+        chapter.OrderedTests!.Add(newTest.Id);
         await _dbContext.AddAsync(newTest);
         await _dbContext.SaveChangesAsync();
     }
@@ -304,9 +354,11 @@ public class TestService : ITestService
         if (test.ArchivedAt.HasValue)
             throw new NotFoundException("Test was deleted");
 
-        var existingUserAnswerTest = await _dbContext.UserAnswerTests
+        var existingUserAnswerTest =  _dbContext.UserAnswerTests
             .Include(n => n.UserAnswers)!
-            .FirstOrDefaultAsync(n => n.Test == test && n.Student == student);
+            .Where(n => n.Test == test && n.Student == student)
+            .AsEnumerable()
+            .MaxBy(uat => uat.NumberOfAttempt);
 
         if (existingUserAnswerTest == null)
         {
@@ -386,6 +438,7 @@ public class TestService : ITestService
     public async Task ArchiveTest(Guid testId)
     {
         var test = await _dbContext.Tests
+            .Include(t=>t.Chapter)
             .FirstOrDefaultAsync(n => n.Id == testId);
         if (test == null)
             throw new NotFoundException("Test not found");
@@ -393,6 +446,7 @@ public class TestService : ITestService
             throw new ConflictException("Test already archived");
         test.ArchivedAt = DateTime.UtcNow;
         _dbContext.Update(test);
+        test.Chapter.OrderedTests!.Remove(test.Id);
         await _dbContext.SaveChangesAsync();
     }
 
@@ -410,7 +464,7 @@ public class TestService : ITestService
         await _dbContext.SaveChangesAsync();
     }
 
-    public async Task AddAnswerToSimpleTest(Guid testId, SimpleAnswerDto newAnswerModel)
+    public async Task AddAnswerToSimpleTest(Guid testId, SimpleAnswerCreateDto newAnswerModel)
     {
         var test = await _dbContext.SimpleAnswerTests
             .Include(n => n.PossibleAnswers)!
@@ -429,14 +483,20 @@ public class TestService : ITestService
         await _dbContext.SaveChangesAsync();
     }
 
-    public async Task EditAnswerInSimpleTest(Guid answerId, SimpleAnswerDto answerModel)
+    public async Task EditAnswerInSimpleTest(Guid answerId, Guid testId, SimpleAnswerCreateDto answerModel)
     {
         var answer = await _dbContext.SimpleAnswers
             .FirstOrDefaultAsync(n => n.Id == answerId) ?? throw new NotFoundException("Answer not found");
+        var test = await _dbContext.SimpleAnswerTests
+            .Include(t=>t.PossibleAnswers)
+            .FirstOrDefaultAsync(n => n.Id == testId);
+        if (test!.TestType == TestType.SingleAnswer && answerModel.isRight)
+            foreach (var simpleAnswer in test.PossibleAnswers.Where(pa=>pa.IsRight)) {
+                simpleAnswer.IsRight = false;
+            }
 
         answer.AnswerContent = answerModel.AnswerContent;
         answer.IsRight = answerModel.isRight;
-
         _dbContext.Update(answer); 
         await _dbContext.SaveChangesAsync();
     }
@@ -456,7 +516,7 @@ public class TestService : ITestService
         await _dbContext.SaveChangesAsync();
     }
 
-    public async Task AddAnswerToSequenceTest(Guid testId, CorrectSequenceAnswerDto newAnswerModel)
+    public async Task AddAnswerToSequenceTest(Guid testId, CorrectSequenceAnswerCreateDto newAnswerCreateModel)
     {
         var test = await _dbContext.CorrectSequenceTest
             .Include(n => n.PossibleAnswers)!
@@ -464,24 +524,24 @@ public class TestService : ITestService
 
         var newAnswer = new CorrectSequenceAnswer
         {
-            AnswerContent = newAnswerModel.AnswerContent,
-            RightOrder = newAnswerModel.RightOrder,
+            AnswerContent = newAnswerCreateModel.AnswerContent,
+            RightOrder = !test!.PossibleAnswers.IsNullOrEmpty()
+                ? test.PossibleAnswers.MaxBy(pa=>pa.RightOrder)!.RightOrder + 1
+                 : 1,
             CorrectSequenceTest = test ?? throw new NotFoundException("Test not found")
         };
 
         test.PossibleAnswers.Add(newAnswer);
-        _dbContext.Update(test);
         await _dbContext.AddAsync(newAnswer);
         await _dbContext.SaveChangesAsync();
     }
 
-    public async Task EditAnswerInSequenceTest(Guid answerId, CorrectSequenceAnswerDto answerModel)
+    public async Task EditAnswerInSequenceTest(Guid answerId, CorrectSequenceAnswerCreateDto answerCreateModel)
     {
         var answer = await _dbContext.CorrectSequenceAnswers
             .FirstOrDefaultAsync(n => n.Id == answerId) ?? throw new NotFoundException("Answer not found");
 
-        answer.AnswerContent = answerModel.AnswerContent;
-        answer.RightOrder = answerModel.RightOrder;
+        answer.AnswerContent = answerCreateModel.AnswerContent;
 
         _dbContext.Update(answer);
         await _dbContext.SaveChangesAsync();
@@ -500,5 +560,41 @@ public class TestService : ITestService
         _dbContext.Update(test);
         _dbContext.Remove(answer);
         await _dbContext.SaveChangesAsync();
+    }
+    
+    public async Task EditChapterTestsOrder(List<Guid> orderedChapterTests, Guid chapterId) {
+        var duplicates = orderedChapterTests.GroupBy(x => x)
+            .Where(g => g.Count() > 1)
+            .Select(y => y.Key)
+            .ToList();
+        if (duplicates.Count > 0)
+            throw new BadRequestException("There are duplicates: " + string.Join(", ", duplicates.Select(x => x)));
+        var chapter = await _dbContext.Chapters
+            .Include(m=>m.ChapterTests)
+            .FirstOrDefaultAsync(m => m.Id == chapterId);
+        if (chapter == null)
+            throw new NotFoundException("Chapter not found");
+        if (chapter.ChapterTests.IsNullOrEmpty() || chapter.ChapterTests!.All(c => c.ArchivedAt.HasValue))
+            throw new ConflictException("There are no existing chapter tests");
+        var missingChapterTests = chapter.ChapterTests!
+            .Where(c=>!c.ArchivedAt.HasValue)
+            .Select(c=>c.Id)
+            .Except(orderedChapterTests)
+            .ToList();
+        if (missingChapterTests.Any())
+            throw new ConflictException("These chapter tests are missing: " 
+                                        + string.Join(", ", missingChapterTests.Select(x => x)));
+        var notExistingChapterTests = orderedChapterTests.Except(chapter.ChapterTests!
+                .Where(c=>!c.ArchivedAt.HasValue)
+                .Select(c=>c.Id)
+                .ToList())
+            .ToList();
+        if (notExistingChapterTests.Any())
+            throw new ConflictException("These chapter tests do not exist: " 
+                                        + string.Join(", ", notExistingChapterTests.Select(x => x)));
+        chapter.OrderedTests = orderedChapterTests;
+        _dbContext.Update(chapter);
+        await _dbContext.SaveChangesAsync();
+        
     }
 }

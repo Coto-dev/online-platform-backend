@@ -101,6 +101,17 @@ public class ExceptionHandlerMiddleware {
             context.Response.ContentType = "application/json";
             await context.Response.WriteAsync(errorDetails.ToString());
         }
+        catch (WordException ex) {
+            var errorDetails = new ErrorDetails {
+                StatusCode = (int)HttpStatusCode.BadRequest,
+                Message = ex.Message,
+                TraceId = Activity.Current?.Id ?? context.TraceIdentifier
+            };
+            _logger.LogError(ex, "{Message}", errorDetails.ToString());
+            context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
+            context.Response.ContentType = "application/json";
+            await context.Response.WriteAsync(errorDetails.ToString());
+        }
 
         catch (UnauthorizedException ex) {
             var errorDetails = new ErrorDetails {

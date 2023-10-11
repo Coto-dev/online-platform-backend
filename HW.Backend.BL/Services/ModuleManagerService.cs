@@ -71,11 +71,13 @@ public class ModuleManagerService : IModuleManagerService {
         return new ModuleFullTeacherDto {
             Id = module.Id,
             SubModules = module.SubModules!
+                .Where(s=>!s.ArchivedAt.HasValue)
                 .OrderBy(x=> module.OrderedSubModules!.IndexOf(x.Id))
                 .Select(s=> new SubModuleFullDto {
                 Id = s.Id,
                 Name = s.Name,
                 Chapters = s.Chapters != null ? s.Chapters
+                    .Where(с=>!с.ArchivedAt.HasValue)
                     .OrderBy(c=> s.OrderedChapters!.IndexOf(c.Id))
                     .Select(c=> new ChapterShrotDto {
                     Id = c.Id,
@@ -174,43 +176,6 @@ public class ModuleManagerService : IModuleManagerService {
         _dbContext.Update(module);
         await _dbContext.SaveChangesAsync();
 
-    }
-
-
-    public async Task EditChapterTestsOrder(List<Guid> orderedChapterTests, Guid chapterId) {
-        var duplicates = orderedChapterTests.GroupBy(x => x)
-            .Where(g => g.Count() > 1)
-            .Select(y => y.Key)
-            .ToList();
-        if (duplicates.Count > 0)
-            throw new BadRequestException("There are duplicates: " + string.Join(", ", duplicates.Select(x => x)));
-        var chapter = await _dbContext.Chapters
-            .Include(m=>m.ChapterTests)
-            .FirstOrDefaultAsync(m => m.Id == chapterId);
-        if (chapter == null)
-            throw new NotFoundException("Chapter not found");
-        if (chapter.ChapterTests.IsNullOrEmpty() || chapter.ChapterTests!.All(c => c.ArchivedAt.HasValue))
-            throw new ConflictException("There are no existing chapter tests");
-        var missingChapterTests = chapter.ChapterTests!
-            .Where(c=>!c.ArchivedAt.HasValue)
-            .Select(c=>c.Id)
-            .Except(orderedChapterTests)
-            .ToList();
-        if (missingChapterTests.Any())
-            throw new ConflictException("These chapter tests are missing: " 
-                                        + string.Join(", ", missingChapterTests.Select(x => x)));
-        var notExistingChapterTests = orderedChapterTests.Except(chapter.ChapterTests!
-                .Where(c=>!c.ArchivedAt.HasValue)
-                .Select(c=>c.Id)
-                .ToList())
-            .ToList();
-        if (notExistingChapterTests.Any())
-            throw new ConflictException("These chapter tests do not exist: " 
-                                        + string.Join(", ", notExistingChapterTests.Select(x => x)));
-        chapter.OrderedTests = orderedChapterTests;
-        _dbContext.Update(chapter);
-        await _dbContext.SaveChangesAsync();
-        
     }
 
     public async Task<Guid> CreateSelfStudyModule(ModuleSelfStudyCreateDto model, Guid userId) {
