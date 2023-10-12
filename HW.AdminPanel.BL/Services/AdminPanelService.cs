@@ -328,6 +328,7 @@ public class AdminPanelService : IAdminPanelService
         };
 
         var user = await _backendDbContext.UserBackends
+            .Include(t => t.Student)!
             .FirstOrDefaultAsync(u => u.Id == userId) ?? throw new NotFoundException("User with this Id not found.");
 
         var module = await _backendDbContext.Modules
@@ -372,13 +373,14 @@ public class AdminPanelService : IAdminPanelService
         };
 
         var user = await _backendDbContext.UserBackends
+            .Include(t => t.Student)!
             .FirstOrDefaultAsync(u => u.Id == userId) ?? throw new NotFoundException("User with this Id not found.");
 
         var module = await _backendDbContext.Modules
             .Include(m => m.UserModules)
             .FirstOrDefaultAsync(s => s.Id == moduleId) ?? throw new NotFoundException("Module with this Id not found.");
 
-        var studentModule = module.UserModules.Find(m => m.Module == module && m.Student == user.Student) 
+        var studentModule = module.UserModules.FirstOrDefault(m => m.Module == module && m.Student == user.Student) 
             ?? throw new NotFoundException("Student dont have this module.");
 
         _backendDbContext.UserModules.Remove(studentModule);

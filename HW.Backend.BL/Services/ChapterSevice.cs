@@ -157,9 +157,9 @@ public class ChapterService : IChapterService
             .Include(c=>c.ChapterTests)
             .FirstOrDefaultAsync(m => m.Id == chapterId);
         
-        var user = await _dbContext.Students
-            .Include(u=>u.LearnedChapters)
-            .FirstOrDefaultAsync(u => u.Id == userId);
+        if (chapter == null)
+            throw new NotFoundException("Chapter nor found");
+        
         var response = new ChapterFullTeacherDto {
             Id = chapter!.Id,
             Name = chapter.Name,
@@ -250,6 +250,8 @@ public class ChapterService : IChapterService
             .Include(c=>c.ChapterComments)!
             .ThenInclude(com=>com.User)
             .FirstOrDefaultAsync(m => m.Id == chapterId);
+        if (chapter == null)
+            throw new NotFoundException("Chapter nor found");
         var user = await _dbContext.Students
             .Include(u=>u.LearnedChapters)
             .FirstOrDefaultAsync(u => u.Id == userId);

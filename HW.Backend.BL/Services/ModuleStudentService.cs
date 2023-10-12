@@ -180,6 +180,7 @@ public class ModuleStudentService : IModuleStudentService {
 
     public async Task<ModuleDetailsDto> GetModuleDetails(Guid moduleId, Guid? userId) {
         var module = await _dbContext.Modules
+            .Include(m=>m.Author)
             .Include(m=>m.Editors)
             .Include(m=>m.Teachers)
             .Include(m=>m.UserModules)

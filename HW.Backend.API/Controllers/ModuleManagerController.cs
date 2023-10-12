@@ -146,7 +146,7 @@ public class ModuleManagerController : ControllerBase {
             throw new UnauthorizedException("User is not authorized");
         }
         if (!User.IsInRole(ApplicationRoleNames.Administrator))
-            await _checkPermissionService.CheckCreatorModulePermission(userId, moduleId);
+            await _checkPermissionService.CheckAuthorModulePermission(userId, moduleId);
         await _moduleManagerService.ArchiveModule(moduleId);
         return Ok();
     }
@@ -167,7 +167,7 @@ public class ModuleManagerController : ControllerBase {
     }
     
     /// <summary>
-    /// Add editor to module
+    /// Add editor to module [Author]
     /// </summary>
     [HttpPost]
     [Route("{moduleId}/editor")]
@@ -182,7 +182,7 @@ public class ModuleManagerController : ControllerBase {
     }
     
     /// <summary>
-    /// Remove editor from module
+    /// Remove editor from module [Author]
     /// </summary>
     [HttpDelete]
     [Route("{moduleId}/editor")]
@@ -192,12 +192,12 @@ public class ModuleManagerController : ControllerBase {
         }
         if (!User.IsInRole(ApplicationRoleNames.Administrator))
             await _checkPermissionService.CheckAuthorModulePermission(authorId, moduleId);
-        await _moduleManagerService.RemoveEditorFromModule(userId, moduleId);
+        await _moduleManagerService.RemoveEditorFromModule(userId, moduleId, authorId);
         return Ok();
     }
     
     /// <summary>
-    /// Add teacher to module
+    /// Add teacher to module [Editor]
     /// </summary>
     [HttpPost]
     [Route("{moduleId}/teacher")]
@@ -212,7 +212,7 @@ public class ModuleManagerController : ControllerBase {
     }
     
     /// <summary>
-    /// Remove teacher from module
+    /// Remove teacher from module [Editor]
     /// </summary>
     [HttpDelete]
     [Route("{moduleId}/teacher")]

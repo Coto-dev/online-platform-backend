@@ -329,8 +329,11 @@ public class ModuleManagerService : IModuleManagerService {
        await _dbContext.SaveChangesAsync();
     }
 
-    public async Task RemoveEditorFromModule(Guid userId, Guid moduleId) {
+    public async Task RemoveEditorFromModule(Guid userId, Guid moduleId, Guid editorId) {
+        if (userId == editorId)
+            throw new ConflictException("You try to remove yourself from editors");
         var module = await _dbContext.Modules
+            .Include(m=>m.Author)
             .Include(m=>m.Editors)
             .FirstOrDefaultAsync(m => m.Id == moduleId && !m.ArchivedAt.HasValue);
         if (module == null)
@@ -339,7 +342,8 @@ public class ModuleManagerService : IModuleManagerService {
             .FirstOrDefaultAsync(u => u.Id == userId);
         if (user == null)
             throw new NotFoundException("User not found");
-
+        if (user == module.Author)
+            throw new ForbiddenException("You can not remove author");
         if (!module.Editors!.Contains(user))
             throw new ConflictException("User is not editor");
         module.Editors.Remove(user);
@@ -365,6 +369,7 @@ public class ModuleManagerService : IModuleManagerService {
 
     public async Task RemoveTeacherFromModule(Guid userId, Guid moduleId) {
         var module = await _dbContext.Modules
+            .Include(m=>m.Author)
             .Include(m=>m.Teachers)
             .FirstOrDefaultAsync(m => m.Id == moduleId && !m.ArchivedAt.HasValue);
         if (module == null)
@@ -373,7 +378,8 @@ public class ModuleManagerService : IModuleManagerService {
             .FirstOrDefaultAsync(u => u.Id == userId);
         if (user == null)
             throw new NotFoundException("User not found");
-
+        if (user == module.Author)
+            throw new ForbiddenException("You can not remove author");
         if (!module.Teachers!.Contains(user))
             throw new ConflictException("User is not teacher");
         module.Teachers.Remove(user);
