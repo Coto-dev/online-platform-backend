@@ -23,6 +23,7 @@ public static class ServiceDependencyExtension {
         services.AddScoped<IChapterBlocksService, ChapterBlocksService>();
         services.AddScoped<ITestService, TestService>();
         services.AddScoped<IActivityService, ActivityService>();
+        services.AddScoped<ITeacherManagerService, TeacherManagerService>();
 
         return services;
     }

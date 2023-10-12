@@ -35,6 +35,5 @@ public class Teacher {
     /// </summary>
     public List<EducationalProgram>? CreatedPrograms { get; set; } = new();
 
-
-
+    public List<ReviewedDetailedTests>? ReviewedDetailedTests { get; set; } = new();
 }

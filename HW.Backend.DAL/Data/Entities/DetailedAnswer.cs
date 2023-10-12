@@ -17,5 +17,10 @@ public class DetailedAnswer : UserAnswer
     /// Files which user attach to answer
     /// </summary>
     public List<string>? Files { get; set; } = new();
+    /// <summary>
+    /// List of reviewed tests
+    /// </summary>
+    public List<ReviewedDetailedTests>? ReviewedDetailedTests { get; set; } = new();
+
 
 }
