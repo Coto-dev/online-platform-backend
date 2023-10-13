@@ -6,5 +6,5 @@ public class GradeGraphSubModule {
     public Guid SubModuleId { get; set; }
     public string SubModuleName { get; set; }
     public List<GradeGraphChapter> Chapters { get; set; } = new();
-    public GradeGraphElementStatus GraphElementStatus { get; set; }
+    public UserAnswerTestStatus GraphElementStatus { get; set; }
 }

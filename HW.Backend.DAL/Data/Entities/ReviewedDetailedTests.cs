@@ -16,5 +16,5 @@ public class ReviewedDetailedTests {
     /// <summary>
     /// Time when Teacher set the accuracy
     /// </summary>
-    public DateTime ReviewedAt { get; set; }
+    public DateTime ReviewedAt { get; set; } = DateTime.UtcNow;
 }

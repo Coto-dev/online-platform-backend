@@ -1,4 +1,6 @@
 ﻿
+using HW.Common.Enums;
+
 namespace HW.Backend.DAL.Data.Entities;
 /// <summary>
 /// Entity for UserAnswerTest
@@ -13,10 +15,11 @@ public class UserAnswerTest
     /// Test identifier
     /// </summary>
     public required Test Test { get; set; }
+
     /// <summary>
     /// List of UserAnswer for test
     /// </summary>
-    public required List<UserAnswer> UserAnswers { get; set; }
+    public required List<UserAnswer> UserAnswers { get; set; } = new();
     /// <summary>
     /// Number of attempt for test
     /// </summary>
@@ -29,5 +32,9 @@ public class UserAnswerTest
     /// User identifier
     /// </summary>
     public required Student Student { get; set; }
+    /// <summary>
+    /// User answer status
+    /// </summary>
+    public UserAnswerTestStatus Status { get; set; } = UserAnswerTestStatus.NotDone;
 
 }

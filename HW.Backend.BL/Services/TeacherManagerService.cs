@@ -1,19 +1,25 @@
 using HW.Backend.DAL.Data;
+using HW.Backend.DAL.Data.Entities;
 using HW.Common.DataTransferObjects;
+using HW.Common.Enums;
 using HW.Common.Exceptions;
 using HW.Common.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Microsoft.IdentityModel.Tokens;
 
 namespace HW.Backend.BL.Services; 
 
 public class TeacherManagerService : ITeacherManagerService {
     private readonly ILogger<ModuleManagerService> _logger;
     private readonly BackendDbContext _dbContext;
-
-    public TeacherManagerService(ILogger<ModuleManagerService> logger, BackendDbContext dbContext) {
+    private readonly IModuleStudentService _moduleStudentService;
+    private readonly IFileService _fileService;
+    public TeacherManagerService(ILogger<ModuleManagerService> logger, BackendDbContext dbContext, IModuleStudentService moduleStudentService, IFileService fileService) {
         _logger = logger;
         _dbContext = dbContext;
+        _moduleStudentService = moduleStudentService;
+        _fileService = fileService;
     }
 
     public async Task<List<StudentWithWorksDto>> GetStudents(Guid moduleId) {
@@ -39,18 +45,158 @@ public class TeacherManagerService : ITeacherManagerService {
     }
 
     public async Task<GradeGraph> GetStudentGradeGraph(Guid moduleId, Guid studentId) {
-        throw new NotImplementedException();
+        var module = await _dbContext.Modules
+            .Include(m=>m.SubModules)!
+            .ThenInclude(s=>s.Chapters)!
+            .ThenInclude(c=>c.ChapterTests)
+            .FirstOrDefaultAsync(m => m.Id == moduleId && !m.ArchivedAt.HasValue);
+        if (module == null)
+            throw new NotFoundException("Module not found");
+        var student = await _dbContext.Students
+            .FirstOrDefaultAsync(s => s.Id == studentId);
+        var gradeGraph = new GradeGraph {
+            UserProgress = new UserProgress {
+                Id = studentId,
+                PassedTests = await _dbContext.UserAnswerTests
+                    .Where(uat=>uat.AnsweredAt.HasValue 
+                                && uat.Student == student
+                                && uat.Test.Chapter.SubModule.Module == module)
+                    .CountAsync(),
+                LearnedChapters = await _dbContext.Learned
+                    .Where(l=>l.Chapter.SubModule.Module == module 
+                              && l.LearnedBy == student)
+                    .CountAsync(),
+                Progress = await _moduleStudentService.CalculateProgressFloat(moduleId, studentId)
+            },
+            WorksCount = await _dbContext.DetailedAnswers
+                .Where(da=>da.Accuracy == 0
+                && da.UserAnswerTest.Student == student
+                && da.UserAnswerTest.Test.Chapter.SubModule.Module == module)
+                .CountAsync(),
+            SubModules = module.SubModules!.Select(s=> new GradeGraphSubModule {
+                SubModuleId = s.Id,
+                SubModuleName = s.Name,
+                Chapters = s.Chapters!
+                    .Where(c=>c.ChapterType is ChapterType.TestChapter or ChapterType.ExamChapter)
+                    .Select(c=> new GradeGraphChapter {
+                    ChapterId = c.Id,
+                    ChapterName = c.Name,
+                }).ToList(),
+            }).ToList()
+        };
+        foreach (var gradeGraphSubModule in gradeGraph.SubModules) {
+            foreach (var gradeGraphChapter in gradeGraphSubModule.Chapters) {
+               var userAnswerTests = await _dbContext.UserAnswerTests
+                    .Where(uat => uat.Student == student
+                                  && uat.Test.Chapter.SubModule.Module == module)
+                    .ToListAsync();
+               if (userAnswerTests.All(uat => uat.Status == UserAnswerTestStatus.Passed))
+                   gradeGraphChapter.GraphElementStatus = UserAnswerTestStatus.Passed;
+               else {
+                   if (userAnswerTests.Any(uat => uat.Status == UserAnswerTestStatus.SentToCheck))
+                       gradeGraphChapter.GraphElementStatus = UserAnswerTestStatus.SentToCheck;
+                   else {
+                       if (userAnswerTests.Any(uat => uat.Status == UserAnswerTestStatus.Fail))
+                           gradeGraphChapter.GraphElementStatus = UserAnswerTestStatus.Fail;
+                       else gradeGraphChapter.GraphElementStatus = UserAnswerTestStatus.NotDone;
+                   }
+               }
+            }
+            if (gradeGraphSubModule.Chapters.All(c => c.GraphElementStatus == UserAnswerTestStatus.Passed))
+                gradeGraphSubModule.GraphElementStatus = UserAnswerTestStatus.Passed;
+            else {
+                if (gradeGraphSubModule.Chapters.Any(c => c.GraphElementStatus == UserAnswerTestStatus.SentToCheck))
+                    gradeGraphSubModule.GraphElementStatus = UserAnswerTestStatus.SentToCheck;
+                else {
+                    if (gradeGraphSubModule.Chapters.Any(c => c.GraphElementStatus == UserAnswerTestStatus.Fail))
+                        gradeGraphSubModule.GraphElementStatus = UserAnswerTestStatus.Fail;
+                    else gradeGraphSubModule.GraphElementStatus = UserAnswerTestStatus.NotDone;
+                }
+            }
+        }
+        return gradeGraph;
     }
 
     public async Task<List<TestForReview>> GetTestsForReview(Guid moduleId, Guid studentId) {
-        throw new NotImplementedException();
+        var module = await _dbContext.Modules
+            .FirstOrDefaultAsync(m => m.Id == moduleId && !m.ArchivedAt.HasValue);
+        if (module == null)
+            throw new NotFoundException("Module not found");
+        var student = await _dbContext.Students
+            .FirstOrDefaultAsync(s => s.Id == studentId);
+        var testsForCheck = await _dbContext.DetailedAnswers
+            .Where(da => da.UserAnswerTest.Status == UserAnswerTestStatus.SentToCheck
+                          && da.UserAnswerTest.Student == student && da.UserAnswerTest.Test.Chapter.SubModule.Module == module)
+            .Select(da=> new TestForReview {
+                UserAnswerId = da.Id,
+                ChapterName = da.UserAnswerTest.Test.Chapter.Name,
+                Question = da.UserAnswerTest.Test.Question,
+                Files =  da.Files,
+                StudentAnswerContent = da.AnswerContent ?? ""
+            }).ToListAsync();
+        testsForCheck.ForEach(async t=>t.Files = t.Files?.Select(f=> _fileService.GetFileLink(f).Result).ToList());
+        return testsForCheck;
     }
 
-    public async Task SetAccuracyToDetailedAnswer(Guid studentId, Guid teacherId,Guid userAnswerId, DetailedAnswerAccuracy accuracy) {
-        throw new NotImplementedException();
+    public async Task SetAccuracyToDetailedAnswer(Guid teacherId,Guid userAnswerId, DetailedAnswerAccuracy accuracy) {
+        var detailedAnswer = await _dbContext.DetailedAnswers
+            .Include(da=>da.UserAnswerTest)
+            .FirstOrDefaultAsync(da => da.Id == userAnswerId);
+        if (detailedAnswer == null)
+            throw new NotFoundException("Answer not found");
+        var teacher = await _dbContext.Teachers
+            .FirstOrDefaultAsync(t => t.Id == teacherId);
+        if (teacher == null)
+            throw new NotFoundException("Teacher not found");
+        detailedAnswer.UserAnswerTest.Status = accuracy.Accuracy <= 2 
+            ? UserAnswerTestStatus.Fail 
+            : UserAnswerTestStatus.Passed;
+        var existingReviewedTest =
+            await _dbContext.ReviewedDetailedTests.FirstOrDefaultAsync(t => t.DetailedAnswer == detailedAnswer);
+        if (existingReviewedTest == null) {
+            await _dbContext.AddAsync(new ReviewedDetailedTests {
+                DetailedAnswer = detailedAnswer,
+                ReviewedBy = teacher
+            });
+        }
+        else {
+            
+            existingReviewedTest.ReviewedBy = teacher;
+            existingReviewedTest.ReviewedAt = DateTime.UtcNow;
+            _dbContext.Update(existingReviewedTest);
+        }
+        detailedAnswer.Accuracy = accuracy.Accuracy;
+        _dbContext.Update(detailedAnswer);
+        
+        await _dbContext.SaveChangesAsync();
     }
 
     public async Task SetNewAttemptForTestChapter(Guid studentId, Guid chapterId) {
-        throw new NotImplementedException();
+        var user = await _dbContext.Students
+            .FirstOrDefaultAsync(c => c.Id == studentId);
+        if (user == null) 
+            throw new NotFoundException("User with this id not found");
+
+        var chapter = await _dbContext.Chapters
+            .Include(c=>c.ChapterTests)
+            .FirstOrDefaultAsync(c => c.Id == chapterId);
+        if (chapter == null)
+            throw new NotFoundException("Chapter with this id not found");
+        if (chapter.ChapterType != ChapterType.ExamChapter && chapter.ChapterType != ChapterType.TestChapter)
+            throw new ForbiddenException("Incorrect chapter type");
+        var userAnswerTests = await _dbContext.UserAnswerTests
+            .Where(uat => uat.Student == user && uat.Test.Chapter == chapter)
+            .ToListAsync();
+        if (userAnswerTests.IsNullOrEmpty())
+            throw new ForbiddenException("User does not have any answers");
+        var newUserAnswerTests = userAnswerTests.Select(uat => new UserAnswerTest {
+            Test = uat.Test,
+            UserAnswers = new List<UserAnswer>(),
+            NumberOfAttempt = uat.NumberOfAttempt + 1,
+            Student = user,
+            Status = UserAnswerTestStatus.NotDone
+        }).ToList();
+        await _dbContext.AddRangeAsync(newUserAnswerTests);
+        await _dbContext.SaveChangesAsync();
     }
 }

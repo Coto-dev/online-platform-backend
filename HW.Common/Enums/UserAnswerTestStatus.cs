@@ -1,6 +1,6 @@
 namespace HW.Common.Enums; 
 
-public enum GradeGraphElementStatus {
+public enum UserAnswerTestStatus {
     Passed,
     Fail,
     NotDone,

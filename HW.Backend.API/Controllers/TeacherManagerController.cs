@@ -83,13 +83,13 @@ public class TeacherManagerController : ControllerBase {
     [HttpPost]
     [Authorize(AuthenticationSchemes = "Bearer", Roles = ApplicationRoleNames.Teacher + "," + ApplicationRoleNames.Administrator)]
     [Route("user-answer/{userAnswerId}/detailed-test/accuracy")]
-    public async Task<ActionResult> SetAccuracyToDetailedAnswer(Guid studentId, Guid userAnswerId,  DetailedAnswerAccuracy accuracy){
+    public async Task<ActionResult> SetAccuracyToDetailedAnswer(Guid userAnswerId,  DetailedAnswerAccuracy accuracy){
         if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false) {
             throw new UnauthorizedException("User is not authorized");
         }
         if (!User.IsInRole(ApplicationRoleNames.Administrator))
             await _checkPermissionService.CheckTeacherUserAnswerPermission(userId, userAnswerId);
-        await _teacherManagerService.SetAccuracyToDetailedAnswer(studentId, userId, userAnswerId, accuracy);
+        await _teacherManagerService.SetAccuracyToDetailedAnswer(userId, userAnswerId, accuracy);
         return Ok();
     }
     

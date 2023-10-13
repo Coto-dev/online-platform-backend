@@ -144,7 +144,7 @@ public class ModuleStudentService : IModuleStudentService {
         return response;
     }
 
-    public async Task<string> CalculateProgress(Guid moduleId, Guid userId) {
+    /*public async Task<string> CalculateProgress(Guid moduleId, Guid userId) {
         var user = await _dbContext.Students
             .FirstOrDefaultAsync(u => u.Id == userId);
         if (user == null)
@@ -158,9 +158,9 @@ public class ModuleStudentService : IModuleStudentService {
             .AsNoTracking()
             .CountAsync();
         return totalLearned + "/" + chapters.Count;
-    }
+    }*/
 
-    private async Task<float> CalculateProgressFloat(Guid moduleId, Guid userId) {
+    public async Task<float> CalculateProgressFloat(Guid moduleId, Guid userId) {
         var user = await _dbContext.Students
             .FirstOrDefaultAsync(u => u.Id == userId);
         if (user == null)

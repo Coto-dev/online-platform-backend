@@ -37,20 +37,61 @@ public class ChapterService : IChapterService
             throw new NotFoundException("Chapter with this id not found");
         if (chapter.ChapterType != ChapterType.ExamChapter && chapter.ChapterType != ChapterType.TestChapter)
             throw new ForbiddenException("Incorrect chapter type");
-        var numberOfAttempt = _dbContext.UserAnswerTests
+        var numberOfAttempt = await _dbContext.UserAnswerTests
             .Where(uat => chapter.ChapterTests!.Contains(uat.Test) && uat.Student == user)
-            .Max(uat => uat.NumberOfAttempt);
-        var userAnswers = _dbContext.UserAnswerTests
+            .MaxAsync(uat => uat.NumberOfAttempt);
+        var userAnswers = await _dbContext.UserAnswerTests
+            .Include(uat=>uat.Test)
             .Include(ua=>ua.UserAnswers)
             .Where(uat => chapter.ChapterTests!.Contains(uat.Test)
                           && uat.Student == user
                           && uat.NumberOfAttempt == numberOfAttempt)
-            .ToList();
+            .ToListAsync();
         if (userAnswers.Any(uat => uat.AnsweredAt.HasValue))
             throw new ForbiddenException("Already answered");
         if (userAnswers.Where(uat=>!uat.UserAnswers.IsNullOrEmpty()).ToList().Count < chapter.ChapterTests!.Count(ct => !ct.ArchivedAt.HasValue))
             throw new ForbiddenException($"User answers: {userAnswers.Count}, but tests: {chapter.ChapterTests!.Count(ct => !ct.ArchivedAt.HasValue)}");
-        userAnswers.ForEach(ua=>ua.AnsweredAt = DateTime.UtcNow);
+        
+        foreach (var userAnswerTest in userAnswers) {
+            userAnswerTest.AnsweredAt = DateTime.UtcNow;
+            switch (userAnswerTest.Test.TestType) {
+                case TestType.SingleAnswer:
+                    var rightAnswer = await _dbContext.SimpleAnswers
+                        .FirstOrDefaultAsync(sa => sa.SimpleAnswerTest == userAnswerTest.Test && sa.IsRight);
+                    userAnswerTest.Status = userAnswerTest.UserAnswers.OfType<SimpleUserAnswer>()
+                        .All(ua => rightAnswer == ua.SimpleAnswer) ? UserAnswerTestStatus.Passed : UserAnswerTestStatus.Fail;
+                    break;
+                case TestType.MultipleAnswer:
+                    var rightAnswers = await _dbContext.SimpleAnswers
+                        .Where(sa => sa.SimpleAnswerTest == userAnswerTest.Test && sa.IsRight)
+                        .ToListAsync();
+                    if (userAnswerTest.UserAnswers.OfType<SimpleUserAnswer>().Count() == rightAnswers.Count &&
+                        userAnswerTest.UserAnswers.OfType<SimpleUserAnswer>()
+                            .All(ua => rightAnswers.Contains(ua.SimpleAnswer)))
+                        userAnswerTest.Status = UserAnswerTestStatus.Passed;
+                    else userAnswerTest.Status = UserAnswerTestStatus.Fail;
+                    break;
+                case TestType.CorrectSequenceAnswer:
+                    var rightCorrectSequenceAnswers = await _dbContext.CorrectSequenceAnswers
+                        .Where(csa => csa.CorrectSequenceTest == userAnswerTest.Test)
+                        .ToListAsync();
+                    if (userAnswerTest.UserAnswers.OfType<CorrectSequenceUserAnswer>().Count() == rightCorrectSequenceAnswers.Count &&
+                        userAnswerTest.UserAnswers.OfType<CorrectSequenceUserAnswer>()
+                            .All(ua => rightCorrectSequenceAnswers.Any(ra=>
+                                ra.RightOrder == ua.Order
+                                && ra == ua.CorrectSequenceAnswer)))
+                        userAnswerTest.Status = UserAnswerTestStatus.Passed;
+                    else userAnswerTest.Status = UserAnswerTestStatus.Fail;
+                    break;
+                case TestType.DetailedAnswer:
+                    userAnswerTest.Status = UserAnswerTestStatus.SentToCheck;
+                    break;
+                default:
+                    userAnswerTest.Status = UserAnswerTestStatus.NotDone;
+                    continue;
+                    break;
+            }
+        }
         _dbContext.UpdateRange(userAnswers);
         await _dbContext.SaveChangesAsync();
     }
@@ -312,10 +353,9 @@ public class ChapterService : IChapterService
                     },
                     UserAnswer = 
                         _dbContext.UserAnswerTests.Any(uat=>uat.Student == user && uat.Test == t) ?
-                            t.TestType is TestType.ExtraAnswer 
-                        or TestType.MultipleAnswer 
+                            t.TestType is TestType.MultipleAnswer 
                         or TestType.SingleAnswer 
-                        or TestType.MultipleExtraAnswer ? new UserAnswerFullDto {
+                         ? new UserAnswerFullDto {
                         UserAnswerSimples = _dbContext.UserAnswers.OfType<SimpleUserAnswer>()
                             .Where(u=>u.UserAnswerTest.Test == t && u.UserAnswerTest.Student == user)
                             .Select(s=> s.SimpleAnswer.Id).ToList(),
