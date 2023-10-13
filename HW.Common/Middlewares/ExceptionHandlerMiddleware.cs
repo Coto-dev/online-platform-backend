@@ -66,7 +66,7 @@ public class ExceptionHandlerMiddleware {
             context.Response.ContentType = "application/json";
             await context.Response.WriteAsync(errorDetails.ToString());
         }
-
+        
         catch (BadRequestException ex) {
             var errorDetails = new ErrorDetails {
                 StatusCode = (int)HttpStatusCode.BadRequest,
@@ -78,7 +78,17 @@ public class ExceptionHandlerMiddleware {
             context.Response.ContentType = "application/json";
             await context.Response.WriteAsync(errorDetails.ToString());
         }
-
+        catch (NotImplementedException ex) {
+            var errorDetails = new ErrorDetails {
+                StatusCode = (int)HttpStatusCode.NotImplemented,
+                Message = ex.Message,
+                TraceId = Activity.Current?.Id ?? context.TraceIdentifier
+            };
+            _logger.LogError(ex, "{Message}", errorDetails.ToString());
+            context.Response.StatusCode = (int)HttpStatusCode.NotImplemented;
+            context.Response.ContentType = "application/json";
+            await context.Response.WriteAsync(errorDetails.ToString());
+        }
         catch (MethodNotAllowedException ex) {
             var errorDetails = new ErrorDetails {
                 StatusCode = (int)HttpStatusCode.MethodNotAllowed,

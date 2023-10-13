@@ -247,4 +247,23 @@ public class CheckPermissionService: ICheckPermissionService {
             throw new ForbiddenException("User do not have permission");
         
     }
+
+    public async Task CheckTeacherUserAnswerPermission(Guid teacherId, Guid userAnswerId) {
+        var user = await _dbContext.Teachers
+            .FirstOrDefaultAsync(u => u.Id == teacherId);
+        if (user == null)
+            throw new NotFoundException("User not found");
+        var userAnswer = await _dbContext.UserAnswers
+            .Include(ua=>ua.UserAnswerTest)
+            .ThenInclude(uat=>uat.Test )
+            .ThenInclude(c => c.Chapter)
+            .ThenInclude(c => c.SubModule)
+            .ThenInclude(s => s.Module)
+            .ThenInclude(m => m.Teachers)
+            .FirstOrDefaultAsync(u => u.Id == userAnswerId);
+        if (userAnswer?.UserAnswerTest?.Test == null)
+            throw new NotFoundException("Test not found");
+        if (userAnswer.UserAnswerTest.Test.Chapter.SubModule.Module.Teachers == null || !userAnswer.UserAnswerTest.Test.Chapter.SubModule.Module.Teachers!.Contains(user))
+            throw new ForbiddenException("User do not have permission");
+    }
 }
