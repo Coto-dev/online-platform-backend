@@ -68,7 +68,7 @@ public class TeacherManagerController : ControllerBase {
     [HttpGet]
     [Authorize(AuthenticationSchemes = "Bearer", Roles = ApplicationRoleNames.Teacher + "," + ApplicationRoleNames.Administrator)]
     [Route("module/{moduleId}/student/{studentId}/test-review")]
-    public async Task<ActionResult<List<TestForReview>>> GetTestsForReview(Guid moduleId, Guid studentId){
+    public async Task<ActionResult<List<ChapterForReview>>> GetTestsForReview(Guid moduleId, Guid studentId){
         if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false) {
             throw new UnauthorizedException("User is not authorized");
         }

@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using HW.Backend.DAL.Data;
 using HW.Backend.DAL.Data.Entities;
 using HW.Common.DataTransferObjects;
@@ -57,13 +58,28 @@ public class TeacherManagerService : ITeacherManagerService {
         var gradeGraph = new GradeGraph {
             UserProgress = new UserProgress {
                 Id = studentId,
-                PassedTests = await _dbContext.UserAnswerTests
-                    .Where(uat=>uat.AnsweredAt.HasValue 
+                PassedTests =  _dbContext.UserAnswerTests
+                    .Where(uat=> uat.Status == UserAnswerTestStatus.Passed 
                                 && uat.Student == student
                                 && uat.Test.Chapter.SubModule.Module == module)
+                    .GroupBy(uat => uat.Test)
+                    .Select(group => group.OrderByDescending(uat => uat.NumberOfAttempt).First())
+                    .AsEnumerable()
+                    .GroupBy(uat=>uat.Test.Chapter)
+                    .Count(),
+                TotalChapters = await _dbContext.Chapters
+                    .Where(c=>!c.ArchivedAt.HasValue 
+                              && c.ChapterType == ChapterType.DefaultChapter
+                              && c.SubModule.Module == module)
+                    .CountAsync(),
+                TotalTests = await _dbContext.Chapters
+                    .Where(c=>!c.ArchivedAt.HasValue 
+                              && c.ChapterType == ChapterType.TestChapter
+                              && c.SubModule.Module == module)
                     .CountAsync(),
                 LearnedChapters = await _dbContext.Learned
-                    .Where(l=>l.Chapter.SubModule.Module == module 
+                    .Where(l=>!l.Chapter.ArchivedAt.HasValue 
+                              && l.Chapter.SubModule.Module == module 
                               && l.LearnedBy == student)
                     .CountAsync(),
                 Progress = await _moduleStudentService.CalculateProgressFloat(moduleId, studentId)
@@ -73,30 +89,59 @@ public class TeacherManagerService : ITeacherManagerService {
                 && da.UserAnswerTest.Student == student
                 && da.UserAnswerTest.Test.Chapter.SubModule.Module == module)
                 .CountAsync(),
-            SubModules = module.SubModules!.Select(s=> new GradeGraphSubModule {
+            SubModules = module.SubModules!
+                .Where(s=>!s.ArchivedAt.HasValue)
+                .Select(s=> new GradeGraphSubModule {
                 SubModuleId = s.Id,
                 SubModuleName = s.Name,
                 Chapters = s.Chapters!
-                    .Where(c=>c.ChapterType is ChapterType.TestChapter or ChapterType.ExamChapter)
-                    .Select(c=> new GradeGraphChapter {
-                    ChapterId = c.Id,
-                    ChapterName = c.Name,
+                    .Where(c=>!c.ArchivedAt.HasValue)
+                    .Select(c=> new GradeGraphChapter { 
+                        ChapterType = c.ChapterType, 
+                        ChapterId = c.Id, 
+                        ChapterName = c.Name,
                 }).ToList(),
             }).ToList()
         };
+        var userAnswerTests = await _dbContext.UserAnswerTests
+            .Include(uat=>uat.Test)
+            .ThenInclude(t=>t.Chapter)
+            .Where(uat => uat.Student == student
+                          && uat.Test.Chapter.SubModule.Module == module)
+            .GroupBy(uat => uat.Test)
+            .Select(group => group.OrderByDescending(uat => uat.NumberOfAttempt).First())
+            .ToListAsync();
+        
         foreach (var gradeGraphSubModule in gradeGraph.SubModules) {
+            var learnedChapters = await _dbContext.Learned
+                .Include(l=>l.Chapter)
+                .Where(l => l.LearnedBy == student &&
+                            gradeGraphSubModule.Chapters
+                                .Select(c=>c.ChapterId).ToList()
+                                .Any(c => c == l.Chapter.Id))
+                .ToListAsync();
             foreach (var gradeGraphChapter in gradeGraphSubModule.Chapters) {
-               var userAnswerTests = await _dbContext.UserAnswerTests
-                    .Where(uat => uat.Student == student
-                                  && uat.Test.Chapter.SubModule.Module == module)
-                    .ToListAsync();
-               if (userAnswerTests.All(uat => uat.Status == UserAnswerTestStatus.Passed))
+
+                if (gradeGraphChapter.ChapterType == ChapterType.DefaultChapter) {
+                    gradeGraphChapter.GraphElementStatus = 
+                        learnedChapters.Any(lc=>lc.Chapter.Id == gradeGraphChapter.ChapterId) 
+                            ? UserAnswerTestStatus.Passed 
+                            : UserAnswerTestStatus.NotDone;
+                }
+                else
+               if (userAnswerTests
+                   .Where(uat=>uat.Test.Chapter.Id == gradeGraphChapter.ChapterId)
+                   .All(uat => uat.Status == UserAnswerTestStatus.Passed))
                    gradeGraphChapter.GraphElementStatus = UserAnswerTestStatus.Passed;
                else {
-                   if (userAnswerTests.Any(uat => uat.Status == UserAnswerTestStatus.SentToCheck))
+                   if (userAnswerTests
+                       .Where(uat=>uat.Test.Chapter.Id == gradeGraphChapter.ChapterId)
+                       .Any(uat => uat.Status == UserAnswerTestStatus.SentToCheck))
                        gradeGraphChapter.GraphElementStatus = UserAnswerTestStatus.SentToCheck;
                    else {
-                       if (userAnswerTests.Any(uat => uat.Status == UserAnswerTestStatus.Fail))
+                       if (userAnswerTests
+                           .Where(uat=>uat.Test.Chapter.Id == gradeGraphChapter.ChapterId)
+                           .Any(uat => uat.Status == UserAnswerTestStatus.Fail))
                            gradeGraphChapter.GraphElementStatus = UserAnswerTestStatus.Fail;
                        else gradeGraphChapter.GraphElementStatus = UserAnswerTestStatus.NotDone;
                    }
@@ -117,25 +162,26 @@ public class TeacherManagerService : ITeacherManagerService {
         return gradeGraph;
     }
 
-    public async Task<List<TestForReview>> GetTestsForReview(Guid moduleId, Guid studentId) {
+    public async Task<List<ChapterForReview>> GetTestsForReview(Guid moduleId, Guid studentId) {
         var module = await _dbContext.Modules
             .FirstOrDefaultAsync(m => m.Id == moduleId && !m.ArchivedAt.HasValue);
         if (module == null)
             throw new NotFoundException("Module not found");
         var student = await _dbContext.Students
             .FirstOrDefaultAsync(s => s.Id == studentId);
-        var testsForCheck = await _dbContext.DetailedAnswers
+        var chaptersForReview = await _dbContext.DetailedAnswers
             .Where(da => da.UserAnswerTest.Status == UserAnswerTestStatus.SentToCheck
                           && da.UserAnswerTest.Student == student && da.UserAnswerTest.Test.Chapter.SubModule.Module == module)
-            .Select(da=> new TestForReview {
-                UserAnswerId = da.Id,
+            .Select(da=> new ChapterForReview() {
                 ChapterName = da.UserAnswerTest.Test.Chapter.Name,
+                TestForReview = new TestForReview(){
+                UserAnswerId = da.Id,
                 Question = da.UserAnswerTest.Test.Question,
                 Files =  da.Files,
                 StudentAnswerContent = da.AnswerContent ?? ""
-            }).ToListAsync();
-        testsForCheck.ForEach(async t=>t.Files = t.Files?.Select(f=> _fileService.GetFileLink(f).Result).ToList());
-        return testsForCheck;
+            }}).ToListAsync();
+        chaptersForReview.ForEach(async t=>t.TestForReview.Files = t.TestForReview.Files?.Select(f=> _fileService.GetFileLink(f).Result).ToList());
+        return chaptersForReview;
     }
 
     public async Task SetAccuracyToDetailedAnswer(Guid teacherId,Guid userAnswerId, DetailedAnswerAccuracy accuracy) {
@@ -185,7 +231,9 @@ public class TeacherManagerService : ITeacherManagerService {
         if (chapter.ChapterType != ChapterType.ExamChapter && chapter.ChapterType != ChapterType.TestChapter)
             throw new ForbiddenException("Incorrect chapter type");
         var userAnswerTests = await _dbContext.UserAnswerTests
-            .Where(uat => uat.Student == user && uat.Test.Chapter == chapter)
+            .Where(uat => uat.Student == user 
+                          && uat.IsLastAttempt
+                          && uat.Test.Chapter == chapter)
             .ToListAsync();
         if (userAnswerTests.IsNullOrEmpty())
             throw new ForbiddenException("User does not have any answers");
@@ -194,8 +242,11 @@ public class TeacherManagerService : ITeacherManagerService {
             UserAnswers = new List<UserAnswer>(),
             NumberOfAttempt = uat.NumberOfAttempt + 1,
             Student = user,
-            Status = UserAnswerTestStatus.NotDone
+            Status = UserAnswerTestStatus.NotDone,
+            IsLastAttempt = true
         }).ToList();
+        userAnswerTests.ForEach(uat=>uat.IsLastAttempt = false);
+        _dbContext.UpdateRange(userAnswerTests);
         await _dbContext.AddRangeAsync(newUserAnswerTests);
         await _dbContext.SaveChangesAsync();
     }

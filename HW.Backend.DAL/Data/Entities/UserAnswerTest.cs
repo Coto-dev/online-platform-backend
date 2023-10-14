@@ -37,4 +37,9 @@ public class UserAnswerTest
     /// </summary>
     public UserAnswerTestStatus Status { get; set; } = UserAnswerTestStatus.NotDone;
 
+    /// <summary>
+    /// Max number of attempt
+    /// </summary>
+    public bool IsLastAttempt { get; set; } = true;
+
 }

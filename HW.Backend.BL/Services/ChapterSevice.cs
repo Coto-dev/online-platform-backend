@@ -37,20 +37,18 @@ public class ChapterService : IChapterService
             throw new NotFoundException("Chapter with this id not found");
         if (chapter.ChapterType != ChapterType.ExamChapter && chapter.ChapterType != ChapterType.TestChapter)
             throw new ForbiddenException("Incorrect chapter type");
-        var numberOfAttempt = await _dbContext.UserAnswerTests
-            .Where(uat => chapter.ChapterTests!.Contains(uat.Test) && uat.Student == user)
-            .MaxAsync(uat => uat.NumberOfAttempt);
+        
         var userAnswers = await _dbContext.UserAnswerTests
             .Include(uat=>uat.Test)
             .Include(ua=>ua.UserAnswers)
             .Where(uat => chapter.ChapterTests!.Contains(uat.Test)
                           && uat.Student == user
-                          && uat.NumberOfAttempt == numberOfAttempt)
+                          && uat.IsLastAttempt)
             .ToListAsync();
         if (userAnswers.Any(uat => uat.AnsweredAt.HasValue))
             throw new ForbiddenException("Already answered");
         if (userAnswers.Where(uat=>!uat.UserAnswers.IsNullOrEmpty()).ToList().Count < chapter.ChapterTests!.Count(ct => !ct.ArchivedAt.HasValue))
-            throw new ForbiddenException($"User answers: {userAnswers.Count}, but tests: {chapter.ChapterTests!.Count(ct => !ct.ArchivedAt.HasValue)}");
+            throw new ForbiddenException($"User answers: {userAnswers.Where(uat=>!uat.UserAnswers.IsNullOrEmpty()).ToList().Count}, but tests: {chapter.ChapterTests!.Count(ct => !ct.ArchivedAt.HasValue)}");
         
         foreach (var userAnswerTest in userAnswers) {
             userAnswerTest.AnsweredAt = DateTime.UtcNow;
@@ -352,20 +350,26 @@ public class ChapterService : IChapterService
                         _ => new List<PossibleAnswerDto>()
                     },
                     UserAnswer = 
-                        _dbContext.UserAnswerTests.Any(uat=>uat.Student == user && uat.Test == t) ?
+                        _dbContext.UserAnswerTests.Any(uat=>uat.Student == user 
+                                                            && uat.IsLastAttempt
+                                                            && uat.Test == t) ?
                             t.TestType is TestType.MultipleAnswer 
                         or TestType.SingleAnswer 
                          ? new UserAnswerFullDto {
                         UserAnswerSimples = _dbContext.UserAnswers.OfType<SimpleUserAnswer>()
-                            .Where(u=>u.UserAnswerTest.Test == t && u.UserAnswerTest.Student == user)
+                            .Where(u=>u.UserAnswerTest.Test == t 
+                                      && u.UserAnswerTest.IsLastAttempt
+                                      && u.UserAnswerTest.Student == user)
                             .Select(s=> s.SimpleAnswer.Id).ToList(),
                         IsAnswered =  _dbContext.UserAnswerTests
-                            .Where(uat=>uat.Student == user && uat.Test == t)
-                            .AsEnumerable()
-                            .MaxBy(uat=>uat.NumberOfAttempt)!.AnsweredAt.HasValue 
+                            .FirstOrDefault(uat=>uat.Student == user 
+                                                 && uat.IsLastAttempt
+                                                 && uat.Test == t)!.AnsweredAt.HasValue 
                     } : t.TestType is TestType.CorrectSequenceAnswer ? new UserAnswerFullDto {
                                 UserAnswerCorrectSequences = _dbContext.UserAnswers.OfType<CorrectSequenceUserAnswer>()
-                                .Where(u=>u.UserAnswerTest.Test == t && u.UserAnswerTest.Student == user)
+                                .Where(u=>u.UserAnswerTest.Test == t 
+                                          && u.UserAnswerTest.IsLastAttempt
+                                          && u.UserAnswerTest.Student == user)
                                 .OrderBy(u=>u.Order)
                                 .Select(s=> new UserAnswerCorrectSequenceDto() {
                                 Id = s.CorrectSequenceAnswer.Id,
@@ -373,12 +377,14 @@ public class ChapterService : IChapterService
                                 Order = s.Order
                                 }).ToList(),
                                 IsAnswered = _dbContext.UserAnswerTests
-                                    .Where(uat=>uat.Student == user && uat.Test == t)
-                                    .AsEnumerable()
-                                    .MaxBy(uat=>uat.NumberOfAttempt)!.AnsweredAt.HasValue 
+                                    .FirstOrDefault(uat=>uat.Student == user 
+                                                         && uat.IsLastAttempt
+                                                         && uat.Test == t)!.AnsweredAt.HasValue 
                             } : t.TestType is TestType.DetailedAnswer ? new UserAnswerFullDto {
                                 DetailedAnswer = _dbContext.UserAnswers.OfType<DetailedAnswer>()
-                                    .Where(u=>u.UserAnswerTest.Test == t && u.UserAnswerTest.Student == user)!
+                                    .Where(u=>u.UserAnswerTest.Test == t 
+                                              && u.UserAnswerTest.IsLastAttempt
+                                              && u.UserAnswerTest.Student == user)!
                                     .AsEnumerable()
                                     .Select(d=> new DetailedAnswerFullDto() {
                                         AnswerContent = d.AnswerContent,
@@ -391,10 +397,10 @@ public class ChapterService : IChapterService
                                             }).ToList()
                                     }).FirstOrDefault(),
                                 IsAnswered = _dbContext.UserAnswerTests
-                                    .Where(uat=>uat.Student == user && uat.Test == t)
-                                    .AsEnumerable()
-                                    .MaxBy(uat=>uat.NumberOfAttempt)!.AnsweredAt.HasValue
-                            } : null : null,
+                                    .FirstOrDefault(uat=>uat.Student == user 
+                                                && uat.IsLastAttempt
+                                                && uat.Test == t)!.AnsweredAt.HasValue
+                         } : null : null,
                     Type = t.TestType,
                 }).ToList()
         };
