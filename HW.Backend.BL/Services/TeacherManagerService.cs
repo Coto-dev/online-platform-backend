@@ -62,6 +62,9 @@ public class TeacherManagerService : ITeacherManagerService {
                 Id = studentId,
                 PassedTests =  _dbContext.UserAnswerTests
                     .Where(uat=> uat.Status == UserAnswerTestStatus.Passed
+                                 && !uat.Test.ArchivedAt.HasValue
+                                 && !uat.Test.Chapter.ArchivedAt.HasValue
+                                 && !uat.Test.Chapter.SubModule.ArchivedAt.HasValue
                                  && uat.IsLastAttempt
                                  && uat.Student == student
                                 && uat.Test.Chapter.SubModule.Module == module)
@@ -69,25 +72,28 @@ public class TeacherManagerService : ITeacherManagerService {
                     .Count(),
                 TotalChapters = await _dbContext.Chapters
                     .Where(c=>!c.ArchivedAt.HasValue 
+                              && !c.SubModule.ArchivedAt.HasValue
                               && c.ChapterType == ChapterType.DefaultChapter
                               && c.SubModule.Module == module)
                     .CountAsync(),
                 TotalTests = await _dbContext.Chapters
                     .Where(c=>!c.ArchivedAt.HasValue 
+                              && !c.SubModule.ArchivedAt.HasValue
                               && c.ChapterType == ChapterType.TestChapter
                               && c.SubModule.Module == module)
                     .CountAsync(),
                 LearnedChapters = await _dbContext.Learned
                     .Where(l=>!l.Chapter.ArchivedAt.HasValue 
+                              && !l.Chapter.SubModule.ArchivedAt.HasValue
                               && l.Chapter.SubModule.Module == module 
                               && l.LearnedBy == student)
                     .CountAsync(),
                 Progress = await _moduleStudentService.CalculateProgressFloat(moduleId, studentId)
             },
             WorksCount = await _dbContext.DetailedAnswers
-                .Where(da=>da.Accuracy == 0
-                && da.UserAnswerTest.Student == student
-                && da.UserAnswerTest.Test.Chapter.SubModule.Module == module)
+                .Where(da=> da.UserAnswerTest.IsLastAttempt
+                            && da.UserAnswerTest.Status == UserAnswerTestStatus.SentToCheck
+                            && da.UserAnswerTest.Test.Chapter.SubModule.Module == module)
                 .CountAsync(),
             SubModules = module.SubModules!
                 .OrderBy(s=> module.OrderedSubModules!.IndexOf(s.Id))
@@ -178,14 +184,15 @@ public class TeacherManagerService : ITeacherManagerService {
             .FirstOrDefaultAsync(s => s.Id == studentId);
         var chaptersForReview = await _dbContext.DetailedAnswers
             .Include(da=>da.UserAnswerTest)
-            .ThenInclude(da=>da.Test)
+            .ThenInclude(uat=>uat.Test)
             .Where(da => da.UserAnswerTest.Status == UserAnswerTestStatus.SentToCheck
                          && da.UserAnswerTest.IsLastAttempt
                          && da.UserAnswerTest.Student == student
                          && da.UserAnswerTest.Test.Chapter.SubModule.Module == module)
-            .GroupBy(da => da.UserAnswerTest.Test.Chapter)
+           .GroupBy(da => da.UserAnswerTest.Test.Chapter)
             .ToListAsync();
-            var a = chaptersForReview.Select(c => new ChapterForReview {
+        var unique = chaptersForReview.DistinctBy(c=>c.Key.Id).ToList();
+            var a = unique.Select(c => new ChapterForReview {
                 ChapterName = c.Key.Name,
                 TestForReview = c.Key.ChapterTests!
                     .SelectMany(t => t.UserAnswerTests!)
@@ -204,6 +211,7 @@ public class TeacherManagerService : ITeacherManagerService {
                   testForReview.Files?.ForEach(async f=> f = await _fileService.GetFileLink(f));
               }
         return a;
+            return null;
     }
 
     public async Task SetAccuracyToDetailedAnswer(Guid teacherId,Guid userAnswerId, DetailedAnswerAccuracy accuracy) {
