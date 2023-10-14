@@ -35,7 +35,7 @@ namespace HW.Backend.DAL.Migrations
 
                     b.HasIndex("ProgramsId");
 
-                    b.ToTable("EducationalProgramModule");
+                    b.ToTable("EducationalProgramModule", (string)null);
                 });
 
             modelBuilder.Entity("EducationalProgramTeacher", b =>
@@ -50,7 +50,7 @@ namespace HW.Backend.DAL.Migrations
 
                     b.HasIndex("EditorsId");
 
-                    b.ToTable("EducationalProgramTeacher");
+                    b.ToTable("EducationalProgramTeacher", (string)null);
                 });
 
             modelBuilder.Entity("HW.Backend.DAL.Data.Entities.Chapter", b =>
@@ -94,7 +94,7 @@ namespace HW.Backend.DAL.Migrations
 
                     b.HasIndex("SubModuleId");
 
-                    b.ToTable("Chapters");
+                    b.ToTable("Chapters", (string)null);
                 });
 
             modelBuilder.Entity("HW.Backend.DAL.Data.Entities.ChapterBlock", b =>
@@ -125,7 +125,7 @@ namespace HW.Backend.DAL.Migrations
 
                     b.HasIndex("ChapterId");
 
-                    b.ToTable("ChapterBlocks");
+                    b.ToTable("ChapterBlocks", (string)null);
                 });
 
             modelBuilder.Entity("HW.Backend.DAL.Data.Entities.ChapterComment", b =>
@@ -153,7 +153,7 @@ namespace HW.Backend.DAL.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("ChapterComments");
+                    b.ToTable("ChapterComments", (string)null);
                 });
 
             modelBuilder.Entity("HW.Backend.DAL.Data.Entities.CorrectSequenceAnswer", b =>
@@ -185,7 +185,7 @@ namespace HW.Backend.DAL.Migrations
 
                     b.HasIndex("CorrectSequenceTestId");
 
-                    b.ToTable("CorrectSequenceAnswers");
+                    b.ToTable("CorrectSequenceAnswers", (string)null);
                 });
 
             modelBuilder.Entity("HW.Backend.DAL.Data.Entities.EducationalProgram", b =>
@@ -233,7 +233,7 @@ namespace HW.Backend.DAL.Migrations
 
                     b.HasIndex("AuthorId");
 
-                    b.ToTable("EducationalPrograms");
+                    b.ToTable("EducationalPrograms", (string)null);
                 });
 
             modelBuilder.Entity("HW.Backend.DAL.Data.Entities.Learned", b =>
@@ -257,7 +257,7 @@ namespace HW.Backend.DAL.Migrations
 
                     b.HasIndex("LearnedById");
 
-                    b.ToTable("Learned");
+                    b.ToTable("Learned", (string)null);
                 });
 
             modelBuilder.Entity("HW.Backend.DAL.Data.Entities.Module", b =>
@@ -309,7 +309,7 @@ namespace HW.Backend.DAL.Migrations
 
                     b.HasIndex("AuthorId");
 
-                    b.ToTable("Modules");
+                    b.ToTable("Modules", (string)null);
 
                     b.HasDiscriminator<string>("Discriminator").HasValue("Module");
 
@@ -347,7 +347,7 @@ namespace HW.Backend.DAL.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("ModuleComments");
+                    b.ToTable("ModuleComments", (string)null);
                 });
 
             modelBuilder.Entity("HW.Backend.DAL.Data.Entities.ReviewedDetailedTests", b =>
@@ -371,7 +371,7 @@ namespace HW.Backend.DAL.Migrations
 
                     b.HasIndex("ReviewedById");
 
-                    b.ToTable("ReviewedDetailedTests");
+                    b.ToTable("ReviewedDetailedTests", (string)null);
                 });
 
             modelBuilder.Entity("HW.Backend.DAL.Data.Entities.SimpleAnswer", b =>
@@ -403,7 +403,7 @@ namespace HW.Backend.DAL.Migrations
 
                     b.HasIndex("SimpleAnswerTestId");
 
-                    b.ToTable("SimpleAnswers");
+                    b.ToTable("SimpleAnswers", (string)null);
                 });
 
             modelBuilder.Entity("HW.Backend.DAL.Data.Entities.Student", b =>
@@ -413,7 +413,7 @@ namespace HW.Backend.DAL.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Students");
+                    b.ToTable("Students", (string)null);
                 });
 
             modelBuilder.Entity("HW.Backend.DAL.Data.Entities.StudentEducationalProgram", b =>
@@ -437,7 +437,7 @@ namespace HW.Backend.DAL.Migrations
 
                     b.HasIndex("StudentId");
 
-                    b.ToTable("UserPrograms");
+                    b.ToTable("UserPrograms", (string)null);
                 });
 
             modelBuilder.Entity("HW.Backend.DAL.Data.Entities.StudentModule", b =>
@@ -461,7 +461,7 @@ namespace HW.Backend.DAL.Migrations
 
                     b.HasIndex("StudentId");
 
-                    b.ToTable("UserModules");
+                    b.ToTable("UserModules", (string)null);
                 });
 
             modelBuilder.Entity("HW.Backend.DAL.Data.Entities.SubModule", b =>
@@ -496,7 +496,7 @@ namespace HW.Backend.DAL.Migrations
 
                     b.HasIndex("ModuleId");
 
-                    b.ToTable("SubModules");
+                    b.ToTable("SubModules", (string)null);
                 });
 
             modelBuilder.Entity("HW.Backend.DAL.Data.Entities.Teacher", b =>
@@ -506,7 +506,7 @@ namespace HW.Backend.DAL.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Teachers");
+                    b.ToTable("Teachers", (string)null);
                 });
 
             modelBuilder.Entity("HW.Backend.DAL.Data.Entities.Test", b =>
@@ -548,7 +548,7 @@ namespace HW.Backend.DAL.Migrations
 
                     b.HasIndex("ChapterId");
 
-                    b.ToTable("Tests");
+                    b.ToTable("Tests", (string)null);
 
                     b.HasDiscriminator<string>("Discriminator").HasValue("Test");
 
@@ -571,7 +571,7 @@ namespace HW.Backend.DAL.Migrations
 
                     b.HasIndex("StudentId");
 
-                    b.ToTable("UserActions");
+                    b.ToTable("UserActions", (string)null);
                 });
 
             modelBuilder.Entity("HW.Backend.DAL.Data.Entities.UserAnswer", b =>
@@ -591,7 +591,7 @@ namespace HW.Backend.DAL.Migrations
 
                     b.HasIndex("UserAnswerTestId");
 
-                    b.ToTable("UserAnswers");
+                    b.ToTable("UserAnswers", (string)null);
 
                     b.HasDiscriminator<string>("Discriminator").HasValue("UserAnswer");
 
@@ -628,7 +628,7 @@ namespace HW.Backend.DAL.Migrations
 
                     b.HasIndex("TestId");
 
-                    b.ToTable("UserAnswerTests");
+                    b.ToTable("UserAnswerTests", (string)null);
                 });
 
             modelBuilder.Entity("HW.Backend.DAL.Data.Entities.UserBackend", b =>
@@ -639,7 +639,7 @@ namespace HW.Backend.DAL.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("UserBackends");
+                    b.ToTable("UserBackends", (string)null);
                 });
 
             modelBuilder.Entity("ModuleModule", b =>
@@ -669,7 +669,7 @@ namespace HW.Backend.DAL.Migrations
 
                     b.HasIndex("EditorsId");
 
-                    b.ToTable("ModuleTeacher");
+                    b.ToTable("ModuleTeacher", (string)null);
                 });
 
             modelBuilder.Entity("ModuleTeacher1", b =>
@@ -684,7 +684,7 @@ namespace HW.Backend.DAL.Migrations
 
                     b.HasIndex("TeachersId");
 
-                    b.ToTable("ModuleTeacher1");
+                    b.ToTable("ModuleTeacher1", (string)null);
                 });
 
             modelBuilder.Entity("HW.Backend.DAL.Data.Entities.StreamingModule", b =>

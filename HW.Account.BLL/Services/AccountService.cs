@@ -236,9 +236,11 @@ public class AccountService: IAccountService {
             NickName = u.NickName,
             AboutMe = u.AboutMe,
             Post = u.Post
-        }).ToList();
+        })
+            .ToList();
         var profiles = await Task.WhenAll(profileTasks);
-        return profiles.ToList();
+       var response= profiles.OrderBy(p => userIds.IndexOf(p.Id));
+        return response.ToList();
     }
 
     public async Task AddEducationInfo(EducationInfoCreateDto model, Guid userId) {

@@ -1,6 +1,6 @@
 namespace HW.Common.DataTransferObjects; 
 
 public class ChapterForReview {
-    public TestForReview TestForReview { get; set; }
+    public List<TestForReview> TestForReview { get; set; } = new();
     public string ChapterName { get; set; }
 }

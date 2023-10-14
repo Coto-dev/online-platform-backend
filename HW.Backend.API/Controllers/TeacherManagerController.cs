@@ -2,6 +2,7 @@ using HW.Common.DataTransferObjects;
 using HW.Common.Enums;
 using HW.Common.Exceptions;
 using HW.Common.Interfaces;
+using HW.Common.Other;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -38,13 +39,15 @@ public class TeacherManagerController : ControllerBase {
     [HttpGet]
     [Authorize(AuthenticationSchemes = "Bearer", Roles = ApplicationRoleNames.Teacher + "," + ApplicationRoleNames.Administrator)]
     [Route("module/{moduleId}/student/list")]
-    public async Task<ActionResult<List<StudentWithWorksDto>>> GetStudents(Guid moduleId) {
+    public async Task<ActionResult<PagedList<StudentWithWorksDto>>> GetStudents(
+        [FromQuery] PaginationParamsDto pagination,
+        Guid moduleId) {
         if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false) {
             throw new UnauthorizedException("User is not authorized");
         }
         if (!User.IsInRole(ApplicationRoleNames.Administrator))
             await _checkPermissionService.CheckTeacherModulePermission(userId, moduleId);
-        return Ok(await _teacherManagerService.GetStudents(moduleId));
+        return Ok(await _teacherManagerService.GetStudents(moduleId, pagination));
     }
     
     /// <summary>
