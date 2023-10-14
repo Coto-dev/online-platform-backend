@@ -33,13 +33,13 @@ public class TeacherManagerService : ITeacherManagerService {
             .Select(um => um.Student);
         
         var totalStudents = await _dbContext.DetailedAnswers
-            .Where(t => t.Accuracy == 0 && moduleStudents.Contains(t.UserAnswerTest.Student)
-                                        && t.UserAnswerTest.AnsweredAt.HasValue
+            .Where(t => moduleStudents.Contains(t.UserAnswerTest.Student)
                                         && t.UserAnswerTest.Test.Chapter.SubModule.Module == module)
             .GroupBy(t => t.UserAnswerTest.Student.Id)
             .Select(t=> new StudentWithWorksDto {
                 Id = t.Key,
-                WorksCount = t.Count()
+                WorksCount = t.Count(da => da.Accuracy == 0 
+                                          && da.UserAnswerTest.AnsweredAt.HasValue)
             })
             .ToListAsync();
         return totalStudents;
@@ -59,12 +59,10 @@ public class TeacherManagerService : ITeacherManagerService {
             UserProgress = new UserProgress {
                 Id = studentId,
                 PassedTests =  _dbContext.UserAnswerTests
-                    .Where(uat=> uat.Status == UserAnswerTestStatus.Passed 
-                                && uat.Student == student
+                    .Where(uat=> uat.Status == UserAnswerTestStatus.Passed
+                                 && uat.IsLastAttempt
+                                 && uat.Student == student
                                 && uat.Test.Chapter.SubModule.Module == module)
-                    .GroupBy(uat => uat.Test)
-                    .Select(group => group.OrderByDescending(uat => uat.NumberOfAttempt).First())
-                    .AsEnumerable()
                     .GroupBy(uat=>uat.Test.Chapter)
                     .Count(),
                 TotalChapters = await _dbContext.Chapters
@@ -107,9 +105,8 @@ public class TeacherManagerService : ITeacherManagerService {
             .Include(uat=>uat.Test)
             .ThenInclude(t=>t.Chapter)
             .Where(uat => uat.Student == student
+                          && uat.IsLastAttempt
                           && uat.Test.Chapter.SubModule.Module == module)
-            .GroupBy(uat => uat.Test)
-            .Select(group => group.OrderByDescending(uat => uat.NumberOfAttempt).First())
             .ToListAsync();
         
         foreach (var gradeGraphSubModule in gradeGraph.SubModules) {
