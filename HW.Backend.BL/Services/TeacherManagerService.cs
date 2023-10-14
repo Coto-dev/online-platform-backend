@@ -28,10 +28,9 @@ public class TeacherManagerService : ITeacherManagerService {
             .FirstOrDefault(m => m.Id == moduleId && !m.ArchivedAt.HasValue);
         if (module == null)
             throw new NotFoundException("Module not found");
-        var moduleStudents = _dbContext.UserModules
+        var moduleStudents = await _dbContext.UserModules
             .Where(m => m.Module == module)
-            .Select(um => um.Student);
-        
+            .Select(um => um.Student).ToListAsync();
         var totalStudents = await _dbContext.DetailedAnswers
             .Where(t => moduleStudents.Contains(t.UserAnswerTest.Student)
                                         && t.UserAnswerTest.Test.Chapter.SubModule.Module == module)
@@ -42,7 +41,13 @@ public class TeacherManagerService : ITeacherManagerService {
                                           && da.UserAnswerTest.AnsweredAt.HasValue)
             })
             .ToListAsync();
-        return totalStudents;
+         totalStudents.AddRange(moduleStudents
+            .Where(ms=>totalStudents
+                .All(ts=>ts.Id != ms.Id)).Select(ms=>new StudentWithWorksDto {
+                Id = ms.Id,
+                WorksCount = 0
+            }).ToList());
+         return totalStudents;
     }
 
     public async Task<GradeGraph> GetStudentGradeGraph(Guid moduleId, Guid studentId) {
@@ -88,11 +93,13 @@ public class TeacherManagerService : ITeacherManagerService {
                 && da.UserAnswerTest.Test.Chapter.SubModule.Module == module)
                 .CountAsync(),
             SubModules = module.SubModules!
+                .OrderBy(s=> module.OrderedSubModules!.IndexOf(s.Id))
                 .Where(s=>!s.ArchivedAt.HasValue)
                 .Select(s=> new GradeGraphSubModule {
                 SubModuleId = s.Id,
                 SubModuleName = s.Name,
                 Chapters = s.Chapters!
+                    .OrderBy(c=> module.OrderedSubModules!.IndexOf(c.Id))
                     .Where(c=>!c.ArchivedAt.HasValue)
                     .Select(c=> new GradeGraphChapter { 
                         ChapterType = c.ChapterType, 
@@ -115,7 +122,7 @@ public class TeacherManagerService : ITeacherManagerService {
                 .Where(l => l.LearnedBy == student &&
                             gradeGraphSubModule.Chapters
                                 .Select(c=>c.ChapterId).ToList()
-                                .Any(c => c == l.Chapter.Id))
+                                .Contains(l.Chapter.Id))
                 .ToListAsync();
             foreach (var gradeGraphChapter in gradeGraphSubModule.Chapters) {
 
