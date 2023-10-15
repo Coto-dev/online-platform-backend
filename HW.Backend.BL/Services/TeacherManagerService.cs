@@ -60,16 +60,18 @@ public class TeacherManagerService : ITeacherManagerService {
         var gradeGraph = new GradeGraph {
             UserProgress = new UserProgress {
                 Id = studentId,
-                PassedTests =  _dbContext.UserAnswerTests
-                    .Where(uat=> uat.Status == UserAnswerTestStatus.Passed
-                                 && !uat.Test.ArchivedAt.HasValue
-                                 && !uat.Test.Chapter.ArchivedAt.HasValue
-                                 && !uat.Test.Chapter.SubModule.ArchivedAt.HasValue
-                                 && uat.IsLastAttempt
-                                 && uat.Student == student
-                                && uat.Test.Chapter.SubModule.Module == module)
-                    .GroupBy(uat=>uat.Test.Chapter)
-                    .Count(),
+                PassedTests =   await _dbContext.Chapters
+                    .Where(c=>!c.ArchivedAt.HasValue
+                              && c.ChapterType == ChapterType.TestChapter
+                              && c.ChapterTests!.Count != 0
+                              && c.ChapterTests
+                                  .All(ct=> !ct.ArchivedAt.HasValue 
+                              && ct.UserAnswerTests!.Where(uat=>uat.IsLastAttempt)
+                                  .All(uat=>uat.Student == student 
+                                            && uat.Status == UserAnswerTestStatus.Passed)) 
+                              && !c.SubModule.ArchivedAt.HasValue
+                              && c.SubModule.Module == module)
+                    .CountAsync(),
                 TotalChapters = await _dbContext.Chapters
                     .Where(c=>!c.ArchivedAt.HasValue 
                               && !c.SubModule.ArchivedAt.HasValue
@@ -92,6 +94,7 @@ public class TeacherManagerService : ITeacherManagerService {
             },
             WorksCount = await _dbContext.DetailedAnswers
                 .Where(da=> da.UserAnswerTest.IsLastAttempt
+                            && da.UserAnswerTest.Student == student
                             && da.UserAnswerTest.Status == UserAnswerTestStatus.SentToCheck
                             && da.UserAnswerTest.Test.Chapter.SubModule.Module == module)
                 .CountAsync(),
