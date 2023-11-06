@@ -427,4 +427,47 @@ public class AdminPanelService : IAdminPanelService
             throw new BadRequestException("User cannot be unblocked.");
         }
     }
+    public async Task AddCuratorRoleToUser(Guid userId)
+    {
+        var userM = await _userManager.FindByIdAsync(userId.ToString()) ?? throw new NotFoundException("User with this Id not found.");
+        var userRoles = await _userManager.GetRolesAsync(userM);
+
+        if (!userRoles.Contains(ApplicationRoleNames.Curator))
+        {
+            await _userManager.AddToRoleAsync(userM, ApplicationRoleNames.Curator);
+        };
+
+        var user = await _backendDbContext.UserBackends
+            .FirstOrDefaultAsync(u => u.Id == userId);
+
+        if (user == null)
+        {
+            var newUser = new UserBackend()
+            {
+                Id = userId
+            };
+            user = newUser;
+            await _backendDbContext.AddAsync(user);
+        }
+
+        var result = await _userManager.UpdateAsync(userM);
+        if (result.Succeeded)
+            await _backendDbContext.SaveChangesAsync();
+    }
+
+    public async Task RemoveCuratorRoleFromUser(Guid userId)
+    {
+        var userM = await _userManager.FindByIdAsync(userId.ToString()) ?? throw new NotFoundException("User with this Id not found.");
+        var userRoles = await _userManager.GetRolesAsync(userM);
+
+        if (!userRoles.Contains(ApplicationRoleNames.Curator))
+        {
+            throw new BadRequestException("User doesn't have teacher permissions.");
+        }
+        else
+        {
+            await _userManager.RemoveFromRoleAsync(userM, ApplicationRoleNames.Curator);
+            await _userManager.UpdateAsync(userM);
+        }
+    }
 }

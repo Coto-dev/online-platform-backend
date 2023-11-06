@@ -179,4 +179,26 @@ public class AdminPanelController : ControllerBase
         await _adminPanelService.UnbanUser(userId);
         return Ok();
     }
+
+    /// <summary>
+    /// Add curator role to user [Admin]
+    /// </summary>
+    [HttpPost]
+    [Route("add/curator/{userId}")]
+    public async Task<ActionResult> AddCuratorRoleToUser(Guid userId)
+    {
+        await _adminPanelService.AddCuratorRoleToUser(userId);
+        return Ok();
+    }
+
+    /// <summary>
+    /// Remove curator role from user [Admin]
+    /// </summary>
+    [HttpDelete]
+    [Route("remove/curator/{userId}")]
+    public async Task<ActionResult> RemoveCuratorRoleFromUser(Guid userId)
+    {
+        await _adminPanelService.RemoveCuratorRoleFromUser(userId);
+        return Ok();
+    }
 }

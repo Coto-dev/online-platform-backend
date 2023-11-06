@@ -22,4 +22,6 @@ public interface IAdminPanelService
     public Task GetStudentsMarksFromModule(Guid moduleId);
     public Task BanUser(Guid userId);
     public Task UnbanUser(Guid userId);
+    public Task AddCuratorRoleToUser(Guid userId);
+    public Task RemoveCuratorRoleFromUser(Guid userId);
 }

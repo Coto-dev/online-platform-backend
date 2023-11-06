@@ -121,5 +121,8 @@ public static class ConfigureIdentityRoles {
         if (!await userManager.IsInRoleAsync(adminUser, ApplicationRoleNames.Student)) {
             await userManager.AddToRoleAsync(adminUser, ApplicationRoleNames.Student);
         }
+        if (!await userManager.IsInRoleAsync(adminUser, ApplicationRoleNames.Curator)) { 
+            await userManager.AddToRoleAsync(adminUser, ApplicationRoleNames.Curator);
+        }
     }
 }

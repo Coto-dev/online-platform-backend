@@ -28,7 +28,13 @@ public enum RoleType {
     /// Teacher role
     /// </summary>
     [Display(Name = ApplicationRoleNames.Teacher)]
-    Teacher
+    Teacher,
+
+    /// <summary>
+    /// Teacher role
+    /// </summary>
+    [Display(Name = ApplicationRoleNames.Curator)]
+    Curator
 }
 
 /// <summary>
@@ -54,4 +60,9 @@ public class ApplicationRoleNames {
     /// Teacher role name
     /// </summary>
     public const string Teacher = "Teacher";
+
+    /// <summary>
+    /// Curator role name
+    /// </summary>
+    public const string Curator = "Curator";
 }
