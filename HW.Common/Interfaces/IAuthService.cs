@@ -70,6 +70,7 @@ public interface IAuthService {
     /// <param name="changePasswordDto"></param>
     /// <returns></returns>
     Task ChangePasswordAsync(Guid userId, ChangePasswordDto changePasswordDto);
-
+    Task RestorePasswordAsync(EmailDto emailDto);
+    Task ResetPasswordAsync(ResetPasswordDto model);
     Task ConfirmEmail(Guid userId, string code);
 }
