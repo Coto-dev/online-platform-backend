@@ -91,6 +91,32 @@ public class AuthController : ControllerBase {
     }
 
     /// <summary>
+    /// Restore user password (send message with link to email)
+    /// </summary>
+    /// <returns></returns>
+    [HttpPost]
+    [AllowAnonymous]
+    [Route("generate-restore-password-link")]
+    public async Task<ActionResult> RestorePassword([FromBody] EmailDto emailDto)
+    {
+        await _authService.RestorePasswordAsync(emailDto);
+        return Ok();
+    }
+
+    /// <summary>
+    /// Reset user's password (forgot password)
+    /// </summary>
+    /// <returns></returns>
+    [HttpPost]
+    [AllowAnonymous]
+    [Route("reset-password")]
+    public async Task<ActionResult> ResetPassword(ResetPasswordDto model)
+    {
+        await _authService.ResetPasswordAsync(model);
+        return Ok();         
+    }
+
+    /// <summary>
     /// Get user devices
     /// </summary>
     /// <returns></returns>

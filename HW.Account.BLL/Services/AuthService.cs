@@ -1,8 +1,6 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using System.Security.Policy;
 using System.Text;
-using System.Transactions;
 using System.Web;
 using HW.Account.DAL.Data;
 using HW.Account.DAL.Data.Entities;
@@ -12,13 +10,12 @@ using HW.Common.Exceptions;
 using HW.Common.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 
-namespace HW.Account.BLL.Services; 
+namespace HW.Account.BLL.Services;
 
 /// <summary>
 /// Service for authentication and authorization
@@ -340,19 +337,69 @@ public class AuthService : IAuthService {
     /// </summary>
     /// <param name="userId"></param>
     /// <param name="changePasswordDto"></param>
-    public async Task ChangePasswordAsync(Guid userId, ChangePasswordDto changePasswordDto) {
+    public async Task ChangePasswordAsync(Guid userId, ChangePasswordDto changePasswordDto)
+    {
         var user = _userManager.Users.FirstOrDefault(u => u.Id == userId);
-        if (user == null) {
+        if (user == null)
+        {
             throw new NotFoundException("User not found");
         }
 
         var result =
             await _userManager.ChangePasswordAsync(user, changePasswordDto.OldPassword, changePasswordDto.NewPassword);
-        if (!result.Succeeded) {
+        if (!result.Succeeded)
+        {
             throw new BadRequestException(string.Join(", ", result.Errors.Select(x => x.Description)));
         }
     }
 
+    /// <summary>
+    /// Restore password
+    /// </summary>
+    /// <param name="emailDto"></param>
+    public async Task RestorePasswordAsync(EmailDto emailDto)
+    {
+        var userM = await _userManager.FindByEmailAsync(emailDto.Email);
+        if (userM != null)
+        {
+            var resetToken = await _userManager.GeneratePasswordResetTokenAsync(userM);
+            var encode = HttpUtility.UrlEncode(resetToken);
+            var config = _configuration.GetSection("ResetPasswordMVCUrl");
+            try
+            {
+                await _emailService.SendEmailAsync(emailDto.Email, "Восстановление пароля",
+                    $"Ваш запрос на сброс пароля получен.<br />Пожалуйста, посетите следующий URL-адрес, чтобы сбросить пароль: <a href='{config.GetValue<string>("Url")}?userId={userM.Id}&code={encode}'>link</a>");
+            }
+            catch (Exception e)
+            {
+                throw new BadRequestException(e.Message);
+            }
+        }
+        else
+        {
+            throw new BadRequestException("User not found or email is not confirmed.");
+        }
+    }
+
+    /// <summary>
+    /// Reset password
+    /// </summary>
+    /// <param name="model"></param>
+    public async Task ResetPasswordAsync(ResetPasswordDto model)
+    {
+        var userM = await _userManager.FindByEmailAsync(model.Email);
+        if (userM  == null)
+        {
+            throw new NotFoundException("User was not found.");
+        }
+        
+        var result = 
+            await _userManager.ResetPasswordAsync(userM, HttpUtility.UrlDecode(model.Token), model.NewPassword);
+        if (!result.Succeeded)
+        {
+            throw new ConflictException(string.Join(", ", result.Errors.Select(x => x.Description)));
+        };
+    }
     public async Task ConfirmEmail(Guid userId, string code) {
         var user = await _userManager.FindByIdAsync(userId.ToString());
         if (user == null) {
