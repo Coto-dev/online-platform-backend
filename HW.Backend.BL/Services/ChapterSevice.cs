@@ -226,7 +226,7 @@ public class ChapterService : IChapterService
                     .OrderBy(cb=> chapter.OrderedBlocks!.IndexOf(cb.Id))
                     .Select(cb=> new ChapterBlockTeacherDto {
                         Id = cb.Id,
-                    Content = SwapFileIdsWithUrls(cb.Content, cb.Files).Result,
+                    Content = cb.Content,
                     FileIds = cb.Files == null
                         ? new List<FileLinkDto>()
                         : cb.Files.Select( f => new FileLinkDto {
