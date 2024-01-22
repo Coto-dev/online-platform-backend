@@ -169,12 +169,12 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
         
-      # Setup key
-      - run: set -eu
-      - run: mkdir "$HOME/.ssh"
-      - run: echo "${{ secrets.KEY }}" > "$HOME/.ssh/key" 
-      - run: chmod 600 "$HOME/.ssh/key"
-        
+      - name: Using a trusted host
+        uses: kielabokkie/ssh-key-and-known-hosts-action@v1
+        with:
+          ssh-private-key: ${{secrets.KEY}}
+          ssh-host: ${{env.SERVER_HOST}}
+
       - run: touch .env
 
       - name: Create docker contaxt
