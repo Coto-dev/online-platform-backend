@@ -203,6 +203,8 @@ public class ModuleStudentService : IModuleStudentService {
             Id = module.Id,
             Name = module.Name,
             Description = module.Description,
+            WhatWillYouLearn = module.WhatWillYouLearn,
+            TargetAudience = module.TargetAudience,
             Price = module.Price,
             Avatar = module.AvatarId == null 
                 ? null 

@@ -205,6 +205,8 @@ public class ModuleManagerService : IModuleManagerService {
             Author = user.Teacher,
             Name = model.Name,
             Description = model.Description ?? "",
+            WhatWillYouLearn = model.WhatWillYouLearn ?? "",
+            TargetAudience = model.TargetAudience ?? "",
             Price = model.Price ?? 0,
             ModuleVisibility = ModuleVisibilityType.OnlyCreators,
             AvatarId = model.AvatarId,
@@ -224,6 +226,8 @@ public class ModuleManagerService : IModuleManagerService {
         module.TimeDuration = model.TimeDuration;
         module.Name = model.Name;
         module.Description = model.Description;
+        module.TargetAudience = model.TargetAudience;
+        module.WhatWillYouLearn = model.WhatWillYouLearn;
         module.Price = model.Price;
         module.EditedAt = DateTime.UtcNow;
         if (module.AvatarId != null && module.AvatarId != model.AvatarId)
@@ -244,7 +248,7 @@ public class ModuleManagerService : IModuleManagerService {
         await _dbContext.SaveChangesAsync();  
     }
 
-    public async Task<Guid> CreateStreamingModule(ModuleStreamingCreateDto model, Guid userId) {
+    public async Task<Guid> CreateStreamingModule(ModuleStreamingCreateDto model, Guid userId) {       
         var user = await _dbContext.UserBackends
             .Include(u=>u.Teacher)
             .FirstOrDefaultAsync(u => u.Id == userId);
@@ -273,6 +277,8 @@ public class ModuleManagerService : IModuleManagerService {
             Author = user.Teacher,
             Name = model.Name,
             Description = model.Description ?? "",
+            TargetAudience = model.TargetAudience ?? "",
+            WhatWillYouLearn = model.WhatWillYouLearn ?? "",
             Price = model.Price ?? 0,
             ModuleVisibility = ModuleVisibilityType.OnlyCreators,
             AvatarId = model.AvatarId,
@@ -297,6 +303,8 @@ public class ModuleManagerService : IModuleManagerService {
         module.TimeDuration = model.TimeDuration;
         module.Name = model.Name;
         module.Description = model.Description;
+        module.TargetAudience = model.TargetAudience;
+        module.WhatWillYouLearn = model.WhatWillYouLearn;
         module.Price = model.Price;
         if (module.AvatarId != null && module.AvatarId != model.AvatarId)
             await _fileService.RemoveFiles(new List<string>(){module.AvatarId});

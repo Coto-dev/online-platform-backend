@@ -64,6 +64,16 @@ public class Module
     public required Teacher Author { get; set; }
 
     /// <summary>
+    /// The target audience of module
+    /// </summary>
+    public string? TargetAudience { get; set; }
+
+    /// <summary>
+    /// Field describing what you will learn
+    /// </summary>
+    public string? WhatWillYouLearn { get; set; }
+
+    /// <summary>
     /// List of teachers who teach this module
     /// </summary>
     public List<Teacher>? Teachers { get; set; } = new();
