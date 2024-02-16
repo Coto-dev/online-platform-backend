@@ -169,4 +169,21 @@ public class ModuleStudentController : ControllerBase {
         return Ok();
         
     }
+
+    /// <summary>
+    /// Add spent time on module [Student]
+    /// </summary>
+    [HttpPut]
+    [Route("{moduleId}/timespent")]
+    [Authorize(AuthenticationSchemes = "Bearer", Roles = ApplicationRoleNames.Student)]
+    public async Task<ActionResult> AddSpentTimeOnModule(Guid moduleId, [FromBody] SpentTimeDto spentTime)
+    {
+        if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false)
+        {
+            throw new UnauthorizedException("User is not authorized");
+        }
+        await _moduleStudentService.AddSpentTimeOnModule(moduleId, userId, spentTime);
+        return Ok();
+
+    }
 }

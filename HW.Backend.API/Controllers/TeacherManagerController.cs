@@ -111,4 +111,20 @@ public class TeacherManagerController : ControllerBase {
         await _teacherManagerService.SetNewAttemptForTestChapter(studentId, chapterId);
         return Ok();
     }
+
+    /// <summary>
+    /// Get student's spent time on module
+    /// </summary>
+    [HttpGet]
+    [Authorize(AuthenticationSchemes = "Bearer", Roles = ApplicationRoleNames.Teacher + "," + ApplicationRoleNames.Administrator)]
+    [Route("module/{moduleId}/student/{studentId}/spent-time")]
+    public async Task<ActionResult<SpentTimeOnModuleResultDto>> GetStudentSpentTimeOnModule(Guid studentId, Guid moduleId)
+    {
+        if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false)
+        {
+            throw new UnauthorizedException("User is not authorized");
+        }
+
+        return Ok(await _teacherManagerService.GetStudentSpentTimeOnModule(studentId, moduleId));
+    }
 }

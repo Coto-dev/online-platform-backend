@@ -283,4 +283,37 @@ public class TeacherManagerService : ITeacherManagerService {
         await _dbContext.AddRangeAsync(newUserAnswerTests);
         await _dbContext.SaveChangesAsync();
     }
+
+    public async Task<SpentTimeOnModuleResultDto> GetStudentSpentTimeOnModule(Guid studentId, Guid moduleId)
+    {
+        var module = await _dbContext.Modules
+            .FirstOrDefaultAsync(m => m.Id == moduleId);
+        if (module == null)
+            throw new NotFoundException("Module not found");
+
+        var user = await _dbContext.Students
+            .FirstOrDefaultAsync(u => u.Id == studentId);
+        if (user == null)
+            throw new NotFoundException("User not found");
+
+        var userModule = await _dbContext.UserModules
+            .FirstOrDefaultAsync(um => um.Module == module && um.Student == user);
+        if (userModule == null)
+            throw new ConflictException("User's module not found");
+
+        var response = new SpentTimeOnModuleResultDto
+        {
+            ModuleId = moduleId,
+            StudentId = studentId,
+            SpentTimeDto = new SpentTimeDto
+            {
+                Days = userModule.SpentTime.Days,
+                Hours = userModule.SpentTime.Hours,
+                Minutes = userModule.SpentTime.Minutes,
+                Seconds = userModule.SpentTime.Seconds
+            }
+        };
+
+        return response;
+    }
 }

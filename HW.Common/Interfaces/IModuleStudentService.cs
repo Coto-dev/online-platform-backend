@@ -18,5 +18,6 @@ public interface IModuleStudentService {
     public Task StartModule(Guid moduleId, Guid userId);
     public Task AddModuleToBasket(Guid moduleId, Guid userId);
     public Task DeleteModuleFromBasket(Guid moduleId, Guid userId);
+    public Task AddSpentTimeOnModule(Guid moduleId, Guid userId, SpentTimeDto spentTime);
 
 }

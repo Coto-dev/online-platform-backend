@@ -394,4 +394,27 @@ public class ModuleStudentService : IModuleStudentService {
         _dbContext.Remove(studentModule);
         await _dbContext.SaveChangesAsync();
     }
+
+    public async Task AddSpentTimeOnModule(Guid moduleId, Guid userId, SpentTimeDto spentTime)
+    {
+        var module = await _dbContext.Modules
+            .FirstOrDefaultAsync(m => m.Id == moduleId);
+        if (module == null)
+            throw new NotFoundException("Module not found");
+
+        var user = await _dbContext.Students
+            .FirstOrDefaultAsync(u => u.Id == userId);
+        if (user == null)
+            throw new NotFoundException("User not found");
+
+        var userModule = await _dbContext.UserModules
+            .FirstOrDefaultAsync(um => um.Module == module && um.Student == user);
+        if (userModule == null)
+            throw new ConflictException("User's module not found");
+        
+        userModule.SpentTime += new TimeSpan(spentTime.Days, spentTime.Hours, spentTime.Minutes, spentTime.Seconds);
+
+        _dbContext.Update(userModule);
+        await _dbContext.SaveChangesAsync();
+    }
 }
