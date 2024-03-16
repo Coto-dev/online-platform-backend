@@ -13,11 +13,14 @@ public interface IModuleStudentService {
     public Task<ModuleFullDto> GetModuleContent(Guid moduleId, Guid userId);
     public Task<float> CalculateProgressFloat(Guid moduleId, Guid userId);
     public Task<ModuleDetailsDto> GetModuleDetails(Guid moduleId, Guid? userId);
-    public Task<ModuleDetailsDto> SendCommentToModule(ModuleCommentDto model, Guid moduleId, Guid userId);
     public Task BuyModule(Guid moduleId, Guid userId);
     public Task StartModule(Guid moduleId, Guid userId);
     public Task AddModuleToBasket(Guid moduleId, Guid userId);
     public Task DeleteModuleFromBasket(Guid moduleId, Guid userId);
     public Task AddSpentTimeOnModule(Guid moduleId, Guid userId, SpentTimeDto spentTime);
+    public Task SendCommentToModule(ModuleCommentCreateDto model, Guid moduleId, Guid userId);
+    public Task DeleteCommentFromModule(Guid commentId, Guid userId);
+    public Task EditCommentInModule(ModuleCommentEditDto message, Guid commentId, Guid userId);
+    public Task<PagedList<ModuleCommentDto>> GetModuleComments(Guid moduleId, PaginationParamsDto pagination);
 
 }

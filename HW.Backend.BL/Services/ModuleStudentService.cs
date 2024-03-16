@@ -262,9 +262,104 @@ public class ModuleStudentService : IModuleStudentService {
         }
         return response;
     }
+    public async Task SendCommentToModule(ModuleCommentCreateDto model, Guid moduleId, Guid userId)
+    {
+        var user = await _dbContext.UserBackends
+            .FirstOrDefaultAsync(c => c.Id == userId);
 
-    public async Task<ModuleDetailsDto> SendCommentToModule(ModuleCommentDto model, Guid moduleId, Guid userId) {
-        throw new NotImplementedException();
+        if (user == null)
+            throw new NotFoundException("User with this id not found");
+
+        var teacher = await _dbContext.Teachers
+            .FirstOrDefaultAsync(t => t.Id == userId);
+
+        var module = await _dbContext.Modules
+            .FirstOrDefaultAsync(c => c.Id == moduleId);
+
+        if (module == null)
+            throw new NotFoundException("Module with this id not found");
+
+        await _dbContext.AddAsync(new ModuleComment
+        {
+            Id = Guid.NewGuid(),
+            CreatedAt = DateTime.UtcNow,
+            Message = model.Message,
+            Module = module,
+            User = user,
+            IsTeacherComment = teacher != null
+        });
+        await _dbContext.SaveChangesAsync();
+    }
+
+    public async Task DeleteCommentFromModule(Guid commentId, Guid userId)
+    {
+        var comment = await _dbContext.ModuleComments
+            .FirstOrDefaultAsync(c => c.Id == commentId);
+        if (comment == null)
+            throw new NotFoundException("Comment with this id not found");
+
+        var user = await _dbContext.UserBackends
+            .FirstOrDefaultAsync(c => c.Id == userId);
+        if (user == null)
+            throw new NotFoundException("User with this id not found");
+
+        var teacher = await _dbContext.Teachers
+            .FirstOrDefaultAsync(t => t.Id == userId);
+
+        if (comment.User != user && teacher == null)
+            throw new ConflictException("User have not rules to delete this comment");
+
+        _dbContext.ModuleComments.Remove(comment);
+        await _dbContext.SaveChangesAsync();
+    }
+
+    public async Task EditCommentInModule(ModuleCommentEditDto message, Guid commentId, Guid userId)
+    {
+        var comment = await _dbContext.ModuleComments
+            .FirstOrDefaultAsync(c => c.Id == commentId);
+        if (comment == null)
+            throw new NotFoundException("Comment with this id not found");
+
+        var user = await _dbContext.UserBackends
+            .FirstOrDefaultAsync(c => c.Id == userId);
+        if (user == null)
+            throw new NotFoundException("User with this id not found");
+
+        if (comment.User != user)
+            throw new ConflictException("User have not rules to delete this comment");
+
+        comment.Message = message.Message;
+        comment.EditedAt = DateTime.UtcNow;
+        _dbContext.Update(comment);
+        await _dbContext.SaveChangesAsync();
+    }
+
+    public async Task<PagedList<ModuleCommentDto>> GetModuleComments(Guid moduleId, PaginationParamsDto pagination)
+    {
+        var module = await _dbContext.Modules
+            .FirstOrDefaultAsync(c => c.Id == moduleId);
+
+        if (module == null)
+            throw new NotFoundException("Module with this id not found");
+
+        if (pagination.PageNumber <= 0)
+            throw new BadRequestException("Wrong page");
+
+        var comments = _dbContext.ModuleComments
+            .Where(c => c.Module == module)
+            .AsQueryable()
+            .AsNoTracking();
+
+        var commentsDto = comments.Select(x => new ModuleCommentDto
+        {
+            Id = x.Id,
+            UserId = x.User.Id,
+            Message = x.Message,
+            IsTeacherComment = x.IsTeacherComment
+        });
+
+        var response = await PagedList<ModuleCommentDto>.ToPagedList(commentsDto, pagination.PageNumber, pagination.PageSize);
+        return response;
     }
 
     public async Task BuyModule(Guid moduleId, Guid userId) {
