@@ -191,7 +191,8 @@ public class TeacherManagerService : ITeacherManagerService {
             .Where(da => da.UserAnswerTest.Status == UserAnswerTestStatus.SentToCheck
                          && da.UserAnswerTest.IsLastAttempt
                          && da.UserAnswerTest.Student == student
-                         && da.UserAnswerTest.Test.Chapter.SubModule.Module == module)
+                         && da.UserAnswerTest.Test.Chapter.SubModule.Module == module
+                         && !da.UserAnswerTest.Test.ArchivedAt.HasValue)
            .GroupBy(da => da.UserAnswerTest.Test.Chapter)
             .ToListAsync();
         var unique = chaptersForReview.DistinctBy(c=>c.Key.Id).ToList();

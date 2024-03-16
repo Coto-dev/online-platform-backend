@@ -166,7 +166,7 @@ public class ModuleStudentService : IModuleStudentService {
         if (user == null)
             return 0;
         var chapters = await _dbContext.Chapters
-            .Where(c => c.ChapterType == ChapterType.DefaultChapter && c.SubModule.Module.Id == moduleId)
+            .Where(c => c.ChapterType == ChapterType.DefaultChapter && c.SubModule.Module.Id == moduleId && !c.ArchivedAt.HasValue)
             .AsNoTracking()
             .ToListAsync();
         var totalLearned = await _dbContext.Learned
