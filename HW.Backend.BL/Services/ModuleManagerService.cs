@@ -404,5 +404,114 @@ public class ModuleManagerService : IModuleManagerService {
         await _dbContext.SaveChangesAsync();
         await _dbContext.SaveChangesAsync();
     }
-    
+
+    public async Task<Guid> CreateModuleTag(string tagName)
+    {
+        var existingTag = await _dbContext.ModuleTags
+            .FirstOrDefaultAsync(t => t.TagName.ToLower().Contains(tagName.ToLower()));
+
+        if (existingTag is not null)
+        {
+            throw new BadRequestException("Module tag with that name already exists");
+        }
+
+        var newTag = new ModuleTag()
+        {
+            Id = Guid.NewGuid(),
+            TagName = tagName
+        };
+
+        await _dbContext.AddAsync(newTag);
+        await _dbContext.SaveChangesAsync();
+        return newTag.Id;
+    }
+
+    public async Task AddTagToModule(Guid tagId, Guid moduleId)
+    {
+        var tag = await _dbContext.ModuleTags
+            .FirstOrDefaultAsync(t => t.Id == tagId);
+
+        if (tag is null)
+        {
+            throw new NotFoundException("Tag not found");
+        }
+
+        var module = await _dbContext.Modules
+            .Include(m => m.Tags)
+            .FirstOrDefaultAsync(m => m.Id == moduleId);
+
+        if (module is null)
+        {
+            throw new NotFoundException("Module not found");
+        }
+
+        if (module.Tags!.Contains(tag))
+        {
+            throw new BadRequestException("Module already have that tag");
+        }
+
+        module.Tags.Add(tag);
+        _dbContext.Update(module);
+        await _dbContext.SaveChangesAsync();
+    }
+
+    public async Task DeleteTagToModule(Guid tagId, Guid moduleId)
+    {
+        var tag = await _dbContext.ModuleTags
+            .FirstOrDefaultAsync(t => t.Id == tagId);
+
+        if (tag is null)
+        {
+            throw new NotFoundException("Tag not found");
+        }
+
+        var module = await _dbContext.Modules
+            .Include(m => m.Tags)
+            .FirstOrDefaultAsync(m => m.Id == moduleId);
+
+        if (module is null)
+        {
+            throw new NotFoundException("Module not found");
+        }
+
+        if (!module.Tags!.Contains(tag))
+        {
+            throw new BadRequestException("Module doesn't have that tag");
+        }
+
+        module.Tags.Remove(tag);
+        _dbContext.Update(module);
+        await _dbContext.SaveChangesAsync();
+    }
+
+    public async Task EditModuleTags(string newTagName, Guid tagId)
+    {
+        var tag = await _dbContext.ModuleTags
+            .FirstOrDefaultAsync(t => t.Id == tagId);
+
+        if (tag is null)
+        {
+            throw new NotFoundException("Tag not found");
+        }
+
+        tag.TagName = newTagName;
+
+        _dbContext.Update(tag);
+        await _dbContext.SaveChangesAsync();
+    }
+
+    public async Task DeleteModuleTags(Guid tagId)
+    {
+        var tag = await _dbContext.ModuleTags
+            .FirstOrDefaultAsync(t => t.Id == tagId);
+
+        if (tag is null)
+        {
+            throw new NotFoundException("Tag not found");
+        }
+
+        _dbContext.ModuleTags.Remove(tag);
+        await _dbContext.SaveChangesAsync();
+    }
+
 }

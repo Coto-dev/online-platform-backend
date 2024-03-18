@@ -7,7 +7,7 @@ namespace HW.Common.Interfaces;
 
 public interface IModuleStudentService {
     public Task<PagedList<ModuleShortDto>>GetAvailableModules(PaginationParamsDto pagination, FilterModuleType? filter,
-        string? sortByNameFilter, SortModuleType? sortModuleType, Guid? userId);
+        string? sortByNameFilter, SortModuleType? sortModuleType, Guid? userId, ModuleTagsDto? ModuleTags);
     public Task<PagedList<ModuleShortDto>> GetStudentModules(PaginationParamsDto pagination, FilterModuleType? filter,
          string? sortByNameFilter, ModuleStudentFilter? section, SortModuleType? sortModuleType, Guid userId);
     public Task<ModuleFullDto> GetModuleContent(Guid moduleId, Guid userId);
@@ -22,5 +22,7 @@ public interface IModuleStudentService {
     public Task DeleteCommentFromModule(Guid commentId, Guid userId);
     public Task EditCommentInModule(ModuleCommentEditDto message, Guid commentId, Guid userId);
     public Task<PagedList<ModuleCommentDto>> GetModuleComments(Guid moduleId, PaginationParamsDto pagination);
+    public Task<PagedList<TagDto>> SearchModuleTags(string? tagName, PaginationParamsDto pagination);
+    public Task<List<TagDto>> GetTagsOfModule(Guid moduleId);
 
 }

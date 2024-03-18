@@ -43,12 +43,14 @@ public class ModuleStudentController : ControllerBase {
         [FromQuery] PaginationParamsDto pagination,
         [FromQuery] FilterModuleType? filter,
         [FromQuery] string? sortByNameFilter,
-        [FromQuery] SortModuleType? sortModuleType = SortModuleType.NameAsc) {
+        [FromQuery] ModuleTagsDto? ModuleTags,
+        [FromQuery] SortModuleType? sortModuleType = SortModuleType.NameAsc)
+    {
         if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false) {
             userId = Guid.Empty;
         }
         return Ok(await _moduleStudentService.GetAvailableModules(pagination, filter, sortByNameFilter,
-                sortModuleType, userId));
+                sortModuleType, userId, ModuleTags));
     }
     
 
@@ -244,4 +246,37 @@ public class ModuleStudentController : ControllerBase {
         return Ok();
 
     }
+
+    /// <summary>
+    /// Get tags list [Any(unauthorized)]
+    /// </summary>
+    [HttpGet]
+    [Route("tags")]
+    public async Task<ActionResult<PagedList<TagDto>>> SearchModuleTags(
+        [FromQuery] string? tagName,
+        [FromQuery] PaginationParamsDto pagination)
+    {
+        if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false)
+        {
+            userId = Guid.Empty;
+        }
+
+        return Ok(await _moduleStudentService.SearchModuleTags(tagName, pagination));
+    }
+
+    /// <summary>
+    /// Get tag list of module [Any(unauthorized)]
+    /// </summary>
+    [HttpGet]
+    [Route("tags/{moduleId}")]
+    public async Task<ActionResult<List<TagDto>>> GetTagsOfModule(Guid moduleId)
+    {
+        if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false)
+        {
+            userId = Guid.Empty;
+        }
+
+        return Ok(await _moduleStudentService.GetTagsOfModule(moduleId));
+    }
+
 }

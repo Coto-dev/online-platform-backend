@@ -94,5 +94,9 @@ public class Module
     /// List of recommended modules 
     /// </summary>
     public List<Module>? RecommendedModules { get; set; } = new();
+    /// <summary>
+    /// List of tags
+    /// </summary>
+    public List<ModuleTag>? Tags { get; set; } = new();
 
 }

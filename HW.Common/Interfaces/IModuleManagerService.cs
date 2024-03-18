@@ -2,7 +2,7 @@ using HW.Common.DataTransferObjects;
 using HW.Common.Enums;
 using HW.Common.Other;
 
-namespace HW.Common.Interfaces; 
+namespace HW.Common.Interfaces;
 
 public interface IModuleManagerService {
     Task<PagedList<ModuleShortDto>> GetTeacherModules(PaginationParamsDto pagination, FilterModuleType? filter,
@@ -18,8 +18,11 @@ public interface IModuleManagerService {
     Task RemoveEditorFromModule(Guid userId, Guid moduleId, Guid editorId);
     Task AddTeacherToModule(Guid userId, Guid moduleId);
     Task RemoveTeacherFromModule(Guid userId, Guid moduleId);
-    
     Task ArchiveModule(Guid moduleId);
-    
-    
+    Task<Guid> CreateModuleTag(string tagName);
+    Task AddTagToModule(Guid tagId, Guid moduleId);
+    Task DeleteTagToModule(Guid tagId, Guid moduleId);
+    Task EditModuleTags(string newTagName, Guid tagId);
+    Task DeleteModuleTags(Guid tagId);
+
 }

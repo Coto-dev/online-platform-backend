@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 
-namespace HW.Backend.BL.Services; 
+namespace HW.Backend.BL.Services;
 
 public class ModuleStudentService : IModuleStudentService {
     private readonly ILogger<ModuleStudentService> _logger;
@@ -24,7 +24,7 @@ public class ModuleStudentService : IModuleStudentService {
     }
 
     public async Task<PagedList<ModuleShortDto>> GetAvailableModules(PaginationParamsDto pagination, FilterModuleType? filter, string? sortByNameFilter,
-        SortModuleType? sortModuleType, Guid? userId) {
+        SortModuleType? sortModuleType, Guid? userId, ModuleTagsDto? ModuleTags) {
         var user = await _dbContext.Students
             .Include(u=>u.Modules)!
             .ThenInclude(m=>m.Module)
@@ -32,10 +32,11 @@ public class ModuleStudentService : IModuleStudentService {
         
         if (pagination.PageNumber <= 0)
             throw new BadRequestException("Wrong page");
-        
+
         var modules = _dbContext.Modules
             .Where(m => !m.ArchivedAt.HasValue && m.ModuleVisibility == ModuleVisibilityType.Everyone)
             .ModuleAvailableFilter(filter,sortByNameFilter)
+            .Where(m => ModuleTags!.TagsId!.Count() == 0 || ModuleTags == null || m.Tags!.Any(tag => ModuleTags.TagsId!.Contains(tag.Id)))
             .ModuleOrderBy(sortModuleType)
             .AsQueryable()
             .AsNoTracking();
@@ -511,5 +512,49 @@ public class ModuleStudentService : IModuleStudentService {
 
         _dbContext.Update(userModule);
         await _dbContext.SaveChangesAsync();
+    }
+
+    public async Task<PagedList<TagDto>> SearchModuleTags(string? tagName, PaginationParamsDto pagination)
+    {
+        var tags = _dbContext.ModuleTags
+            .Where(t => tagName == null || t.TagName.ToLower().Contains(tagName.ToLower()))
+            .AsQueryable()
+            .AsNoTracking();
+
+        if (tags == null)
+            throw new NotFoundException("Tags not found");
+
+        if (pagination.PageNumber <= 0)
+            throw new BadRequestException("Wrong page");
+
+        var tagsDto = tags.Select(x => new TagDto
+        {
+            TagId = x.Id,
+            TagName = x.TagName
+        });
+
+        var response = await PagedList<TagDto>.ToPagedList(tagsDto, pagination.PageNumber, pagination.PageSize);
+        return response;
+    }
+
+    public async Task<List<TagDto>> GetTagsOfModule(Guid moduleId)
+    {
+        var module = await _dbContext.Modules
+            .Include(m => m.Tags)
+            .FirstOrDefaultAsync(m => m.Id == moduleId);
+
+        if (module == null)
+            throw new NotFoundException("Module not found");
+
+        if (module.Tags!.Count() == 0)
+            throw new NotFoundException("Module tags not found");
+
+        var tagsDto = module.Tags!.Select(t => new TagDto
+        { 
+            TagId = t.Id,
+            TagName = t.TagName
+        }).ToList();
+
+        return tagsDto;
     }
 }
