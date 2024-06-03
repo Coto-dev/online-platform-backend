@@ -9,6 +9,8 @@ public class ModuleStreamingEditDto {
     public string Name { get; set; }
     [Required]
     public string Description { get; set; }
+    public string? WhatWillYouLearn { get; set; }
+    public string? TargetAudience { get; set; }
     [Required]
     public int Price { get; set; }
     public string? AvatarId { get; set; }

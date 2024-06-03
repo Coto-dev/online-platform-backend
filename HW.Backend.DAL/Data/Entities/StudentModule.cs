@@ -23,5 +23,8 @@ public class StudentModule
     /// Relationship between module and student
     /// </summary>
     public ModuleStatusType ModuleStatus { get; set; }
-
+    /// <summary>
+    /// Spent time
+    /// </summary>
+    public TimeSpan SpentTime { get; set; } = new TimeSpan(0, 0, 0, 0);
 }

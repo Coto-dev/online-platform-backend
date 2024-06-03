@@ -6,6 +6,8 @@ public class ModuleDetailsDto {
     public Guid Id { get; set; }
     public string Name { get; set; }
     public string? Description { get; set; }
+    public string? WhatWillYouLearn { get; set; }
+    public string? TargetAudience { get; set; }
     public int Price { get; set; }
     public FileLinkDto? Avatar { get; set; }
     public ModuleStatusType Status { get; set; }

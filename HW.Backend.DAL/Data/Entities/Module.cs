@@ -64,6 +64,16 @@ public class Module
     public required Teacher Author { get; set; }
 
     /// <summary>
+    /// The target audience of module
+    /// </summary>
+    public string? TargetAudience { get; set; }
+
+    /// <summary>
+    /// Field describing what you will learn
+    /// </summary>
+    public string? WhatWillYouLearn { get; set; }
+
+    /// <summary>
     /// List of teachers who teach this module
     /// </summary>
     public List<Teacher>? Teachers { get; set; } = new();
@@ -84,5 +94,9 @@ public class Module
     /// List of recommended modules 
     /// </summary>
     public List<Module>? RecommendedModules { get; set; } = new();
+    /// <summary>
+    /// List of tags
+    /// </summary>
+    public List<ModuleTag>? Tags { get; set; } = new();
 
 }
