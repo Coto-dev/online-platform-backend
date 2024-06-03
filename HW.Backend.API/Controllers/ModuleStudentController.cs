@@ -43,12 +43,14 @@ public class ModuleStudentController : ControllerBase {
         [FromQuery] PaginationParamsDto pagination,
         [FromQuery] FilterModuleType? filter,
         [FromQuery] string? sortByNameFilter,
-        [FromQuery] SortModuleType? sortModuleType = SortModuleType.NameAsc) {
+        [FromQuery] ModuleTagsDto? ModuleTags,
+        [FromQuery] SortModuleType? sortModuleType = SortModuleType.NameAsc)
+    {
         if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false) {
             userId = Guid.Empty;
         }
         return Ok(await _moduleStudentService.GetAvailableModules(pagination, filter, sortByNameFilter,
-                sortModuleType, userId));
+                sortModuleType, userId, ModuleTags));
     }
     
 
@@ -101,7 +103,21 @@ public class ModuleStudentController : ControllerBase {
         }
         return Ok(await _moduleStudentService.GetModuleDetails(moduleId, userId));
     }
-    
+
+    /// <summary>
+    /// Get module comments by moduleId [Any(unauthorized)]
+    /// </summary>
+    [HttpGet]
+    [Route("{moduleId}/comments")]
+    public async Task<ActionResult<PagedList<ModuleCommentDto>>> GetModuleComments([FromQuery] PaginationParamsDto pagination, Guid moduleId)
+    {
+        if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false)
+        {
+            userId = Guid.Empty;
+        }
+        return Ok(await _moduleStudentService.GetModuleComments(moduleId, pagination));
+    }
+
     /// <summary>
     /// Send comment to module [Teacher][Student]
     /// </summary>
@@ -110,10 +126,54 @@ public class ModuleStudentController : ControllerBase {
     [Authorize(AuthenticationSchemes = "Bearer", Roles = ApplicationRoleNames.Student
                                                          + "," + ApplicationRoleNames.Teacher 
                                                          + "," + ApplicationRoleNames.Administrator)]
-    public async Task<ActionResult> SendCommentToModule([FromBody] ModuleCommentDto model, Guid moduleId) {
-        throw new NotImplementedException();
+    public async Task<ActionResult> SendCommentToModule([FromBody] ModuleCommentCreateDto model, Guid moduleId) {
+        if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false)
+        {
+            throw new UnauthorizedException("User is not authorized");
+        }
+
+        await _moduleStudentService.SendCommentToModule(model, moduleId, userId);
+        return Ok();
     }
-    
+
+    /// <summary>
+    /// Edit comment to module [Teacher][Student]
+    /// </summary>
+    [HttpPut]
+    [Route("{moduleId}/comment")]
+    [Authorize(AuthenticationSchemes = "Bearer", Roles = ApplicationRoleNames.Student
+                                                         + "," + ApplicationRoleNames.Teacher
+                                                         + "," + ApplicationRoleNames.Administrator)]
+    public async Task<ActionResult> EditCommentToModule([FromBody] ModuleCommentEditDto model, Guid commentId)
+    {
+        if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false)
+        {
+            throw new UnauthorizedException("User is not authorized");
+        }
+
+        await _moduleStudentService.EditCommentInModule(model, commentId, userId);
+        return Ok();
+    }
+
+    /// <summary>
+    /// Delete comment from module [Teacher][Student]
+    /// </summary>
+    [HttpDelete]
+    [Route("{moduleId}/comment")]
+    [Authorize(AuthenticationSchemes = "Bearer", Roles = ApplicationRoleNames.Student
+                                                         + "," + ApplicationRoleNames.Teacher
+                                                         + "," + ApplicationRoleNames.Administrator)]
+    public async Task<ActionResult> DeleteCommentInModule(Guid commentId)
+    {
+        if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false)
+        {
+            throw new UnauthorizedException("User is not authorized");
+        }
+
+        await _moduleStudentService.DeleteCommentFromModule(commentId, userId);
+        return Ok();
+    }
+
     /// <summary>
     /// Buy module [Student]
     /// </summary>
@@ -169,4 +229,54 @@ public class ModuleStudentController : ControllerBase {
         return Ok();
         
     }
+
+    /// <summary>
+    /// Add spent time on module [Student]
+    /// </summary>
+    [HttpPut]
+    [Route("{moduleId}/timespent")]
+    [Authorize(AuthenticationSchemes = "Bearer", Roles = ApplicationRoleNames.Student)]
+    public async Task<ActionResult> AddSpentTimeOnModule(Guid moduleId, [FromBody] SpentTimeDto spentTime)
+    {
+        if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false)
+        {
+            throw new UnauthorizedException("User is not authorized");
+        }
+        await _moduleStudentService.AddSpentTimeOnModule(moduleId, userId, spentTime);
+        return Ok();
+
+    }
+
+    /// <summary>
+    /// Get tags list [Any(unauthorized)]
+    /// </summary>
+    [HttpGet]
+    [Route("tags")]
+    public async Task<ActionResult<PagedList<TagDto>>> SearchModuleTags(
+        [FromQuery] string? tagName,
+        [FromQuery] PaginationParamsDto pagination)
+    {
+        if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false)
+        {
+            userId = Guid.Empty;
+        }
+
+        return Ok(await _moduleStudentService.SearchModuleTags(tagName, pagination));
+    }
+
+    /// <summary>
+    /// Get tag list of module [Any(unauthorized)]
+    /// </summary>
+    [HttpGet]
+    [Route("tags/{moduleId}")]
+    public async Task<ActionResult<List<TagDto>>> GetTagsOfModule(Guid moduleId)
+    {
+        if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false)
+        {
+            userId = Guid.Empty;
+        }
+
+        return Ok(await _moduleStudentService.GetTagsOfModule(moduleId));
+    }
+
 }

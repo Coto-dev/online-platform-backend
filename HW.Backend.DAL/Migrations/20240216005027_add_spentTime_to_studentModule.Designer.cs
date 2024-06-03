@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using HW.Backend.DAL.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -12,9 +13,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace HW.Backend.DAL.Migrations
 {
     [DbContext(typeof(BackendDbContext))]
-    partial class BackendDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240216005027_add_spentTime_to_studentModule")]
+    partial class add_spentTime_to_studentModule
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -356,21 +359,6 @@ namespace HW.Backend.DAL.Migrations
                     b.ToTable("ModuleComments");
                 });
 
-            modelBuilder.Entity("HW.Backend.DAL.Data.Entities.ModuleTag", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("TagName")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("ModuleTags");
-                });
-
             modelBuilder.Entity("HW.Backend.DAL.Data.Entities.ReviewedDetailedTests", b =>
                 {
                     b.Property<Guid>("Id")
@@ -679,21 +667,6 @@ namespace HW.Backend.DAL.Migrations
                     b.HasIndex("RecommendedModulesId");
 
                     b.ToTable("RecommendedModules", (string)null);
-                });
-
-            modelBuilder.Entity("ModuleModuleTag", b =>
-                {
-                    b.Property<Guid>("ModulesId")
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("TagsId")
-                        .HasColumnType("uuid");
-
-                    b.HasKey("ModulesId", "TagsId");
-
-                    b.HasIndex("TagsId");
-
-                    b.ToTable("ModuleModuleTag");
                 });
 
             modelBuilder.Entity("ModuleTeacher", b =>
@@ -1111,21 +1084,6 @@ namespace HW.Backend.DAL.Migrations
                     b.HasOne("HW.Backend.DAL.Data.Entities.Module", null)
                         .WithMany()
                         .HasForeignKey("RecommendedModulesId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("ModuleModuleTag", b =>
-                {
-                    b.HasOne("HW.Backend.DAL.Data.Entities.Module", null)
-                        .WithMany()
-                        .HasForeignKey("ModulesId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("HW.Backend.DAL.Data.Entities.ModuleTag", null)
-                        .WithMany()
-                        .HasForeignKey("TagsId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });

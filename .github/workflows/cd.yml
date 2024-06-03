@@ -172,9 +172,9 @@ jobs:
       - name: Using a trusted host
         uses: kielabokkie/ssh-key-and-known-hosts-action@v1
         with:
-          ssh-private-key: ${{ secrets.KEY }}
+          ssh-private-key: ${{secrets.KEY}}
           ssh-host: ${{env.SERVER_HOST}}
-        
+
       - run: touch .env
 
       - name: Create docker contaxt

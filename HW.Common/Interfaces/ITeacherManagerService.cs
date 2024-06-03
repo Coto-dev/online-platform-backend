@@ -9,4 +9,5 @@ public interface ITeacherManagerService {
     Task<List<ChapterForReview>> GetTestsForReview(Guid moduleId, Guid studentId);
     Task SetAccuracyToDetailedAnswer(Guid teacherId, Guid userAnswerId, DetailedAnswerAccuracy accuracy);
     Task SetNewAttemptForTestChapter(Guid studentId, Guid chapterId);
+    Task<SpentTimeOnModuleResultDto> GetStudentSpentTimeOnModule(Guid studentId, Guid moduleId);
 }

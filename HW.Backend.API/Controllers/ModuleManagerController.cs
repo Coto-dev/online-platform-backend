@@ -225,4 +225,83 @@ public class ModuleManagerController : ControllerBase {
         await _moduleManagerService.RemoveTeacherFromModule(userId, moduleId);
         return Ok();
     }
+
+    /// <summary>
+    /// Create module tag [Teacher]
+    /// </summary>
+    [HttpPost]
+    [Route("tag/create")]
+    public async Task<ActionResult<Guid>> CreateModuleTag([FromBody] string tagName)
+    {
+        if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid editorId) == false)
+        {
+            throw new UnauthorizedException("User is not authorized");
+        }
+
+        return Ok(await _moduleManagerService.CreateModuleTag(tagName));
+    }
+
+    /// <summary>
+    /// Add tag to module [Teacher]
+    /// </summary>
+    [HttpPost]
+    [Route("tag/{tagId}/{moduleId}")]
+    public async Task<ActionResult> AddTagToModule(Guid tagId, Guid moduleId)
+    {
+        if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid editorId) == false)
+        {
+            throw new UnauthorizedException("User is not authorized");
+        }
+
+        await _moduleManagerService.AddTagToModule(tagId, moduleId);
+        return Ok();
+    }
+
+    /// <summary>
+    /// Delete tag from module [Teacher]
+    /// </summary>
+    [HttpDelete]
+    [Route("tag/{tagId}/{moduleId}")]
+    public async Task<ActionResult> DeleteTagToModule(Guid tagId, Guid moduleId)
+    {
+        if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid editorId) == false)
+        {
+            throw new UnauthorizedException("User is not authorized");
+        }
+
+        await _moduleManagerService.DeleteTagToModule(tagId, moduleId);
+        return Ok();
+    }
+
+    /// <summary>
+    /// Edit tag [Teacher]
+    /// </summary>
+    [HttpPut]
+    [Route("tag/{tagId}/edit")]
+    public async Task<ActionResult> EditModuleTags([FromQuery] string newTagName, Guid tagId)
+    {
+        if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid editorId) == false)
+        {
+            throw new UnauthorizedException("User is not authorized");
+        }
+
+        await _moduleManagerService.EditModuleTags(newTagName, tagId);
+        return Ok();
+    }
+
+    /// <summary>
+    /// Delete tag [Teacher]
+    /// </summary>
+    [HttpDelete]
+    [Route("tag/{tagId}/delete")]
+    public async Task<ActionResult> DeleteModuleTags(Guid tagId)
+    {
+        if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid editorId) == false)
+        {
+            throw new UnauthorizedException("User is not authorized");
+        }
+
+        await _moduleManagerService.DeleteModuleTags(tagId);
+        return Ok();
+    }
 }

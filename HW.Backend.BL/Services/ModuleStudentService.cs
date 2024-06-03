@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 
-namespace HW.Backend.BL.Services; 
+namespace HW.Backend.BL.Services;
 
 public class ModuleStudentService : IModuleStudentService {
     private readonly ILogger<ModuleStudentService> _logger;
@@ -24,7 +24,7 @@ public class ModuleStudentService : IModuleStudentService {
     }
 
     public async Task<PagedList<ModuleShortDto>> GetAvailableModules(PaginationParamsDto pagination, FilterModuleType? filter, string? sortByNameFilter,
-        SortModuleType? sortModuleType, Guid? userId) {
+        SortModuleType? sortModuleType, Guid? userId, ModuleTagsDto? ModuleTags) {
         var user = await _dbContext.Students
             .Include(u=>u.Modules)!
             .ThenInclude(m=>m.Module)
@@ -32,10 +32,11 @@ public class ModuleStudentService : IModuleStudentService {
         
         if (pagination.PageNumber <= 0)
             throw new BadRequestException("Wrong page");
-        
+
         var modules = _dbContext.Modules
             .Where(m => !m.ArchivedAt.HasValue && m.ModuleVisibility == ModuleVisibilityType.Everyone)
             .ModuleAvailableFilter(filter,sortByNameFilter)
+            .Where(m => ModuleTags!.TagsId!.Count() == 0 || ModuleTags == null || m.Tags!.Any(tag => ModuleTags.TagsId!.Contains(tag.Id)))
             .ModuleOrderBy(sortModuleType)
             .AsQueryable()
             .AsNoTracking();
@@ -166,7 +167,7 @@ public class ModuleStudentService : IModuleStudentService {
         if (user == null)
             return 0;
         var chapters = await _dbContext.Chapters
-            .Where(c => c.ChapterType == ChapterType.DefaultChapter && c.SubModule.Module.Id == moduleId)
+            .Where(c => c.ChapterType == ChapterType.DefaultChapter && c.SubModule.Module.Id == moduleId && !c.ArchivedAt.HasValue)
             .AsNoTracking()
             .ToListAsync();
         var totalLearned = await _dbContext.Learned
@@ -203,6 +204,8 @@ public class ModuleStudentService : IModuleStudentService {
             Id = module.Id,
             Name = module.Name,
             Description = module.Description,
+            WhatWillYouLearn = module.WhatWillYouLearn,
+            TargetAudience = module.TargetAudience,
             Price = module.Price,
             Avatar = module.AvatarId == null 
                 ? null 
@@ -260,9 +263,104 @@ public class ModuleStudentService : IModuleStudentService {
         }
         return response;
     }
+    public async Task SendCommentToModule(ModuleCommentCreateDto model, Guid moduleId, Guid userId)
+    {
+        var user = await _dbContext.UserBackends
+            .FirstOrDefaultAsync(c => c.Id == userId);
 
-    public async Task<ModuleDetailsDto> SendCommentToModule(ModuleCommentDto model, Guid moduleId, Guid userId) {
-        throw new NotImplementedException();
+        if (user == null)
+            throw new NotFoundException("User with this id not found");
+
+        var teacher = await _dbContext.Teachers
+            .FirstOrDefaultAsync(t => t.Id == userId);
+
+        var module = await _dbContext.Modules
+            .FirstOrDefaultAsync(c => c.Id == moduleId);
+
+        if (module == null)
+            throw new NotFoundException("Module with this id not found");
+
+        await _dbContext.AddAsync(new ModuleComment
+        {
+            Id = Guid.NewGuid(),
+            CreatedAt = DateTime.UtcNow,
+            Message = model.Message,
+            Module = module,
+            User = user,
+            IsTeacherComment = teacher != null
+        });
+        await _dbContext.SaveChangesAsync();
+    }
+
+    public async Task DeleteCommentFromModule(Guid commentId, Guid userId)
+    {
+        var comment = await _dbContext.ModuleComments
+            .FirstOrDefaultAsync(c => c.Id == commentId);
+        if (comment == null)
+            throw new NotFoundException("Comment with this id not found");
+
+        var user = await _dbContext.UserBackends
+            .FirstOrDefaultAsync(c => c.Id == userId);
+        if (user == null)
+            throw new NotFoundException("User with this id not found");
+
+        var teacher = await _dbContext.Teachers
+            .FirstOrDefaultAsync(t => t.Id == userId);
+
+        if (comment.User != user && teacher == null)
+            throw new ConflictException("User have not rules to delete this comment");
+
+        _dbContext.ModuleComments.Remove(comment);
+        await _dbContext.SaveChangesAsync();
+    }
+
+    public async Task EditCommentInModule(ModuleCommentEditDto message, Guid commentId, Guid userId)
+    {
+        var comment = await _dbContext.ModuleComments
+            .FirstOrDefaultAsync(c => c.Id == commentId);
+        if (comment == null)
+            throw new NotFoundException("Comment with this id not found");
+
+        var user = await _dbContext.UserBackends
+            .FirstOrDefaultAsync(c => c.Id == userId);
+        if (user == null)
+            throw new NotFoundException("User with this id not found");
+
+        if (comment.User != user)
+            throw new ConflictException("User have not rules to delete this comment");
+
+        comment.Message = message.Message;
+        comment.EditedAt = DateTime.UtcNow;
+        _dbContext.Update(comment);
+        await _dbContext.SaveChangesAsync();
+    }
+
+    public async Task<PagedList<ModuleCommentDto>> GetModuleComments(Guid moduleId, PaginationParamsDto pagination)
+    {
+        var module = await _dbContext.Modules
+            .FirstOrDefaultAsync(c => c.Id == moduleId);
+
+        if (module == null)
+            throw new NotFoundException("Module with this id not found");
+
+        if (pagination.PageNumber <= 0)
+            throw new BadRequestException("Wrong page");
+
+        var comments = _dbContext.ModuleComments
+            .Where(c => c.Module == module)
+            .AsQueryable()
+            .AsNoTracking();
+
+        var commentsDto = comments.Select(x => new ModuleCommentDto
+        {
+            Id = x.Id,
+            UserId = x.User.Id,
+            Message = x.Message,
+            IsTeacherComment = x.IsTeacherComment
+        });
+
+        var response = await PagedList<ModuleCommentDto>.ToPagedList(commentsDto, pagination.PageNumber, pagination.PageSize);
+        return response;
     }
 
     public async Task BuyModule(Guid moduleId, Guid userId) {
@@ -391,5 +489,72 @@ public class ModuleStudentService : IModuleStudentService {
             throw new ConflictException("User probably already bought this course");
         _dbContext.Remove(studentModule);
         await _dbContext.SaveChangesAsync();
+    }
+
+    public async Task AddSpentTimeOnModule(Guid moduleId, Guid userId, SpentTimeDto spentTime)
+    {
+        var module = await _dbContext.Modules
+            .FirstOrDefaultAsync(m => m.Id == moduleId);
+        if (module == null)
+            throw new NotFoundException("Module not found");
+
+        var user = await _dbContext.Students
+            .FirstOrDefaultAsync(u => u.Id == userId);
+        if (user == null)
+            throw new NotFoundException("User not found");
+
+        var userModule = await _dbContext.UserModules
+            .FirstOrDefaultAsync(um => um.Module == module && um.Student == user);
+        if (userModule == null)
+            throw new ConflictException("User's module not found");
+        
+        userModule.SpentTime += new TimeSpan(spentTime.Days, spentTime.Hours, spentTime.Minutes, spentTime.Seconds);
+
+        _dbContext.Update(userModule);
+        await _dbContext.SaveChangesAsync();
+    }
+
+    public async Task<PagedList<TagDto>> SearchModuleTags(string? tagName, PaginationParamsDto pagination)
+    {
+        var tags = _dbContext.ModuleTags
+            .Where(t => tagName == null || t.TagName.ToLower().Contains(tagName.ToLower()))
+            .AsQueryable()
+            .AsNoTracking();
+
+        if (tags == null)
+            throw new NotFoundException("Tags not found");
+
+        if (pagination.PageNumber <= 0)
+            throw new BadRequestException("Wrong page");
+
+        var tagsDto = tags.Select(x => new TagDto
+        {
+            TagId = x.Id,
+            TagName = x.TagName
+        });
+
+        var response = await PagedList<TagDto>.ToPagedList(tagsDto, pagination.PageNumber, pagination.PageSize);
+        return response;
+    }
+
+    public async Task<List<TagDto>> GetTagsOfModule(Guid moduleId)
+    {
+        var module = await _dbContext.Modules
+            .Include(m => m.Tags)
+            .FirstOrDefaultAsync(m => m.Id == moduleId);
+
+        if (module == null)
+            throw new NotFoundException("Module not found");
+
+        if (module.Tags!.Count() == 0)
+            throw new NotFoundException("Module tags not found");
+
+        var tagsDto = module.Tags!.Select(t => new TagDto
+        { 
+            TagId = t.Id,
+            TagName = t.TagName
+        }).ToList();
+
+        return tagsDto;
     }
 }

@@ -7,6 +7,8 @@ public class ModuleStreamingCreateDto {
     [MinLength(3)]
     public string Name { get; set; }
     public string? Description { get; set; }
+    public string? WhatWillYouLearn { get; set; }
+    public string? TargetAudience { get; set; }
     public string? AvatarId { get; set; }
     public int? Price { get; set; }
     public List<Guid>? RequiredModules { get; set; } = new();
